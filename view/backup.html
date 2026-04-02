@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <title>IGO - Recursos Complementares</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        /* Cabeçalho */
+        .header {
+            background: linear-gradient(135deg, #1f3fcc 0%, #448ed3 100%);
+            height: 100px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        #menu-toggle {
+            display: none;
+        }
+        #menu-toggle:checked ~ .slide-menu{
+            right: 0;
+        }
+        #menu-toggle:checked + .menu-btn span:nth-child(1){
+            transform: rotate(45deg) translateY(13px);
+            background: #fff;
+        }
+        #menu-toggle:checked + .menu-btn span:nth-child(2){
+            opacity: 0;
+        }
+        #menu-toggle:checked + .menu-btn span:nth-child(3){
+            transform: rotate(-45deg) translateY(-13px);
+            background: #fff;
+        }
+        .menu-btn {
+            position: absolute;
+            top: 40px;
+            right: 20px;
+            width: 30px;
+            height: 22px;
+            cursor: pointer;
+            z-index: 1002;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .menu-btn span{
+            display: block;
+            height: 3px;
+            width: 100%;
+            background: #000;
+            border-radius: 3px;
+            transition: all 0.3s
+        }
+        .slide-menu {
+            position: fixed;
+            top: 0;
+            right: -250px;
+            width: 250px;
+            height: 100%;
+            background: linear-gradient(135deg, #1f3fcc 0%, #448ed3 100%);
+            color: #fff;
+            transition: right 0.3s ease;
+            padding-top: 60px;
+            z-index: 1001;
+        }
+        .list {
+            padding: 15px 20px;
+            text-decoration: none;
+        }
+        .list a{
+            text-decoration: none;
+            color: inherit;
+        }
+        .item-list{
+            padding: 15px 20px;
+            border-bottom: 1px solid #9ca3af;
+            list-style-type: none;
+        }
+        .item-list:hover{
+            background: #517edf;
+            cursor: pointer;
+        }
+
+        /* Conteúdo */
+        .main-container {
+            background-color: white;
+            min-height: 67vh;
+            padding: 40px 20px;
+        }
+        .content-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .page-title {
+            color: #374151;
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        /* Área de Backup */
+        .backup-section {
+            background-color: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        .backup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        .backup-title {
+            color: #374151;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .backup-schedule {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .schedule-info {
+            background-color: #f8fafc;
+            padding: 15px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .schedule-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, #448ed3, #1f3fcc, #490bf5, #8f2ffd);
+        }
+        .schedule-info h4 {
+            color: #374151;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .schedule-info p {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        /* Histórico de Backups */
+        .backup-history {
+            margin-top: 25px;
+        }
+        .backup-history h4 {
+            color: #374151;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        .backup-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .backup-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background-color: #f8fafc;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .backup-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, #448ed3, #1f3fcc, #490bf5, #8f2ffd);
+        }
+        .backup-info h5 {
+            color: #374151;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .backup-info p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .backup-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #1f3fcc 0%, #448ed3 100%);
+            color: white;
+        }
+        .btn:hover, .btn-sm:hover {
+            transform: translateY(-1px);
+            background: linear-gradient(135deg, #1f3bb9 0%, #4183c2 100%);
+        }
+        .btn-sm {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #1f3fcc 0%, #448ed3 100%);
+            color: white;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-title {
+            color: #374151;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            color: #4b5563;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .header {
+                padding: 0 20px;
+                height: 30vh;
+            }
+            .logo {
+                font-size: 36px;
+            }
+            .main-container {
+                padding: 20px 15px;
+            }
+            .backup-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            .backup-schedule {
+                flex-direction: column;
+            }
+        }
+        @media (max-width: 480px) {
+            .header {
+                padding: 0 15px;
+            }
+            .logo {
+                font-size: 32px;
+            }
+            .user-icon {
+                width: 40px;
+                height: 40px;
+            }
+            .backup-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="menu-nav">
+            <input type="checkbox" id="menu-toggle">
+            <label for="menu-toggle" class="menu-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </label>
+            <div class="slide-menu">
+                <div class="user-header">
+                    <div class="user-icon">
+                        <div class="avatar">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <p class="user-name">{{ nome_usuario }}</p>
+                    </div>
+                    <a href="{{ url_for('auth.logout') }}" class="logout-btn">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </a>
+                </div>
+                <ul class="list">
+                    {% if 'dashboard' in permissoes %}
+                        <a href="{{ url_for('dashboard.dashboard') }}"><li class="item-list">Dashboard</li></a>
+                    {% endif %}
+                    {% if 'estoque' in permissoes %}
+                        <a href="{{ url_for('estoque.estoque') }}"><li class="item-list">Estoque</li></a>
+                    {% endif %}
+                    {% if 'solicitacoes' in permissoes %}
+                        <a href="{{ url_for('solicitacoes.solicitacoes') }}"><li class="item-list">Solicitações</li></a>
+                    {% endif %}
+                    {% if 'usuarios' in permissoes %}
+                        <a href="{{ url_for('usuario.usuario') }}"><li class="item-list">Usuários</li></a>
+                    {% endif %}
+                    {% if 'relatorios' in permissoes %}
+                        <a href="{{ url_for('relatorios.relatorios') }}"><li class="item-list">Relatórios</li></a>
+                    {% endif %}
+                    {% if 'backup' in permissoes %}
+                        <a href="{{ url_for('backup.backup') }}"><li class="item-list">Backup</li></a>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="content-wrapper">
+            <h1 class="page-title">Backup da Base de Dados</h1>
+
+            <!-- Seção de Backup -->
+            <div class="backup-section">
+                <!-- Cabeçalho de Backup -->
+                <div class="backup-header">
+                    <h3 class="backup-title"><i class="fa-solid fa-floppy-disk"></i> Backup Automático da Base de Dados</h3>
+                    <div class="backup-schedule"> 
+                        <a href="{{ url_for('backup.realizar_backup_manual') }}" class="btn">
+                            <i class="fa-solid fa-arrows-rotate"></i> Backup Manual
+                        </a>
+                        <a href="{{ url_for('backup.backup', agendar_backup='true') }}" class="btn">
+                            <i class="fa-solid fa-clock"></i> Agendar
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Estatísticas de Backups -->
+                <div class="schedule-info">
+                    <h4><i class="fa-solid fa-calendar"></i> Agendamento Atual</h4>
+                    <p><strong>Frequência:</strong> 
+                        {% if stats['frequencia'] == 'Diário' %}
+                            Diário às {{ stats['horario'] }}
+                        {% elif stats['frequencia'] == 'Semanal' %}
+                            Semanalmente {{ stats['dia_semana'] }} às {{ stats['horario'] }}
+                        {% elif stats['frequencia'] == 'Mensal' %}
+                            Mensalmente no dia {{ stats['dia_mes'] }} às {{ stats['horario'] }}
+                        {% endif %}
+                    </p>
+                    <p><strong>Último backup:</strong> {{ stats['horario'] }}</p>
+                    <p><strong>Próximo backup:</strong> Amanhã às 02:00</p>
+                </div>
+
+                <!-- Histórico de Backups -->
+                <div class="backup-history">
+                    <h4><i class="fa-regular fa-clipboard"></i> Histórico de Backups</h4>
+
+                    <div class="backup-list">
+                        {% if historico_backups %}
+                            {% for backup in historico_backups %}
+                                <div class="backup-item">
+                                    <div class="backup-info">
+                                        <h5>{{ backup.nome }}</h5>
+                                        <p>{{ backup.data }} — {{ backup.tamanho }}</p>
+                                    </div>
+                                    <div class="backup-actions">
+                                        <form action="{{ url_for('backup.restaurar_backup') }}" method="POST">
+                                            <input type="hidden" name="arquivo" value="{{ backup.arquivo }}">
+                                            <button class="btn btn-sm btn-warning">
+                                                <i class="fa-solid fa-arrows-rotate"></i> Restaurar
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p>Nenhum backup realizado ainda.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% if arquivo_download %}
+                <!-- Modal Confirmar Download Backup -->
+                <div class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title">Backup concluído!</h3>
+                        </div>
+                            <div class="form-group">
+                                <p class="form-label">O backup foi gerado com sucesso.</p>
+                                <p class="form-label">Deseja fazer o download agora?</p>
+                            </div>
+                            <a href="{{ url_for('backup.download_backup', arquivo=arquivo_download) }}" class="btn btn-success">Sim, baixar backup</a>
+
+                            <a href="{{ url_for('backup.backup') }}" class="btn">Voltar</a>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if modal_agendar_backup %}
+                <!-- Modal Agendar Backup -->
+                <div class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title">Agendar Backup</h3>
+                        </div>
+                        <form method="post" action="{{ url_for('backup.agendar_backup') }}">
+                            <div class="form-row">    
+                                <div class="form-group">
+                                    <label class="form-label">Frequência:</label>
+                                    <select name="frequencia" id="frequencia" class="form-input" required>
+                                        <option value="Diário">Diário</option>
+                                        <option value="Semanal">Semanal</option>
+                                        <option value="Mensal">Mensal</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Horário:</label>
+                                    <input type="time" name="horario" class="form-input" required>
+                                </div>
+                            </div>
+                            <div class="form-group" id="campo-dia-semana">
+                                <label class="form-label">Dia da semana:</label>
+                                <select name="dia_semana" class="form-input">
+                                    <option value="Segunda-Feira">Segunda-Feira</option>
+                                    <option value="Terça-Feira">Terça-Feira</option>
+                                    <option value="Quarta-Feira">Quarta-Feira</option>
+                                    <option value="Quinta-Feira">Quinta-Feira</option>
+                                    <option value="Sexta-Feira">Sexta-Feira</option>
+                                    <option value="Sábado">Sábado</option>
+                                    <option value="Domingo">Domingo</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="campo-dia-mes">
+                                <label class="form-label">Dia do mês:</label>
+                                <input type="number" name="dia_mes" class="form-input" min="1" max="31">
+                            </div>
+                            <div class="modal-actions">
+                                <button type="submit" class="btn">Salvar</button>
+                                <a href="{{ url_for('backup.backup') }}" class="btn">Cancelar</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Mensagens Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
+
+    <script>
+        function atualizarCampos() {
+            const frequencia = document.getElementById("frequencia").value;
+
+            const campoDiaSemana = document.getElementById("campo-dia-semana");
+            const campoDiaMes = document.getElementById("campo-dia-mes");
+
+            // Oculta ambos inicialmente
+            campoDiaSemana.style.display = "none";
+            campoDiaMes.style.display = "none";
+
+            // Mostra dependendo da frequência
+            if (frequencia === "Semanal") {
+                campoDiaSemana.style.display = "block";
+            } else if (frequencia === "Mensal") {
+                campoDiaMes.style.display = "block";
+            }
+        }
+
+        atualizarCampos();
+
+        document.getElementById("frequencia").addEventListener("change", atualizarCampos);
+    </script>
+</body>
+</html>
