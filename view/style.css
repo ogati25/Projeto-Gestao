@@ -1,0 +1,269 @@
+:root {
+    --background-color: #f4f6f9;
+    --primary-color: #1e293b;
+    --primary-hover: #334155;
+    --secondary-color: #e4e4e4;
+    --tertiary-color: #888f92;
+    --quaternary-color: #c4c4c4;
+    --quinary-color: #3e608f;
+    --quinary-hover: #60a5fa;
+    --sextiary-color: #42b1e0;
+    --sextiary-hover: #112157;
+    --text-primary: #333;
+    --text-secondary: #cbd5e1;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+body {
+    display: flex;
+    background: var(--background-color);
+}
+
+/* -----------<<<<<<<<<<<<< SIDEBAR >>>>>>>>>>>------------ */
+.sidebar {
+    position: relative;
+    width: 250px;
+    height: 100vh;
+    background: var(--primary-color);
+    color: var(--text-secondary);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    transition: 0.3s;
+}
+.sidebar h2 {
+    margin-top: 15px;
+}
+.sidebar.closed {
+    width: 0;
+    padding: 0;
+}
+.sidebar.closed h2,
+.sidebar.closed .search-box, 
+.sidebar.closed .menu {
+    display: none;
+}
+/* ---------------------- BOTÃO DE TOGGLE ---------------------- */
+.toggle-btn {
+    position: absolute;
+    top: 10px;
+    right: -25px; /* joga ele pra fora da sidebar */
+    width: 25px;
+    height: 25px;
+    background: var(--primary-color);
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 0 8px 8px 0;
+}
+.icon-open {
+    display: none;
+}
+.sidebar.closed .icon-close {
+    display: none;
+}
+.sidebar.closed .icon-open {
+    display: inline;
+}
+
+/* ---------------------- BARRA DE PESQUISA ---------------------- */
+.search-box {
+    display: flex;
+    align-items: center;
+    background: #334155;
+    padding: 8px 10px;
+    border-radius: 8px;
+    transition: 0.2s;
+    border: 1px solid transparent;
+}
+/* Hover */
+.search-box:hover {
+    background: #3b4a5f;
+}
+/* Quando focar no input */
+.search-box:focus-within {
+    border: 1px solid #3b82f6;
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+}
+/* Ícone lupa */
+.search-box i {
+    color: #94a3b8;
+    font-size: 14px;
+}
+/* Espaço do input */
+.search-box input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #fff;
+    width: 100%;
+    margin: 0 8px;
+    font-size: 14px;
+}
+/* Placeholder */
+.search-box input::placeholder {
+    color: #94a3b8;
+}
+/* Botão limpar */
+.clear-btn {
+    opacity: 0;
+    cursor: pointer;
+    transition: 0.2s;
+}
+/* Mostrar botão ao passar mouse */
+.search-box:hover .clear-btn {
+    opacity: 1;
+}
+/* Hover no X */
+.clear-btn:hover {
+    color: #ef4444;
+}
+/* ---------------------- MENU ---------------------- */
+.menu {
+    list-style: none;
+}
+.menu li {
+    position: relative;
+    border-radius: 6px;
+    margin-bottom: 5px;
+}
+/* Link */
+.menu li a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    transition: 0.2s;
+}
+/* Hover */
+.menu li:hover {
+    background: var(--primary-hover);
+}
+/* Ativo */
+.menu li.active {
+    background: var(--quinary-color);
+}
+/* Barra lateral do ativo */
+.menu li.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--quinary-hover);
+    border-radius: 0 4px 4px 0;
+}
+/* Ícones */
+.menu li i {
+    width: 20px;
+    text-align: center;
+}
+
+/* ----------------<<<<<<<<<<<< PÁGINA >>>>>>>>>>>------------ */
+main {
+    flex: 1;
+    overflow: hidden;
+}
+/* -------------------------<< CABEÇALHO >>--------------------- */
+main header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--secondary-color);
+    padding: 15px 35px;
+}
+main header h1 {
+    color: var(--text-primary);
+    margin: 0;
+}
+.header-buttons {
+    display: flex;
+    gap: 20px;
+}
+/* ---------------------- BOTÃO TEMA ---------------------- */
+.theme-toggle {
+    position: relative;
+    width: 66px;
+    height: 36px;
+    background: var(--sextiary-hover);
+    border: 3px solid var(--primary-color);
+    border-radius: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px;
+    transition: 0.3s;
+}
+/* Ícones */
+.theme-toggle i {
+    font-size: 19px;
+    color: #ffd429;
+}
+/* BOLINHA (indicador) */
+.theme-toggle::before {
+    content: "";
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background: var(--text-secondary);
+    border-radius: 50%;
+    left: 0px;
+    transition: 0.3s;
+}
+.theme-toggle.light::before {
+    transform: translateX(30px);
+}
+.theme-toggle.light {
+    background: var(--sextiary-color);
+    border: 3px solid var(--tertiary-color);
+
+}
+/* ---------------------- BOTÃO CONFIG ---------------------- */
+.btn-config {
+    width: 36px;
+    height: 36px;
+    background: var(--text-secondary);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    padding: none;
+    transition: 0.3s;
+}
+.btn-config i {
+    font-size: 19px;
+    color: var(--tertiary-color);
+}
+/* ---------------------------<< CONTEÚDO >>------------------------ */
+.main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px 35px;
+    overflow: hidden;
+    min-width: 0;
+}
+
+/* ----------------<<<<<<<<<<<< CARDS >>>>>>>>>>>------------ */
+.cards {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+.card {
+    background: var(--secondary-color);
+    padding: 15px;
+    flex: 1;
+    border-radius: 8px;
+}
+
+/* ----------------<<<<<<<<<<<< STATUS >>>>>>>>>>>------------ */
