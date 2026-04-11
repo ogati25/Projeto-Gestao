@@ -16,7 +16,7 @@ public class Computador : Equipamento
     // referência ao ID do processador
     public string? ProcessadorId { get; set; }
 
-    public string? GeracaoRAM { get; set; }
+    public GeracaoRAM GeracaoRAM { get; set; }
 
     [Range(1, 16)]
     public int QuantidadeSlots { get; set; }

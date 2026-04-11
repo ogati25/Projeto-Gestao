@@ -443,6 +443,13 @@
             background: #fff;
         }
         .form-group textarea { resize: vertical; min-height: 70px; }
+        .form-group input[type="checkbox"] {
+            width: 18px; height: 18px; cursor: pointer;
+            accent-color: var(--primary-color);
+        }
+        .form-group input[type="number"] { -moz-appearance: textfield; }
+        .form-group input[type="number"]::-webkit-outer-spin-button,
+        .form-group input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .form-section-title {
             font-size: 11px;
             font-weight: 700;
@@ -1090,11 +1097,135 @@
         });
 
         // ==================== RENDER FORM FIELDS ====================
+        // Cria um select genérico
+        function criarSelect(name, options, valor = '') {
+            const sel = document.createElement('select');
+            sel.name = name;
+            const blank = document.createElement('option');
+            blank.value = ''; blank.textContent = '— Selecione —';
+            sel.appendChild(blank);
+            options.forEach(opt => {
+                const o = document.createElement('option');
+                o.value = opt; o.textContent = opt;
+                if (valor === opt) o.selected = true;
+                sel.appendChild(o);
+            });
+            return sel;
+        }
+
+        // Cria um input de texto genérico
+        function criarInput(name, valor = '', placeholder = '', tipo = 'text') {
+            const inp = document.createElement('input');
+            inp.type = tipo; inp.name = name;
+            inp.value = valor;
+            if (placeholder) inp.placeholder = placeholder;
+            return inp;
+        }
+
+        // Renderiza a lista dinâmica de slots de RAM
+        // Insere o wrapper dinâmico logo APÓS o grupo que o disparou
+        function inserirApos(afterEl, novoEl) {
+            afterEl.insertAdjacentElement('afterend', novoEl);
+        }
+
+        function renderSlotsRAM(afterGroup, quantidade, valores = []) {
+            const antigo = document.getElementById('slots-ram-wrapper');
+            if (antigo) antigo.remove();
+            if (!quantidade || quantidade < 1) return;
+            const div = document.createElement('div');
+            div.id = 'slots-ram-wrapper';
+            div.className = 'span-2';
+            div.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:10px;';
+            for (let i = 0; i < quantidade; i++) {
+                const group = document.createElement('div');
+                group.className = 'form-group';
+                const lbl = document.createElement('label');
+                lbl.textContent = `Slot ${i + 1}`;
+                group.appendChild(lbl);
+                group.appendChild(criarSelect(`ram_slot_${i}`, TIPO_MEMORIA_RAM, valores[i] || ''));
+                div.appendChild(group);
+            }
+            inserirApos(afterGroup, div);
+        }
+
+        function renderDiscos(afterGroup, quantidade, valores = []) {
+            const antigo = document.getElementById('discos-wrapper');
+            if (antigo) antigo.remove();
+            if (!quantidade || quantidade < 1) return;
+            const div = document.createElement('div');
+            div.id = 'discos-wrapper';
+            div.className = 'span-2';
+            div.style.cssText = 'display:flex;flex-direction:column;gap:10px;';
+            for (let i = 0; i < quantidade; i++) {
+                const row = document.createElement('div');
+                row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:10px;';
+                const g1 = document.createElement('div'); g1.className = 'form-group';
+                const l1 = document.createElement('label'); l1.textContent = `Disco ${i+1} — Tipo`;
+                g1.appendChild(l1);
+                g1.appendChild(criarSelect(`disco_tipo_${i}`, TIPO_DISCO, valores[i]?.tipo || ''));
+                const g2 = document.createElement('div'); g2.className = 'form-group';
+                const l2 = document.createElement('label'); l2.textContent = `Disco ${i+1} — Tamanho (GB)`;
+                g2.appendChild(l2);
+                g2.appendChild(criarInput(`disco_tamanho_${i}`, valores[i]?.tamanho || '', 'Ex: 512', 'number'));
+                row.appendChild(g1); row.appendChild(g2);
+                div.appendChild(row);
+            }
+            inserirApos(afterGroup, div);
+        }
+
+        function renderPlacasVideo(afterGroup, quantidade, valores = []) {
+            const antigo = document.getElementById('gpus-wrapper');
+            if (antigo) antigo.remove();
+            if (!quantidade || quantidade < 1) return;
+            const div = document.createElement('div');
+            div.id = 'gpus-wrapper';
+            div.className = 'span-2';
+            div.style.cssText = 'display:flex;flex-direction:column;gap:10px;';
+            for (let i = 0; i < quantidade; i++) {
+                const row = document.createElement('div');
+                row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:10px;';
+                const g1 = document.createElement('div'); g1.className = 'form-group';
+                const l1 = document.createElement('label'); l1.textContent = `GPU ${i+1} — Tipo`;
+                g1.appendChild(l1);
+                g1.appendChild(criarSelect(`gpu_tipo_${i}`, TIPO_GPU, valores[i]?.tipo || ''));
+                const g2 = document.createElement('div'); g2.className = 'form-group';
+                const l2 = document.createElement('label'); l2.textContent = `GPU ${i+1} — VRAM (GB)`;
+                g2.appendChild(l2);
+                g2.appendChild(criarInput(`gpu_vram_${i}`, valores[i]?.vram || '', 'Ex: 4', 'number'));
+                row.appendChild(g1); row.appendChild(g2);
+                div.appendChild(row);
+            }
+            inserirApos(afterGroup, div);
+        }
+
+        // Conectores de vídeo: lista de selects com enum (não mais checkboxes)
+        function renderConectoresVideo(afterGroup, quantidade, selecionados = []) {
+            const antigo = document.getElementById('conectores-wrapper');
+            if (antigo) antigo.remove();
+            if (!quantidade || quantidade < 1) return;
+            const div = document.createElement('div');
+            div.id = 'conectores-wrapper';
+            div.className = 'span-2';
+            div.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:10px;';
+            for (let i = 0; i < quantidade; i++) {
+                const group = document.createElement('div');
+                group.className = 'form-group';
+                const lbl = document.createElement('label');
+                lbl.textContent = `Conector ${i + 1}`;
+                group.appendChild(lbl);
+                group.appendChild(criarSelect(`conector_video_${i}`, CONECTOR_VIDEO, selecionados[i] || ''));
+                div.appendChild(group);
+            }
+            inserirApos(afterGroup, div);
+        }
+
         function renderFields(containerId, category, mode, prefillData = {}) {
             const container = document.getElementById(containerId);
             container.innerHTML = '';
             const fields = formFields[category] || [];
+
             fields.forEach(f => {
+                // Seção
                 if (f.section) {
                     if (!f.mode || f.mode === mode) {
                         const el = document.createElement('div');
@@ -1105,35 +1236,81 @@
                     return;
                 }
                 if (f.mode && f.mode !== mode) return;
+
                 const group = document.createElement('div');
                 group.className = 'form-group' + (f.span2 ? ' span-2' : '');
+
                 const label = document.createElement('label');
                 label.textContent = f.label;
                 group.appendChild(label);
+
                 let input;
+
                 if (f.type === 'select') {
+                    input = criarSelect(f.key, f.options || [], prefillData[f.key] || '');
+
+                    // Campos que disparam listas dinâmicas
+                    // passa o "group" (o div pai do select) para inserir logo após ele
+                    if (f.key === 'quant_slots') {
+                        input.addEventListener('change', () => {
+                            renderSlotsRAM(group, parseInt(input.value) || 0);
+                        });
+                    }
+                    if (f.key === 'quant_discos') {
+                        input.addEventListener('change', () => {
+                            renderDiscos(group, parseInt(input.value) || 0);
+                        });
+                    }
+                    if (f.key === 'quant_gpus') {
+                        input.addEventListener('change', () => {
+                            renderPlacasVideo(group, parseInt(input.value) || 0);
+                        });
+                    }
+                    if (f.key === 'quant_conectores') {
+                        input.addEventListener('change', () => {
+                            renderConectoresVideo(group, parseInt(input.value) || 0);
+                        });
+                    }
+
+                } else if (f.type === 'processador_select') {
+                    // Select populado dinamicamente via API
                     input = document.createElement('select');
                     input.name = f.key;
-                    const blank = document.createElement('option');
-                    blank.value = ''; blank.textContent = '— Selecione —';
-                    input.appendChild(blank);
-                    (f.options || []).forEach(opt => {
-                        const o = document.createElement('option');
-                        o.value = opt; o.textContent = opt;
-                        if (prefillData[f.key] === opt) o.selected = true;
-                        input.appendChild(o);
+                    const loading = document.createElement('option');
+                    loading.textContent = 'Carregando...';
+                    input.appendChild(loading);
+                    getProcessadores().then(lista => {
+                        input.innerHTML = '';
+                        const blank = document.createElement('option');
+                        blank.value = ''; blank.textContent = '— Selecione o processador —';
+                        input.appendChild(blank);
+                        (lista || []).forEach(p => {
+                            const o = document.createElement('option');
+                            o.value = p.id;
+                            o.textContent = `${p.nome} ${p.velocidade}GHz (${p.nucleosThreads?.nucleos}c/${p.nucleosThreads?.threads}t)`;
+                            if (prefillData[f.key] === p.id) o.selected = true;
+                            input.appendChild(o);
+                        });
+                    }).catch(() => {
+                        input.innerHTML = '<option value="">Erro ao carregar processadores</option>';
                     });
+
                 } else if (f.type === 'textarea') {
                     input = document.createElement('textarea');
                     input.name = f.key;
                     input.value = prefillData[f.key] || '';
-                } else {
+
+                } else if (f.type === 'checkbox') {
                     input = document.createElement('input');
-                    input.type = f.type || 'text';
+                    input.type = 'checkbox';
                     input.name = f.key;
-                    input.value = prefillData[f.key] || '';
-                    if (f.placeholder) input.placeholder = f.placeholder;
+                    input.checked = prefillData[f.key] === true || prefillData[f.key] === 'true';
+                    input.style.width = 'auto';
+
+                } else {
+                    input = criarInput(f.key, prefillData[f.key] || '', f.placeholder || '', f.type || 'text');
                 }
+
                 group.appendChild(input);
                 container.appendChild(group);
             });
@@ -1150,7 +1327,23 @@
         function submitAdd() {
             const fields = document.querySelectorAll('#formAddFields [name]');
             const data = {};
-            fields.forEach(f => { data[f.name] = f.value; });
+            fields.forEach(f => {
+                if (f.type === 'checkbox') {
+                    data[f.name] = f.checked;
+                } else {
+                    data[f.name] = f.value;
+                }
+            });
+            // conectores de vídeo: selects indexados
+            const conectores = [];
+            let i = 0;
+            while (true) {
+                const sel = document.querySelector(`#formAddFields select[name="conector_video_${i}"]`);
+                if (!sel) break;
+                if (sel.value) conectores.push(sel.value);
+                i++;
+            }
+            if (conectores.length) data['conector_video'] = conectores;
             console.log('ADD:', currentCategory, data);
             closeModal('modalAdd');
         }
@@ -1230,148 +1423,248 @@
 
         // ==================== ENUMS ESPELHADOS DO BACKEND ====================
         const SETOR    = ['RH','GXT','Suporte','Produtos','Auditoria','Diretoria','Mesa','CallCenter','Dev','Cofre','Servidor'];
-        const STATUS   = ['EmManutenção','NecessitaManutenção','EmUso','Desativado','EmEstoque','Indisponível','AguardandoDescarte','Descartado','Vendido'];
-        const SO       = ['Windows7','Windows10','Windows11','Linux','MacOS'];
-        const ATIV_SO  = ['Original_Fabrica','Original_Comprada','Desativado','Nao_Possui','Pirata'];
-        const OFFICE   = ['Nenhum','Office2016','Office2019','Office2021','Microsoft365'];
-        const ATIV_OFF = ['Desativado','NaoPossui','Original_Fabrica','Original_Comprada','Assinatura','Pirata'];
-        const TIPO_PC  = ['PC_Desktop','Notebook','All_in_One'];
-        const RESOLUCAO= ['HD','FHD','QHD','UHD4K'];
+        const STATUS   = ['Em Manutenção','Necessita Manutenção','Em Uso','Desativado','Em Estoque','Indisponível','Aguardando Descarte','Descartado','Vendido'];
+        const SO       = ['Windows 7','Windows 10','Windows 11','Linux','MacOS'];
+        const ATIV_SO  = ['Original Fábrica','Original Comprada','Desativado','Não Possui','Pirata'];
+        const OFFICE   = ['Nenhum','Office 2016','Office 2019','Office 2021','Microsoft 365'];
+        const ATIV_OFF = ['Desativado','Não Possui','Original Fábrica','Original Comprada','Assinatura','Pirata'];
+        const TIPO_PC  = ['PC Desktop','Notebook','All in One'];
+        const RESOLUCAO= ['HD','FHD','QHD','UHD 4K'];
         const CONECTIV = ['Bluetooth','Cabo','USB','TriMode'];
-        const SWITCH   = ['NaoPossui','Red','Blue','Brown','Yellow','Green','Black','Silver','Purple','White','Orange'];
-        const TIPO_PER = ['Gamer','Escritorio'];
+        const SWITCH   = ['Não Possui','Red','Blue','Brown','Yellow','Green','Black','Silver','Purple','White','Orange'];
+        const TIPO_PER = ['Gamer','Escritório'];
         const OPERADORA= ['Vivo','Claro','Tim','Oi','Nextel','Algar','Sercomtel','MVNOs'];
-        const CONECTOR_CARREGADOR = ['USB_C','Lightning','MicroUSB','MiniUSB'];
+        const CONECTOR_CARREGADOR = ['USB-C','Lightning','MicroUSB','MiniUSB'];
+        const CONECTOR_VIDEO = ['HDMI', 'DisplayPort', 'VGA', 'DVI'];
+        const TIPO_DISCO = ['HDD','SSD','SSD NVMe'];
+        const GERACAO_RAM = ['DDR3','DDR4','DDR5'];
+        const TIPO_RAM = ['0','2','4','8','16','32','64'];
+        const TIPO_GPU = ['Integrada','Dedicada'];
 
         // ==================== FORM FIELD DEFINITIONS ====================
+        // Tipos especiais:
+        //   'processador_select' → select populado via API de processadores
+        //   'checkbox'           → campo booleano
+        //   Chaves quant_slots / quant_discos / quant_gpus / quant_conectores
+        //   disparam listas dinâmicas ao mudar valor
+
+        const QUANT_SLOTS   = ['1','2','3','4','5','6','7','8'];
+        const QUANT_DISCOS  = ['1','2','3','4','5','6'];
+        const QUANT_GPUS    = ['0','1','2','3','4'];
+        const QUANT_CON     = ['0','1','2','3','4','5','6'];
+        const TIPO_MEMORIA_RAM = ['GB4','GB8','GB16','GB32','GB64'];
+
         const formFields = {
             computadores: [
+                // ── Geral ────────────────────────────────────────────
+                { section: 'Geral' },
                 { label: 'Modelo', key: 'modelo', type: 'text', span2: false },
                 { label: 'Tipo', key: 'tipo', type: 'select', options: TIPO_PC },
-                { section: 'Especificações Técnicas', mode: 'suporte' },
+                { label: 'IP', key: 'ip', type: 'text', placeholder: 'Ex: 192.168.0.10' },
+
+                // ── Processador ──────────────────────────────────────
+                { section: 'Processador', mode: 'suporte' },
+                { label: 'Processador', key: 'processadorId', type: 'processador_select', mode: 'suporte' },
+
+                // ── Memória RAM ──────────────────────────────────────
+                { section: 'Memória RAM', mode: 'suporte' },
+                { label: 'Geração RAM', key: 'geracaoRAM', type: 'select', options: GERACAO_RAM, mode: 'suporte' },
+                { label: 'Velocidade RAM (MHz)', key: 'velocidadeRAM', type: 'number', placeholder: 'Ex: 3200', mode: 'suporte' },
+                { label: 'Qtd. Slots', key: 'quant_slots', type: 'select', options: QUANT_SLOTS, mode: 'suporte' },
+                // slots gerados dinamicamente ao escolher Qtd. Slots
+
+                // ── Armazenamento ────────────────────────────────────
+                { section: 'Armazenamento', mode: 'suporte' },
+                { label: 'Qtd. Discos', key: 'quant_discos', type: 'select', options: QUANT_DISCOS, mode: 'suporte' },
+                // discos gerados dinamicamente
+
+                // ── Placa de Vídeo ───────────────────────────────────
+                { section: 'Placa de Vídeo', mode: 'suporte' },
+                { label: 'Qtd. GPUs', key: 'quant_gpus', type: 'select', options: QUANT_GPUS, mode: 'suporte' },
+                // gpus geradas dinamicamente
+
+                // ── Conectores de Vídeo ──────────────────────────────
+                { section: 'Conectores de Vídeo', mode: 'suporte' },
+                { label: 'Qtd. Conectores', key: 'quant_conectores', type: 'select', options: QUANT_CON, mode: 'suporte' },
+                // checkboxes gerados dinamicamente
+
+                // ── Sistema Operacional ──────────────────────────────
+                { section: 'Sistema Operacional' },
                 { label: 'Sistema Op.', key: 'so', type: 'select', options: SO, mode: 'suporte' },
                 { label: 'Ativação SO', key: 'ativacao_so', type: 'select', options: ATIV_SO },
-                { label: 'Office', key: 'office', type: 'select', options: OFFICE },
+                { label: 'Office', key: 'office', type: 'select', options: OFFICE, mode: 'suporte' },
                 { label: 'Ativação Office', key: 'ativacao_office', type: 'select', options: ATIV_OFF },
+
+                // ── Dados Administrativos ────────────────────────────
                 { section: 'Dados Administrativos', mode: 'gestao' },
                 { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
                 { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mode: 'gestao' },
+
+                // ── Atribuição ───────────────────────────────────────
                 { section: 'Atribuição' },
                 { label: 'Status', key: 'status', type: 'select', options: STATUS },
                 { label: 'Setor', key: 'setor', type: 'select', options: SETOR },
-                { label: 'Usuário', key: 'usuario', type: 'text', span2: true },
+                { label: 'Usuário', key: 'usuario', type: 'text' },
+                { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
             ],
             monitores: [
+                { section: 'Geral' },
                 { label: 'Modelo', key: 'modelo', type: 'text' },
-                { label: 'Tamanho (pol.)', key: 'tamanho', type: 'text' },
+                { label: 'Tamanho (pol.)', key: 'tamanho', type: 'number', placeholder: 'Ex: 27' },
+
                 { section: 'Especificações', mode: 'suporte' },
                 { label: 'Resolução', key: 'resolucao', type: 'select', options: RESOLUCAO, mode: 'suporte' },
-                { label: 'Frequência (Hz)', key: 'frequencia', type: 'text', mode: 'suporte' },
-                { label: 'HDMI', key: 'hdmi', type: 'select', options: ['Sim','Não'], mode: 'suporte' },
-                { label: 'DisplayPort', key: 'displayport', type: 'select', options: ['Sim','Não'], mode: 'suporte' },
-                { label: 'VGA', key: 'vga', type: 'select', options: ['Sim','Não'], mode: 'suporte' },
-                { label: 'DVI', key: 'dvi', type: 'select', options: ['Sim','Não'], mode: 'suporte' },
+                { label: 'Frequência (Hz)', key: 'frequencia', type: 'number', placeholder: 'Ex: 144', mode: 'suporte' },
+
+                { section: 'Conectividade', mode: 'suporte' },
+                { label: 'HDMI', key: 'hdmi', type: 'checkbox', mode: 'suporte' },
+                { label: 'DisplayPort', key: 'displayPort', type: 'checkbox', mode: 'suporte' },
+                { label: 'VGA', key: 'vga', type: 'checkbox', mode: 'suporte' },
+                { label: 'DVI', key: 'dvi', type: 'checkbox', mode: 'suporte' },
+
                 { section: 'Dados Administrativos', mode: 'gestao' },
                 { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
                 { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mode: 'gestao' },
+
                 { section: 'Atribuição' },
                 { label: 'Status', key: 'status', type: 'select', options: STATUS },
                 { label: 'Setor', key: 'setor', type: 'select', options: SETOR },
-                { label: 'Usuário', key: 'usuario', type: 'text', span2: true },
+                { label: 'Usuário', key: 'usuario', type: 'text' },
+                { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
             ],
             mouses: [
+                { section: 'Geral' },
                 { label: 'Modelo', key: 'modelo', type: 'text' },
+
                 { section: 'Especificações', mode: 'suporte' },
-                { label: 'Conectividade', key: 'conectividade', type: 'select', options: CONECTIV, mode: 'suporte' },
                 { label: 'Tipo', key: 'tipo', type: 'select', options: TIPO_PER, mode: 'suporte' },
+                { label: 'Conectividade', key: 'conectividade', type: 'select', options: CONECTIV, mode: 'suporte' },
+
                 { section: 'Dados Administrativos', mode: 'gestao' },
                 { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
                 { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mode: 'gestao' },
+
                 { section: 'Atribuição' },
                 { label: 'Status', key: 'status', type: 'select', options: STATUS },
                 { label: 'Setor', key: 'setor', type: 'select', options: SETOR },
-                { label: 'Usuário', key: 'usuario', type: 'text', span2: true },
+                { label: 'Usuário', key: 'usuario', type: 'text' },
+                { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
             ],
             teclados: [
+                { section: 'Geral' },
                 { label: 'Modelo', key: 'modelo', type: 'text' },
+
                 { section: 'Especificações', mode: 'suporte' },
-                { label: 'Conectividade', key: 'conectividade', type: 'select', options: CONECTIV, mode: 'suporte' },
                 { label: 'Tipo', key: 'tipo', type: 'select', options: TIPO_PER, mode: 'suporte' },
+                { label: 'Conectividade', key: 'conectividade', type: 'select', options: CONECTIV, mode: 'suporte' },
                 { label: 'Switch', key: 'switch', type: 'select', options: SWITCH, mode: 'suporte' },
-                { label: 'Tamanho (%)', key: 'tamanho', type: 'text', mode: 'suporte' },
+                { label: 'Tamanho (%)', key: 'tamanho', type: 'number', placeholder: 'Ex: 75', mode: 'suporte' },
+
                 { section: 'Dados Administrativos', mode: 'gestao' },
                 { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
                 { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mode: 'gestao' },
+
                 { section: 'Atribuição' },
                 { label: 'Status', key: 'status', type: 'select', options: STATUS },
                 { label: 'Setor', key: 'setor', type: 'select', options: SETOR },
-                { label: 'Usuário', key: 'usuario', type: 'text', span2: true },
+                { label: 'Usuário', key: 'usuario', type: 'text' },
+                { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
             ],
             fones: [
+                { section: 'Geral' },
                 { label: 'Modelo', key: 'modelo', type: 'text' },
+
                 { section: 'Especificações', mode: 'suporte' },
                 { label: 'Tipo', key: 'tipo', type: 'select', options: TIPO_PER, mode: 'suporte' },
                 { label: 'Conectividade', key: 'conectividade', type: 'select', options: CONECTIV, mode: 'suporte' },
+                { label: 'Microfone', key: 'microfone', type: 'checkbox', mode: 'suporte' },
+
                 { section: 'Dados Administrativos', mode: 'gestao' },
                 { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
                 { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mode: 'gestao' },
+
                 { section: 'Atribuição' },
                 { label: 'Status', key: 'status', type: 'select', options: STATUS },
                 { label: 'Setor', key: 'setor', type: 'select', options: SETOR },
-                { label: 'Usuário', key: 'usuario', type: 'text', span2: true },
+                { label: 'Usuário', key: 'usuario', type: 'text' },
+                { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
             ],
             celulares: [
+                { section: 'Geral' },
                 { label: 'Modelo', key: 'modelo', type: 'text' },
+
                 { section: 'Especificações', mode: 'suporte' },
-                { label: 'Armazenamento (GB)', key: 'armazenamento', type: 'text', mode: 'suporte' },
-                { label: 'RAM (GB)', key: 'ram', type: 'text', mode: 'suporte' },
+                { label: 'Armazenamento (GB)', key: 'armazenamento', type: 'number', placeholder: 'Ex: 128', mode: 'suporte' },
+                { label: 'RAM (GB)', key: 'ram', type: 'number', placeholder: 'Ex: 8', mode: 'suporte' },
                 { label: 'Conector Carregador', key: 'conectividade', type: 'select', options: CONECTOR_CARREGADOR, mode: 'suporte' },
+
                 { section: 'Dados Administrativos', mode: 'gestao' },
                 { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
                 { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mode: 'gestao' },
+
                 { section: 'Atribuição' },
                 { label: 'Status', key: 'status', type: 'select', options: STATUS },
                 { label: 'Setor', key: 'setor', type: 'select', options: SETOR },
-                { label: 'Usuário', key: 'usuario', type: 'text', span2: true },
+                { label: 'Usuário', key: 'usuario', type: 'text' },
+                { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
             ],
             ramais: [
+                { section: 'Geral' },
                 { label: 'Modelo', key: 'modelo', type: 'text' },
-                { label: 'Cor', key: 'cor', type: 'text' },
+                { label: 'Cor', key: 'cor', type: 'text', placeholder: 'Ex: Preto' },
+
                 { section: 'Especificações', mode: 'suporte' },
-                { label: 'Tipo', key: 'tipo', type: 'text', mode: 'suporte' },
-                { label: 'Linha', key: 'linha', type: 'text', mode: 'suporte' },
-                { label: 'Configurado', key: 'configurado', type: 'select', options: ['Sim','Não'], mode: 'suporte' },
+                { label: 'Tipo', key: 'tipo', type: 'text', placeholder: 'Ex: IP, Analógico', mode: 'suporte' },
+                { label: 'IP', key: 'ip', type: 'text', placeholder: 'Ex: 192.168.0.50', mode: 'suporte' },
+                { label: 'MAC', key: 'mac', type: 'text', placeholder: 'Ex: AA:BB:CC:DD:EE:FF', mode: 'suporte' },
+                { label: 'Linha', key: 'linha', type: 'text', placeholder: 'Ex: Linha 1', mode: 'suporte' },
+                { label: 'Número', key: 'numero', type: 'text', placeholder: 'Ex: 1001', mode: 'suporte' },
+                { label: 'Configurado', key: 'configurado', type: 'checkbox', mode: 'suporte' },
+
                 { section: 'Dados Administrativos', mode: 'gestao' },
                 { label: 'Linha', key: 'linha', type: 'text', mode: 'gestao' },
+                { label: 'Número', key: 'numero', type: 'text', mode: 'gestao' },
                 { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
                 { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mode: 'gestao' },
+
                 { section: 'Atribuição' },
                 { label: 'Status', key: 'status', type: 'select', options: STATUS },
                 { label: 'Setor', key: 'setor', type: 'select', options: SETOR },
-                { label: 'Usuário', key: 'usuario', type: 'text', span2: true },
+                { label: 'Usuário', key: 'usuario', type: 'text' },
+                { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
             ],
             chips: [
-                { label: 'Número', key: 'numero', type: 'text' },
+                { section: 'Dados do Chip' },
+                { label: 'Número', key: 'numero', type: 'text', placeholder: '+5511999999999' },
                 { label: 'Operadora', key: 'operadora', type: 'select', options: OPERADORA },
                 { label: 'Dono', key: 'dono', type: 'text' },
-                { label: 'Celular Vinculado (ID)', key: 'celular', type: 'text' },
+                { label: 'Celular Vinculado (ID)', key: 'celularId', type: 'text', placeholder: 'ID do celular no banco' },
+
                 { section: 'Dados Administrativos', mode: 'gestao' },
-                { label: 'Plano (R$)', key: 'plano', type: 'text', mode: 'gestao' },
+                { label: 'Plano (R$)', key: 'plano', type: 'number', placeholder: 'Ex: 49.90', mode: 'gestao' },
+                { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
+                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mode: 'gestao' },
+
                 { section: 'Atribuição' },
                 { label: 'Status', key: 'status', type: 'select', options: STATUS },
                 { label: 'Setor', key: 'setor', type: 'select', options: SETOR },
-                { label: 'Usuário', key: 'usuario', type: 'text', span2: true },
+                { label: 'Usuário', key: 'usuario', type: 'text' },
+                { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
             ],
             extras: [
-                { label: 'Modelo', key: 'modelo', type: 'text' },
-                { label: 'Características', key: 'descricao', type: 'text', span2: true },
+                { section: 'Geral' },
+                { label: 'Categoria', key: 'categoria', type: 'text', placeholder: 'Ex: Adaptador, Hub, Cabo...' },
+                { label: 'Descrição', key: 'descricao', type: 'textarea', span2: true },
+
                 { section: 'Dados Administrativos', mode: 'gestao' },
                 { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
                 { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mode: 'gestao' },
+
                 { section: 'Atribuição' },
                 { label: 'Status', key: 'status', type: 'select', options: STATUS },
                 { label: 'Setor', key: 'setor', type: 'select', options: SETOR },
-                { label: 'Usuário', key: 'usuario', type: 'text', span2: true },
+                { label: 'Usuário', key: 'usuario', type: 'text' },
+                { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
             ],
         };
 
@@ -1748,8 +2041,8 @@
             if (categoria === 'computadores') {
                 const proc = item.processador ? item.processador.nome : (item.processadorId ? item.processadorId : '—');
                 const ram = item.memoriaRAMTotal ? `${item.memoriaRAMTotal} GB` : '—';
-                const discos = item.discos?.map(d => `${d.tipo} ${d.tamanho}GB`).join(', ') || '—';
-                const vram = item.placasVideo?.map(p => `${p.tipo} ${p.vram}GB`).join(', ') || '—';
+                const discos = item.discos?.length ? `${item.discos.reduce((s, d) => s + (d.tamanho || 0), 0)} GB` : '—';
+                const vram = item.placasVideo?.length ? `${item.placasVideo.reduce((s, p) => s + (p.vram || 0), 0)} GB` : '—';
                 if (modo === 'suporte') {
                     cells = `
                         <td>${item.codigo || '—'}</td>
