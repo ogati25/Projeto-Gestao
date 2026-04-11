@@ -1076,6 +1076,158 @@
         let activeFilters = [];
         let pendingToggleRow = null; // row element being toggled
 
+        // ==================== MODAL HELPERS ====================
+        function openModal(id) {
+            document.getElementById(id).classList.add('open');
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+        }
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', e => {
+                if (e.target === overlay) overlay.classList.remove('open');
+            });
+        });
+
+        // ==================== RENDER FORM FIELDS ====================
+        function renderFields(containerId, category, mode, prefillData = {}) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            const fields = formFields[category] || [];
+            fields.forEach(f => {
+                if (f.section) {
+                    if (!f.mode || f.mode === mode) {
+                        const el = document.createElement('div');
+                        el.className = 'form-section-title';
+                        el.textContent = f.section;
+                        container.appendChild(el);
+                    }
+                    return;
+                }
+                if (f.mode && f.mode !== mode) return;
+                const group = document.createElement('div');
+                group.className = 'form-group' + (f.span2 ? ' span-2' : '');
+                const label = document.createElement('label');
+                label.textContent = f.label;
+                group.appendChild(label);
+                let input;
+                if (f.type === 'select') {
+                    input = document.createElement('select');
+                    input.name = f.key;
+                    const blank = document.createElement('option');
+                    blank.value = ''; blank.textContent = '— Selecione —';
+                    input.appendChild(blank);
+                    (f.options || []).forEach(opt => {
+                        const o = document.createElement('option');
+                        o.value = opt; o.textContent = opt;
+                        if (prefillData[f.key] === opt) o.selected = true;
+                        input.appendChild(o);
+                    });
+                } else if (f.type === 'textarea') {
+                    input = document.createElement('textarea');
+                    input.name = f.key;
+                    input.value = prefillData[f.key] || '';
+                } else {
+                    input = document.createElement('input');
+                    input.type = f.type || 'text';
+                    input.name = f.key;
+                    input.value = prefillData[f.key] || '';
+                    if (f.placeholder) input.placeholder = f.placeholder;
+                }
+                group.appendChild(input);
+                container.appendChild(group);
+            });
+        }
+
+        // ==================== ADD MODAL ====================
+        function openAddModal() {
+            const catName = categoryNames[currentCategory] || currentCategory;
+            document.getElementById('modalAddTitle').textContent = `Novo — ${catName}`;
+            renderFields('formAddFields', currentCategory, currentMode, {});
+            openModal('modalAdd');
+        }
+
+        function submitAdd() {
+            const fields = document.querySelectorAll('#formAddFields [name]');
+            const data = {};
+            fields.forEach(f => { data[f.name] = f.value; });
+            console.log('ADD:', currentCategory, data);
+            closeModal('modalAdd');
+        }
+
+        // ==================== EDIT MODAL ====================
+        function openEditModal(rowEl) {
+            const cells = rowEl.querySelectorAll('td');
+            const fields = formFields[currentCategory] || [];
+            const visibleFields = fields.filter(f => !f.section && (!f.mode || f.mode === currentMode));
+            const prefill = {};
+            visibleFields.forEach((f, i) => {
+                if (cells[i + 1]) prefill[f.key] = cells[i + 1].textContent.trim();
+            });
+            renderFields('formEditFields', currentCategory, currentMode, prefill);
+            openModal('modalEdit');
+        }
+
+        function submitEdit() {
+            const fields = document.querySelectorAll('#formEditFields [name]');
+            const data = {};
+            fields.forEach(f => { data[f.name] = f.value; });
+            console.log('EDIT:', currentCategory, data);
+            closeModal('modalEdit');
+        }
+
+        // ==================== TOGGLE ACTIVE ====================
+        function openToggleConfirm(rowEl) {
+            pendingToggleRow = rowEl;
+            const isCurrentlyInactive = rowEl.classList.contains('row-inactive');
+            const icon = document.getElementById('confirmIcon');
+            const iconSymbol = document.getElementById('confirmIconSymbol');
+            const heading = document.getElementById('confirmHeading');
+            const desc = document.getElementById('confirmDesc');
+            const btn = document.getElementById('confirmActionBtn');
+            const title = document.getElementById('modalConfirmTitle');
+            if (isCurrentlyInactive) {
+                icon.className = 'confirm-icon';
+                icon.style.background = '#d1fae5';
+                iconSymbol.className = 'fa-solid fa-circle-check';
+                iconSymbol.style.color = '#10b981';
+                heading.textContent = 'Reativar este item?';
+                desc.textContent = 'O item voltará a aparecer como ativo no inventário.';
+                btn.className = 'btn-success';
+                btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Reativar';
+                title.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#10b981"></i> Reativar Item';
+            } else {
+                icon.className = 'confirm-icon danger';
+                icon.style.background = '';
+                iconSymbol.className = 'fa-solid fa-power-off';
+                iconSymbol.style.color = '';
+                heading.textContent = 'Tornar item inativo?';
+                desc.textContent = 'O item será marcado como inativo. Esta ação pode ser desfeita.';
+                btn.className = 'btn-danger';
+                btn.innerHTML = '<i class="fa-solid fa-power-off"></i> Inativar';
+                title.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b"></i> Inativar Item';
+            }
+            openModal('modalConfirm');
+        }
+
+        function confirmToggleActive() {
+            if (!pendingToggleRow) return;
+            const isInactive = pendingToggleRow.classList.contains('row-inactive');
+            const btn = pendingToggleRow.querySelector('.btn-action.toggle-active');
+            const ativoCell = pendingToggleRow.querySelector('.cell-ativo');
+            if (isInactive) {
+                pendingToggleRow.classList.remove('row-inactive');
+                if (btn) { btn.classList.remove('is-inactive'); btn.title = 'Tornar Inativo'; btn.innerHTML = '<i class="fa-solid fa-power-off"></i>'; }
+                if (ativoCell) { ativoCell.innerHTML = '<span class="badge badge-success">Sim</span>'; }
+            } else {
+                pendingToggleRow.classList.add('row-inactive');
+                if (btn) { btn.classList.add('is-inactive'); btn.title = 'Reativar'; btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i>'; }
+                if (ativoCell) { ativoCell.innerHTML = '<span class="badge badge-gray">Não</span>'; }
+            }
+            pendingToggleRow = null;
+            closeModal('modalConfirm');
+        }
+
         // ==================== ENUMS ESPELHADOS DO BACKEND ====================
         const SETOR    = ['RH','GXT','Suporte','Produtos','Auditoria','Diretoria','Mesa','CallCenter','Dev','Cofre','Servidor'];
         const STATUS   = ['EmManutenção','NecessitaManutenção','EmUso','Desativado','EmEstoque','Indisponível','AguardandoDescarte','Descartado','Vendido'];
@@ -1519,24 +1671,6 @@
     </script>
 
     <script>
-
-        // aguarda o primeiro script terminar de executar
-        document.addEventListener('DOMContentLoaded', () => {
-            window.openAddModal  = openAddModal;
-            window.closeModal    = closeModal;
-            window.submitAdd     = submitAdd;
-            window.submitEdit    = submitEdit;
-            window.openToggleConfirm = openToggleConfirm;
-            window.confirmToggleActive = confirmToggleActive;
-            window.mostrar       = mostrar;
-            window.setViewMode   = setViewMode;
-            window.addFilter     = addFilter;
-            window.removeFilter  = removeFilter;
-            window.clearAllFilters = clearAllFilters;
-            window.updateFilterValueOptions = updateFilterValueOptions;
-            carregarTabela('computadores', 'gestao');
-        });
-
         // ==================== INTEGRAÇÃO COM A API ====================
 
         // cache dos dados carregados por categoria
@@ -2108,6 +2242,7 @@
         };
 
         // ==================== CARGA INICIAL ====================
+        carregarTabela('computadores', 'gestao');
     </script>
 </body>
 </html>
