@@ -16,6 +16,8 @@ public class Chip : Equipamento
 
     public string? Dono { get; set; }
 
+    public float Plano { get; set; }
+
     // referência ao ID do celular onde o chip está
     // pode ser nulo se o chip não estiver em nenhum celular
     public string? CelularId { get; set; }

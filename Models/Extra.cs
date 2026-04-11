@@ -6,7 +6,7 @@ namespace Projeto_Gestao.Models;
 public class Extra : Equipamento
 {
     [Required]
-    public string Modelo { get; set; } = null!;
+    public string Categoria { get; set; } = null!;
 
-    public string? Caracteristicas { get; set; }
+    public string? Descricao { get; set; }
 }

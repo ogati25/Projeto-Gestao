@@ -10,5 +10,8 @@ public class Fone : Equipamento
     public string Modelo { get; set; } = null!;
 
     public TipoPeriferico Tipo { get; set; }
+
+    public bool Microfone { get; set; }
+
     public Conectividade Conectividade { get; set; }
 }

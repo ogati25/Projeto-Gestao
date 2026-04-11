@@ -15,4 +15,10 @@ public class Ramal : Equipamento
     public bool Configurado { get; set; }
 
     public string? Linha { get; set; }
+
+    public string? Numero { get; set; }
+    
+    public string? IP { get; set; }
+    
+    public string? MAC { get; set; }
 }

@@ -2,76 +2,229 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="style.css">
-    <title>Dashboard</title>
+    <title>Dashboard — Tech Logistics</title>
     <style>
-        h1 { margin-bottom: 20px; }
+        /* ===== DASHBOARD ESPECÍFICO ===== */
+        .greeting { 
+            font-size: 22px; 
+            font-weight: 700; 
+            color: var(--text-primary);
+        }
+        .greeting span { color: var(--quinary-color); }
+        .greeting-sub { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+        /* ---- Row layout ---- */
+        .row {
+            display: grid;
+            gap: 16px;
+        }
+        .row-2 { grid-template-columns: 1fr 1fr; }
+        .row-3 { grid-template-columns: 2fr 1fr; }
+
+        /* ---- Chart placeholder ---- */
+        .chart-card {
+            background: var(--secondary-color);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--card-shadow);
+            padding: 20px;
+        }
+        .chart-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .chart-card-header h3 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .chart-placeholder {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 2px dashed #c7d7f0;
+        }
+        .chart-placeholder i { font-size: 32px; color: #93b4d9; }
+        .chart-placeholder p { font-size: 12px; color: #93b4d9; font-weight: 500; }
+
+        /* ---- Mini chart bars (decorative) ---- */
+        .mini-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            height: 60px;
+        }
+        .mini-bar {
+            flex: 1;
+            border-radius: 4px 4px 0 0;
+            background: var(--quinary-color);
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .mini-bar:hover { opacity: 1; }
+        .mini-bar.highlight { background: var(--sextiary-color); opacity: 1; }
+
+        /* ---- Quick stats ---- */
+        .quick-stat {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .quick-stat:last-child { border-bottom: none; }
+        .quick-stat-label { font-size: 13px; color: var(--text-muted); }
+        .quick-stat-value { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+
+        /* ---- Activity feed ---- */
+        .activity-list { display: flex; flex-direction: column; gap: 10px; }
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .activity-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+        .activity-dot.blue   { background: var(--info-color); }
+        .activity-dot.green  { background: var(--success-color); }
+        .activity-dot.orange { background: var(--warning-color); }
+        .activity-dot.red    { background: var(--danger-color); }
+        .activity-text { font-size: 13px; color: var(--text-primary); line-height: 1.4; }
+        .activity-time { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+        /* ---- Table inside dashboard ---- */
+        .table-wrapper .table-scroll { max-height: 280px; }
+
+        /* ---- View toggle ---- */
+        .view-toggle {
+            display: flex;
+            background: var(--background-color);
+            border-radius: 6px;
+            padding: 2px;
+            border: 1px solid var(--border-color);
+        }
+        .view-toggle button {
+            padding: 4px 10px;
+            border: none;
+            background: transparent;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: 0.2s;
+        }
+        .view-toggle button.active {
+            background: var(--secondary-color);
+            color: var(--text-primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* ---- Progress bar ---- */
+        .progress-list { display: flex; flex-direction: column; gap: 12px; }
+        .progress-item label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        .progress-item label span:last-child { font-weight: 700; color: var(--text-primary); }
+        .progress-bar-track {
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: var(--quinary-color);
+            transition: width 0.6s ease;
+        }
+        .progress-bar-fill.green  { background: var(--success-color); }
+        .progress-bar-fill.orange { background: var(--warning-color); }
+        .progress-bar-fill.red    { background: var(--danger-color); }
     </style>
 </head>
 <body>
 
+    <!-- ==================== SIDEBAR ==================== -->
     <div class="sidebar" id="sidebar">
-
         <button id="toggleSidebar" class="toggle-btn">
             <i class="fa-solid fa-angles-left icon-close"></i>
             <i class="fa-solid fa-angles-right icon-open"></i>
         </button>
 
-        <h2>Tech Logistics</h2>
+        <div class="sidebar-brand">
+            <div class="brand-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+            <h2>Tech Logistics</h2>
+        </div>
 
         <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" placeholder="Buscar..."> 
+            <input type="text" placeholder="Buscar...">
             <i class="fa-solid fa-xmark clear-btn"></i>
         </div>
 
         <ul class="menu">
             <li>
                 <a href="dashboard.html">
-                    <i class="material-icons">dashboard</i><span>Dashboard</span>
+                    <i class="material-icons" style="font-size:18px">dashboard</i>
+                    <span>Dashboard</span>
                 </a>
             </li>
-
             <li>
                 <a href="estoque.html">
                     <i class="fa-solid fa-box-archive"></i><span>Inventário</span>
                 </a>
             </li>
-
             <li>
                 <a href="pedidos.html">
                     <i class="fa-solid fa-clipboard-list"></i><span>Pedidos</span>
                 </a>
             </li>
-
             <li>
                 <a href="relatorios.html">
                     <i class="fa-solid fa-file-lines"></i><span>Relatórios</span>
                 </a>
             </li>
-
             <li>
                 <a href="funcionarios.html">
                     <i class="fa-solid fa-users"></i><span>Funcionários</span>
                 </a>
             </li>
         </ul>
+
+        <div class="sidebar-footer">Tech Logistics v1.0</div>
     </div>
 
+    <!-- ==================== MAIN ==================== -->
     <main>
-
         <header>
             <h1>Dashboard</h1>
-
             <div class="header-buttons">
-                <button class="theme-toggle">
+                <button class="theme-toggle" id="themeToggle">
                     <i class="fa-solid fa-sun icon-sun"></i>
                     <i class="fa-solid fa-moon icon-moon"></i>
                 </button>
-
                 <button class="btn-config">
                     <i class="fa-solid fa-gear"></i>
                 </button>
@@ -79,89 +232,189 @@
         </header>
 
         <div class="main">
-            <h1>Olá, Usuário</h1>
 
+            <!-- Greeting -->
+            <div>
+                <p class="greeting">Olá, <span>Usuário</span> 👋</p>
+                <p class="greeting-sub">Aqui está um resumo do inventário hoje.</p>
+            </div>
+
+            <!-- KPI Cards -->
             <div class="cards">
                 <div class="card">
-                    <h3>Total de Itens</h3>
-                    <p>2.458</p>
+                    <div class="card-icon blue"><i class="fa-solid fa-boxes-stacked"></i></div>
+                    <div class="card-label">Total de Itens</div>
+                    <div class="card-value" id="kpi-total">—</div>
+                    <div class="card-sub">aguardando dados</div>
                 </div>
-
                 <div class="card">
-                    <h3>Baixo Estoque</h3>
-                    <p>14</p>
+                    <div class="card-icon orange"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div class="card-label">Baixo Estoque</div>
+                    <div class="card-value" id="kpi-baixo">—</div>
+                    <div class="card-sub">aguardando dados</div>
                 </div>
-
                 <div class="card">
-                    <h3>Pedidos Pendentes</h3>
-                    <p>21</p>
+                    <div class="card-icon purple"><i class="fa-solid fa-clipboard-list"></i></div>
+                    <div class="card-label">Pedidos Pendentes</div>
+                    <div class="card-value" id="kpi-pedidos">—</div>
+                    <div class="card-sub">aguardando dados</div>
                 </div>
-
                 <div class="card">
-                    <h3>Movimentações</h3>
-                    <p>115</p>
+                    <div class="card-icon green"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
+                    <div class="card-label">Movimentações</div>
+                    <div class="card-value" id="kpi-mov">—</div>
+                    <div class="card-sub">aguardando dados</div>
                 </div>
             </div>
 
-            <h2>Itens Críticos</h2>
+            <!-- Charts Row -->
+            <div class="row row-3">
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th>SKU</th>
-                        <th>Categoria</th>
-                        <th>Estoque</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>MacBook Pro M2</td>
-                        <td>SK9300008</td>
-                        <td>Laptop</td>
-                        <td>12</td>
-                        <td class="status-baixo">Baixo</td>
-                    </tr>
+                <!-- Movimentações chart -->
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <div>
+                            <h3>Movimentações por Período</h3>
+                        </div>
+                        <div class="view-toggle">
+                            <button class="active">7d</button>
+                            <button>30d</button>
+                            <button>90d</button>
+                        </div>
+                    </div>
+                    <div class="chart-placeholder" id="chart-movimentacoes">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <p>Gráfico de movimentações</p>
+                        <p style="font-size:11px; color:#b0c4de;">Conecte a API para visualizar</p>
+                    </div>
+                </div>
 
-                    <tr>
-                        <td>Dell XPS 15</td>
-                        <td>SK92010033</td>
-                        <td>Laptop</td>
-                        <td>10</td>
-                        <td class="status-baixo">Baixo</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+                <!-- Distribuição por categoria -->
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <h3>Por Categoria</h3>
+                    </div>
+                    <div class="chart-placeholder" id="chart-categorias" style="height:200px">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <p>Distribuição de itens</p>
+                        <p style="font-size:11px; color:#b0c4de;">Conecte a API para visualizar</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Row -->
+            <div class="row row-2">
+
+                <!-- Itens Críticos -->
+                <div>
+                    <div class="section-header" style="margin-bottom:10px">
+                        <h2>Itens Críticos</h2>
+                        <a href="estoque.html" class="btn btn-outline" style="font-size:12px; padding:5px 10px;">
+                            Ver todos <i class="fa-solid fa-arrow-right" style="font-size:10px"></i>
+                        </a>
+                    </div>
+                    <div class="table-wrapper">
+                        <div class="table-scroll">
+                            <table id="tbl-criticos">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>SKU</th>
+                                        <th>Categoria</th>
+                                        <th>Qtd</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-criticos">
+                                    <tr>
+                                        <td colspan="5" style="text-align:center; color:var(--text-muted); padding:24px 0;">
+                                            <i class="fa-solid fa-spinner fa-spin" style="margin-right:6px"></i>
+                                            Aguardando dados da API...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar direita -->
+                <div style="display:flex; flex-direction:column; gap:16px;">
+
+                    <!-- Últimas atividades -->
+                    <div class="chart-card" style="padding:18px">
+                        <div class="chart-card-header" style="margin-bottom:12px">
+                            <h3>Atividades Recentes</h3>
+                        </div>
+                        <div class="activity-list" id="activity-list">
+                            <div style="text-align:center; color:var(--text-muted); font-size:13px; padding:16px 0;">
+                                <i class="fa-solid fa-clock-rotate-left" style="margin-right:6px"></i>
+                                Aguardando dados...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ocupação por categoria -->
+                    <div class="chart-card" style="padding:18px">
+                        <div class="chart-card-header" style="margin-bottom:12px">
+                            <h3>Ocupação por Categoria</h3>
+                        </div>
+                        <div class="progress-list" id="progress-list">
+                            <!-- Placeholder itens -->
+                            <div class="progress-item">
+                                <label><span>Computadores</span><span>—</span></label>
+                                <div class="progress-bar-track"><div class="progress-bar-fill" style="width:0%"></div></div>
+                            </div>
+                            <div class="progress-item">
+                                <label><span>Monitores</span><span>—</span></label>
+                                <div class="progress-bar-track"><div class="progress-bar-fill green" style="width:0%"></div></div>
+                            </div>
+                            <div class="progress-item">
+                                <label><span>Celulares</span><span>—</span></label>
+                                <div class="progress-bar-track"><div class="progress-bar-fill orange" style="width:0%"></div></div>
+                            </div>
+                            <div class="progress-item">
+                                <label><span>Periféricos</span><span>—</span></label>
+                                <div class="progress-bar-track"><div class="progress-bar-fill" style="width:0%"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /main -->
     </main>
 
     <script>
-        // Alternar tema
-        const btn = document.querySelector(".theme-toggle");
+        // Tema
+        const themeBtn = document.getElementById("themeToggle");
+        themeBtn.addEventListener("click", () => themeBtn.classList.toggle("light"));
 
-        btn.addEventListener("click", () => {
-            btn.classList.toggle("light");
-        });
-
-        // Esconder sidebar
+        // Sidebar
         const sidebar = document.getElementById("sidebar");
-        const toggleBtn = document.getElementById("toggleSidebar");
-
-        toggleBtn.addEventListener("click", () => {
+        document.getElementById("toggleSidebar").addEventListener("click", () => {
             sidebar.classList.toggle("closed");
         });
 
-        // Ativar página atual
-        const links = document.querySelectorAll(".menu li a");
-        const currentPage = window.location.pathname.split("/").pop();
-
-        links.forEach(link => {
-            const linkPage = link.getAttribute("href");
-
-            if (linkPage === currentPage || (currentPage === "" && linkPage === "dashboard.html")) {
+        // Ativar link atual
+        const currentPage = window.location.pathname.split("/").pop() || "dashboard.html";
+        document.querySelectorAll(".menu li a").forEach(link => {
+            if (link.getAttribute("href") === currentPage) {
                 link.parentElement.classList.add("active");
             }
+        });
+
+        // View toggle (semanas)
+        document.querySelectorAll(".view-toggle button").forEach(btn => {
+            btn.addEventListener("click", () => {
+                btn.parentElement.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+            });
+        });
+
+        // Clear search
+        document.querySelector(".clear-btn")?.addEventListener("click", () => {
+            document.querySelector(".search-box input").value = "";
         });
     </script>
 </body>

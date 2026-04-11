@@ -1,18 +1,43 @@
-// É o ponto de entrada da aplicação. Ele é responsável por configurar e ligar tudo
-
-using InventarioAtivos.Settings;
-using InventarioAtivos.Services;
+using Projeto_Gestao.Settings;
+using Projeto_Gestao.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Registra as configurações do MongoDB
+// configurações do MongoDB
 builder.Services.Configure<MongoDbSettings>(
     builder.Configuration.GetSection("MongoDbSettings"));
 
-// Registra o service pra poder ser injetado nos controllers
-builder.Services.AddSingleton<ProdutoService>();
+// registro dos services
+// ProcessadorService primeiro pois ComputadorService depende dele
+// ChipService primeiro pois CelularService depende dele
+builder.Services.AddSingleton<ProcessadorService>();
+builder.Services.AddSingleton<ChipService>();
+builder.Services.AddSingleton<ComputadorService>();
+builder.Services.AddSingleton<CelularService>();
+builder.Services.AddSingleton<MonitorService>();
+builder.Services.AddSingleton<MouseService>();
+builder.Services.AddSingleton<TecladoService>();
+builder.Services.AddSingleton<FoneService>();
+builder.Services.AddSingleton<RamalService>();
+builder.Services.AddSingleton<ExtraService>();
 
-builder.Services.AddControllers();
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -24,6 +49,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors();
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();

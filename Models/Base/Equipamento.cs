@@ -27,8 +27,11 @@ public abstract class Equipamento
     [Required]
     public bool Ativo { get; set; } = true;
 
-    [Required]
+    [Required] 
     public Setor Setor { get; set; }
+
+    [Required]
+    public Status Status { get; set; }
 
     public string? Observacoes { get; set; }
 

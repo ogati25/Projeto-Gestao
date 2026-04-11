@@ -51,4 +51,6 @@ public class Computador : Equipamento
     public AtivacaoSO AtivacaoSO { get; set; }
     public TipoOffice Office { get; set; }
     public AtivacaoOffice AtivacaoOffice { get; set; }
+
+    public string? IP { get; set; }
 }
