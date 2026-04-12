@@ -447,6 +447,38 @@
             width: 18px; height: 18px; cursor: pointer;
             accent-color: var(--primary-color);
         }
+        .form-group label span[style*="color:#ef4444"] {
+            font-size: 13px;
+            line-height: 1;
+        }
+        .modal-error {
+            margin: 0 22px 4px;
+            padding: 10px 14px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #b91c1c;
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            line-height: 1.5;
+        }
+        .modal-error i { flex-shrink: 0; margin-top: 2px; }
+        .modal-error .error-detail {
+            font-size: 11px;
+            color: #dc2626;
+            margin-top: 4px;
+            font-family: monospace;
+            background: #fee2e2;
+            padding: 4px 8px;
+            border-radius: 4px;
+            word-break: break-all;
+        }
+        .field-error {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 3px rgba(239,68,68,0.12) !important;
+        }
         .form-group input[type="number"] { -moz-appearance: textfield; }
         .form-group input[type="number"]::-webkit-outer-spin-button,
         .form-group input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -1025,6 +1057,7 @@
                     <!-- Fields rendered dynamically by JS -->
                 </div>
             </div>
+            <div id="modalAddError" class="modal-error" style="display:none"></div>
             <div class="modal-footer">
                 <button class="btn btn-outline" onclick="closeModal('modalAdd')">Cancelar</button>
                 <button class="btn btn-primary" onclick="submitAdd()"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
@@ -1044,6 +1077,7 @@
                     <!-- Fields rendered dynamically by JS -->
                 </div>
             </div>
+            <div id="modalEditError" class="modal-error" style="display:none"></div>
             <div class="modal-footer">
                 <button class="btn btn-outline" onclick="closeModal('modalEdit')">Cancelar</button>
                 <button class="btn btn-primary" onclick="submitEdit()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
@@ -1089,6 +1123,14 @@
         }
         function closeModal(id) {
             document.getElementById(id).classList.remove('open');
+            // limpa erros ao fechar (limparErroModal pode ainda não existir se chamado cedo)
+            if (typeof limparErroModal === 'function') {
+                limparErroModal(id === 'modalAdd' ? 'modalAddError' : 'modalEditError');
+            }
+            // limpa destaques de campo com erro
+            const formId = id === 'modalAdd' ? 'formAddFields' : 'formEditFields';
+            document.querySelectorAll(`#${formId} .field-error`)
+                .forEach(el => el.classList.remove('field-error'));
         }
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', e => {
@@ -1119,13 +1161,89 @@
             return sel;
         }
 
-        // Cria um input de texto genérico
-        function criarInput(name, valor = '', placeholder = '', tipo = 'text') {
+        // Cria um input de texto genérico com suporte a máscara e maxlength
+        function criarInput(name, valor = '', placeholder = '', tipo = 'text', mask = null, maxlen = null) {
             const inp = document.createElement('input');
             inp.type = tipo; inp.name = name;
             inp.value = valor;
             if (placeholder) inp.placeholder = placeholder;
+            if (maxlen) inp.maxLength = maxlen;
+
+            if (mask === 'ip') {
+                inp.addEventListener('input', () => {
+                    let v = inp.value.replace(/[^0-9.]/g, '');
+                    if (v.length > 15) v = v.slice(0, 15);
+                    inp.value = v;
+                });
+            } else if (mask === 'mac') {
+                inp.addEventListener('input', () => {
+                    let v = inp.value.replace(/[^0-9a-fA-F]/g, '').toUpperCase();
+                    v = v.match(/.{1,2}/g)?.join(':') || v;
+                    if (v.length > 17) v = v.slice(0, 17);
+                    inp.value = v;
+                });
+                inp.maxLength = 17;
+            } else if (mask === 'phone') {
+                // Formata ao digitar: +55 (11) 99999-9999
+                const aplicarMascaraTelefone = () => {
+                    let v = inp.value.replace(/\D/g, '');
+                    let resultado = '';
+                    if (v.startsWith('55') && v.length > 2) {
+                        // número brasileiro com DDI
+                        const sem55 = v.slice(2);
+                        if (sem55.length <= 2) {
+                            resultado = `+55 (${sem55}`;
+                        } else if (sem55.length <= 7) {
+                            resultado = `+55 (${sem55.slice(0,2)}) ${sem55.slice(2)}`;
+                        } else if (sem55.length <= 11) {
+                            const meio = sem55.length === 11 ? 5 : 4;
+                            resultado = `+55 (${sem55.slice(0,2)}) ${sem55.slice(2, 2+meio)}-${sem55.slice(2+meio)}`;
+                        } else {
+                            resultado = `+55 (${sem55.slice(0,2)}) ${sem55.slice(2,7)}-${sem55.slice(7,11)}`;
+                        }
+                    } else if (v.length > 0) {
+                        // número sem DDI
+                        if (v.length <= 2) {
+                            resultado = `(${v}`;
+                        } else if (v.length <= 7) {
+                            resultado = `(${v.slice(0,2)}) ${v.slice(2)}`;
+                        } else if (v.length <= 11) {
+                            const meio = v.length === 11 ? 5 : 4;
+                            resultado = `(${v.slice(0,2)}) ${v.slice(2, 2+meio)}-${v.slice(2+meio)}`;
+                        } else {
+                            resultado = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7,11)}`;
+                        }
+                    }
+                    inp.value = resultado;
+                };
+                inp.addEventListener('input', aplicarMascaraTelefone);
+                // se já tem valor ao carregar, aplica a máscara
+                if (valor) setTimeout(aplicarMascaraTelefone, 0);
+            } else if (mask === 'money') {
+                const aplicarMoney = () => {
+                    // remove R$, espaços e converte vírgula pra ponto
+                    let raw = inp.value.replace('R$', '').replace(/\s/g, '').replace(',', '.').trim();
+                    const n = parseFloat(raw);
+                    if (!isNaN(n)) {
+                        inp.value = 'R$ ' + n.toFixed(2).replace('.', ',');
+                    } else if (raw === '' || raw === '0') {
+                        inp.value = '';
+                    }
+                };
+                inp.addEventListener('blur', aplicarMoney);
+                // ao focar, remove o R$ para edição limpa
+                inp.addEventListener('focus', () => {
+                    inp.value = inp.value.replace('R$', '').replace(/\s/g, '').replace(',', '.').trim();
+                });
+                if (valor) setTimeout(aplicarMoney, 0);
+            }
+
             return inp;
+        }
+
+        // Sem contador — apenas append direto
+        function encapsularInput(inp, group) {
+            group.appendChild(inp);
         }
 
         // Renderiza a lista dinâmica de slots de RAM
@@ -1195,7 +1313,7 @@
                 g1.appendChild(l1);
                 g1.appendChild(criarSelect(`gpu_tipo_${i}`, TIPO_GPU, valores[i]?.tipo || ''));
                 const g2 = document.createElement('div'); g2.className = 'form-group';
-                const l2 = document.createElement('label'); l2.textContent = `GPU ${i+1} — VRAM (GB)`;
+                const l2 = document.createElement('label'); l2.textContent = `GPU ${i+1} — VRAM (MB)`;
                 g2.appendChild(l2);
                 g2.appendChild(criarInput(`gpu_vram_${i}`, valores[i]?.vram || '', 'Ex: 2048', 'number'));
                 row.appendChild(g1); row.appendChild(g2);
@@ -1249,6 +1367,12 @@
 
                 const label = document.createElement('label');
                 label.textContent = f.label;
+                if (f.required) {
+                    const star = document.createElement('span');
+                    star.textContent = ' *';
+                    star.style.cssText = 'color:#ef4444;font-weight:700;';
+                    label.appendChild(star);
+                }
                 group.appendChild(label);
 
                 let input;
@@ -1356,8 +1480,7 @@
                         }
                     };
                     // carrega chips da API e renderiza
-                    const chipsArr = Array.isArray(chipsArr2 = chipsArr || []) ? chipsArr2 : [];
-                    const chipsInicial = Array.isArray(chipsArr2 = prefillData[f.key]) ? chipsArr2 : [];
+                    const chipsInicial = Array.isArray(prefillData[f.key]) ? prefillData[f.key] : [];
                     getChips().then(lista => {
                         window._chipsCache = lista || [];
                         renderChipSelector([...chipsInicial]);
@@ -1382,7 +1505,7 @@
                             const l1 = document.createElement('label'); l1.textContent = `Número ${i+1}`;
                             const inp1 = document.createElement('input');
                             inp1.type = 'text'; inp1.name = `wpp_numero_${i}`;
-                            inp1.placeholder = '+5511999999999';
+                            inp1.placeholder = '+55 (11) 99999-9999';
                             inp1.value = wpp.numero || '';
                             inp1.style.cssText = 'padding:7px 10px;border:1px solid var(--border-color);border-radius:7px;font-size:13px;background:var(--background-color);color:var(--text-primary);outline:none;';
                             g1.appendChild(l1); g1.appendChild(inp1);
@@ -1413,7 +1536,7 @@
                     renderWppList([...wppInicial]);
 
                 } else {
-                    input = criarInput(f.key, prefillData[f.key] || '', f.placeholder || '', f.type || 'text');
+                    input = criarInput(f.key, prefillData[f.key] || '', f.placeholder || '', f.type || 'text', f.mask || null, f.maxlen || null);
                 }
 
                 group.appendChild(input);
@@ -1620,7 +1743,7 @@
         ];
         const CONECTOR_VIDEO = ['HDMI', 'DisplayPort', 'VGA', 'DVI'];
         const TIPO_DISCO = [
-            {value:'HDD', label:'HDD'}, {value:'SSD', label:'SSD SATA'}, {value:'NVMe', label:'SSD NVMe'}
+            {value:'HDD', label:'HDD'}, {value:'SSD', label:'SSD SATA'}, {value:'SSD_NVMe', label:'SSD NVMe'}
         ];
         const GERACAO_RAM = [
             {value:'DDR3', label:'DDR3'}, {value:'DDR4', label:'DDR4'}, {value:'DDR5', label:'DDR5'}
@@ -1649,9 +1772,9 @@
             computadores: [
                 // ── Geral ────────────────────────────────────────────
                 { section: 'Geral' },
-                { label: 'Modelo', key: 'modelo', type: 'text', span2: false },
-                { label: 'Tipo', key: 'tipo', type: 'select', options: TIPO_PC },
-                { label: 'IP', key: 'ip', type: 'text', placeholder: 'Ex: 192.168.0.10' },
+                { label: 'Modelo', key: 'modelo', type: 'text', span2: false, maxlen: 100, required: true },
+                { label: 'Tipo', key: 'tipo', type: 'select', options: TIPO_PC, required: true },
+                { label: 'IP', key: 'ip', type: 'text', placeholder: 'Ex: 192.168.0.10', mask: 'ip', maxlen: 15 },
 
                 // ── Processador ──────────────────────────────────────
                 { section: 'Processador', mode: 'suporte' },
@@ -1660,13 +1783,13 @@
                 // ── Memória RAM ──────────────────────────────────────
                 { section: 'Memória RAM', mode: 'suporte' },
                 { label: 'Geração RAM', key: 'geracaoRAM', type: 'select', options: GERACAO_RAM, mode: 'suporte' },
-                { label: 'Velocidade RAM (MHz)', key: 'velocidadeRAM', type: 'number', placeholder: 'Ex: 3200', mode: 'suporte' },
-                { label: 'Qtd. Slots', key: 'quant_slots', type: 'select', options: QUANT_SLOTS, mode: 'suporte' },
+                { label: 'Velocidade RAM (MHz)', key: 'velocidadeRAM', type: 'number', placeholder: 'Ex: 3200', maxlen: 4, mode: 'suporte' },
+                { label: 'Qtd. Slots', key: 'quant_slots', type: 'select', options: QUANT_SLOTS },
                 // slots gerados dinamicamente ao escolher Qtd. Slots
 
                 // ── Armazenamento ────────────────────────────────────
                 { section: 'Armazenamento', mode: 'suporte' },
-                { label: 'Qtd. Discos', key: 'quant_discos', type: 'select', options: QUANT_DISCOS, mode: 'suporte' },
+                { label: 'Qtd. Discos', key: 'quant_discos', type: 'select', options: QUANT_DISCOS },
                 // discos gerados dinamicamente
 
                 // ── Placa de Vídeo ───────────────────────────────────
@@ -1689,18 +1812,18 @@
                 // ── Dados Administrativos ────────────────────────────
                 { section: 'Dados Administrativos', mode: 'gestao' },
                 { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
-                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mode: 'gestao' },
+                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mask: 'money', maxlen: 12, mode: 'gestao' },
 
                 // ── Atribuição ───────────────────────────────────────
                 { section: 'Atribuição' },
-                { label: 'Status', key: 'status', type: 'select', options: STATUS },
-                { label: 'Setor', key: 'setor', type: 'select', options: SETOR },
-                { label: 'Usuário', key: 'usuario', type: 'text' },
+                { label: 'Status', key: 'status', type: 'select', options: STATUS, required: true },
+                { label: 'Setor', key: 'setor', type: 'select', options: SETOR, required: true },
+                { label: 'Usuário', key: 'usuario', type: 'text', maxlen: 60, required: true },
                 { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
             ],
             monitores: [
                 { section: 'Geral' },
-                { label: 'Modelo', key: 'modelo', type: 'text' },
+                { label: 'Modelo', key: 'modelo', type: 'text', maxlen: 100, required: true },
                 { label: 'Tamanho (pol.)', key: 'tamanho', type: 'number', placeholder: 'Ex: 27' },
 
                 { section: 'Especificações', mode: 'suporte' },
@@ -1715,17 +1838,17 @@
 
                 { section: 'Dados Administrativos', mode: 'gestao' },
                 { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
-                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mode: 'gestao' },
+                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mask: 'money', maxlen: 12, mode: 'gestao' },
 
                 { section: 'Atribuição' },
-                { label: 'Status', key: 'status', type: 'select', options: STATUS },
-                { label: 'Setor', key: 'setor', type: 'select', options: SETOR },
-                { label: 'Usuário', key: 'usuario', type: 'text' },
+                { label: 'Status', key: 'status', type: 'select', options: STATUS, required: true },
+                { label: 'Setor', key: 'setor', type: 'select', options: SETOR, required: true },
+                { label: 'Usuário', key: 'usuario', type: 'text', maxlen: 60, required: true },
                 { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
             ],
             mouses: [
                 { section: 'Geral' },
-                { label: 'Modelo', key: 'modelo', type: 'text' },
+                { label: 'Modelo', key: 'modelo', type: 'text', maxlen: 100, required: true },
 
                 { section: 'Especificações', mode: 'suporte' },
                 { label: 'Tipo', key: 'tipo', type: 'select', options: TIPO_PER, mode: 'suporte' },
@@ -1733,17 +1856,17 @@
 
                 { section: 'Dados Administrativos', mode: 'gestao' },
                 { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
-                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mode: 'gestao' },
+                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mask: 'money', maxlen: 12, mode: 'gestao' },
 
                 { section: 'Atribuição' },
-                { label: 'Status', key: 'status', type: 'select', options: STATUS },
-                { label: 'Setor', key: 'setor', type: 'select', options: SETOR },
-                { label: 'Usuário', key: 'usuario', type: 'text' },
+                { label: 'Status', key: 'status', type: 'select', options: STATUS, required: true },
+                { label: 'Setor', key: 'setor', type: 'select', options: SETOR, required: true },
+                { label: 'Usuário', key: 'usuario', type: 'text', maxlen: 60, required: true },
                 { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
             ],
             teclados: [
                 { section: 'Geral' },
-                { label: 'Modelo', key: 'modelo', type: 'text' },
+                { label: 'Modelo', key: 'modelo', type: 'text', maxlen: 100, required: true },
 
                 { section: 'Especificações', mode: 'suporte' },
                 { label: 'Tipo', key: 'tipo', type: 'select', options: TIPO_PER, mode: 'suporte' },
@@ -1753,17 +1876,17 @@
 
                 { section: 'Dados Administrativos', mode: 'gestao' },
                 { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
-                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mode: 'gestao' },
+                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mask: 'money', maxlen: 12, mode: 'gestao' },
 
                 { section: 'Atribuição' },
-                { label: 'Status', key: 'status', type: 'select', options: STATUS },
-                { label: 'Setor', key: 'setor', type: 'select', options: SETOR },
-                { label: 'Usuário', key: 'usuario', type: 'text' },
+                { label: 'Status', key: 'status', type: 'select', options: STATUS, required: true },
+                { label: 'Setor', key: 'setor', type: 'select', options: SETOR, required: true },
+                { label: 'Usuário', key: 'usuario', type: 'text', maxlen: 60, required: true },
                 { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
             ],
             fones: [
                 { section: 'Geral' },
-                { label: 'Modelo', key: 'modelo', type: 'text' },
+                { label: 'Modelo', key: 'modelo', type: 'text', maxlen: 100, required: true },
 
                 { section: 'Especificações', mode: 'suporte' },
                 { label: 'Tipo', key: 'tipo', type: 'select', options: TIPO_PER, mode: 'suporte' },
@@ -1772,17 +1895,17 @@
 
                 { section: 'Dados Administrativos', mode: 'gestao' },
                 { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
-                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mode: 'gestao' },
+                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mask: 'money', maxlen: 12, mode: 'gestao' },
 
                 { section: 'Atribuição' },
-                { label: 'Status', key: 'status', type: 'select', options: STATUS },
-                { label: 'Setor', key: 'setor', type: 'select', options: SETOR },
-                { label: 'Usuário', key: 'usuario', type: 'text' },
+                { label: 'Status', key: 'status', type: 'select', options: STATUS, required: true },
+                { label: 'Setor', key: 'setor', type: 'select', options: SETOR, required: true },
+                { label: 'Usuário', key: 'usuario', type: 'text', maxlen: 60, required: true },
                 { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
             ],
             celulares: [
                 { section: 'Geral' },
-                { label: 'Modelo', key: 'modelo', type: 'text' },
+                { label: 'Modelo', key: 'modelo', type: 'text', maxlen: 100, required: true },
 
                 { section: 'Especificações' },
                 { label: 'Armazenamento (GB)', key: 'armazenamento', type: 'number', placeholder: 'Ex: 128' },
@@ -1799,68 +1922,68 @@
 
                 { section: 'Dados Administrativos' },
                 { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date' },
-                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00' },
+                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mask: 'money', maxlen: 12 },
 
                 { section: 'Atribuição' },
-                { label: 'Status', key: 'status', type: 'select', options: STATUS },
-                { label: 'Setor', key: 'setor', type: 'select', options: SETOR },
-                { label: 'Usuário', key: 'usuario', type: 'text' },
+                { label: 'Status', key: 'status', type: 'select', options: STATUS, required: true },
+                { label: 'Setor', key: 'setor', type: 'select', options: SETOR, required: true },
+                { label: 'Usuário', key: 'usuario', type: 'text', maxlen: 60, required: true },
                 { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
             ],
             ramais: [
                 { section: 'Geral' },
-                { label: 'Modelo', key: 'modelo', type: 'text' },
-                { label: 'Cor', key: 'cor', type: 'text', placeholder: 'Ex: Preto' },
+                { label: 'Modelo', key: 'modelo', type: 'text', maxlen: 100, required: true },
+                { label: 'Cor', key: 'cor', type: 'text', placeholder: 'Ex: Preto', maxlen: 30 },
 
                 { section: 'Especificações', mode: 'suporte' },
                 { label: 'Tipo', key: 'tipo', type: 'text', placeholder: 'Ex: IP, Analógico', mode: 'suporte' },
-                { label: 'IP', key: 'ip', type: 'text', placeholder: 'Ex: 192.168.0.50', mode: 'suporte' },
-                { label: 'MAC', key: 'mac', type: 'text', placeholder: 'Ex: AA:BB:CC:DD:EE:FF', mode: 'suporte' },
-                { label: 'Linha', key: 'linha', type: 'text', placeholder: 'Ex: 9000', mode: 'suporte' },
-                { label: 'Número', key: 'numero', type: 'text', placeholder: 'Ex: 15999998888', mode: 'suporte' },
+                { label: 'IP', key: 'ip', type: 'text', placeholder: 'Ex: 192.168.0.50', mask: 'ip', maxlen: 15, mode: 'suporte' },
+                { label: 'MAC', key: 'mac', type: 'text', placeholder: 'Ex: AA:BB:CC:DD:EE:FF', mask: 'mac', mode: 'suporte' },
+                { label: 'Linha', key: 'linha', type: 'text', placeholder: 'Ex: 9000', maxlen: 20, mode: 'suporte' },
+                { label: 'Número', key: 'numero', type: 'text', placeholder: '(11) 99999-9999', mask: 'phone', mode: 'suporte' },
                 { label: 'Configurado', key: 'configurado', type: 'checkbox', mode: 'suporte' },
 
                 { section: 'Dados Administrativos', mode: 'gestao' },
                 { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
-                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mode: 'gestao' },
+                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mask: 'money', maxlen: 12, mode: 'gestao' },
 
                 { section: 'Atribuição' },
-                { label: 'Status', key: 'status', type: 'select', options: STATUS },
-                { label: 'Setor', key: 'setor', type: 'select', options: SETOR },
-                { label: 'Usuário', key: 'usuario', type: 'text' },
+                { label: 'Status', key: 'status', type: 'select', options: STATUS, required: true },
+                { label: 'Setor', key: 'setor', type: 'select', options: SETOR, required: true },
+                { label: 'Usuário', key: 'usuario', type: 'text', maxlen: 60, required: true },
                 { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
             ],
             chips: [
                 { section: 'Dados do Chip' },
-                { label: 'Número', key: 'numero', type: 'text', placeholder: '+5511999999999' },
-                { label: 'Operadora', key: 'operadora', type: 'select', options: OPERADORA },
-                { label: 'Dono', key: 'dono', type: 'text' },
+                { label: 'Número', key: 'numero', type: 'text', placeholder: '+55 (11) 99999-9999', mask: 'phone', required: true },
+                { label: 'Operadora', key: 'operadora', type: 'select', options: OPERADORA, required: true },
+                { label: 'Dono', key: 'dono', type: 'text', maxlen: 80 },
                 { label: 'Celular Vinculado (ID)', key: 'celularId', type: 'text', placeholder: 'ID do celular no banco' },
 
                 { section: 'Dados Administrativos', mode: 'gestao' },
-                { label: 'Plano (R$)', key: 'plano', type: 'number', placeholder: 'Ex: 49.90', mode: 'gestao' },
+                { label: 'Plano (R$)', key: 'plano', type: 'text', placeholder: 'R$ 0,00', mask: 'money', maxlen: 10, mode: 'gestao' },
                 { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
-                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mode: 'gestao' },
+                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mask: 'money', maxlen: 12, mode: 'gestao' },
 
                 { section: 'Atribuição' },
-                { label: 'Status', key: 'status', type: 'select', options: STATUS },
-                { label: 'Setor', key: 'setor', type: 'select', options: SETOR },
-                { label: 'Usuário', key: 'usuario', type: 'text' },
+                { label: 'Status', key: 'status', type: 'select', options: STATUS, required: true },
+                { label: 'Setor', key: 'setor', type: 'select', options: SETOR, required: true },
+                { label: 'Usuário', key: 'usuario', type: 'text', maxlen: 60, required: true },
                 { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
             ],
             extras: [
                 { section: 'Geral' },
-                { label: 'Categoria', key: 'categoria', type: 'text', placeholder: 'Ex: Adaptador, Hub, Cabo...' },
+                { label: 'Categoria', key: 'categoria', type: 'text', placeholder: 'Ex: Adaptador, Hub, Cabo...', required: true },
                 { label: 'Descrição', key: 'descricao', type: 'textarea', span2: true },
 
                 { section: 'Dados Administrativos', mode: 'gestao' },
                 { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
-                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mode: 'gestao' },
+                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mask: 'money', maxlen: 12, mode: 'gestao' },
 
                 { section: 'Atribuição' },
-                { label: 'Status', key: 'status', type: 'select', options: STATUS },
-                { label: 'Setor', key: 'setor', type: 'select', options: SETOR },
-                { label: 'Usuário', key: 'usuario', type: 'text' },
+                { label: 'Status', key: 'status', type: 'select', options: STATUS, required: true },
+                { label: 'Setor', key: 'setor', type: 'select', options: SETOR, required: true },
+                { label: 'Usuário', key: 'usuario', type: 'text', maxlen: 60, required: true },
                 { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
             ],
         };
@@ -2649,96 +2772,269 @@
 
         // mapeia os campos do form para o payload da API
         function mapFormToApi(categoria, form) {
-            if (categoria === 'computadores') return {
-                modelo: form.modelo, tipo: form.tipo, setor: form.setor,
-                usuario: form.usuario, status: form.status,
-                ativacaoSO: form.ativacao_so, ativacaoOffice: form.ativacao_office,
-                dataAquisicao: form.data_aquisicao,
-                precoAquisicao: parseFloat(form.preco_aquisicao) || 0,
-            };
+            if (categoria === 'computadores') {
+                // coleta slots de RAM
+                const memoriaRAM = [];
+                let i = 0;
+                while (true) {
+                    const v = form[`ram_slot_${i}`];
+                    if (v === undefined) break;
+                    if (v) memoriaRAM.push(v);
+                    i++;
+                }
+                // coleta discos
+                const discos = [];
+                i = 0;
+                while (true) {
+                    const tipo = form[`disco_tipo_${i}`];
+                    if (tipo === undefined) break;
+                    discos.push({ tipo: tipo || 'HDD', tamanho: parseInt(form[`disco_tamanho_${i}`]) || 0 });
+                    i++;
+                }
+                // coleta GPUs
+                const placasVideo = [];
+                i = 0;
+                while (true) {
+                    const tipo = form[`gpu_tipo_${i}`];
+                    if (tipo === undefined) break;
+                    placasVideo.push({ tipo: tipo || 'Integrada', vram: parseInt(form[`gpu_vram_${i}`]) || 0 });
+                    i++;
+                }
+                // coleta conectores de vídeo
+                const conectoresVideo = [];
+                i = 0;
+                while (true) {
+                    const v = form[`conector_video_${i}`];
+                    if (v === undefined) break;
+                    if (v) conectoresVideo.push(v);
+                    i++;
+                }
+                return {
+                    modelo: form.modelo,
+                    tipo: form.tipo,
+                    ip: form.ip || null,
+                    processadorId: form.processadorId || null,
+                    geracaoRAM: form.geracaoRAM || undefined,
+                    velocidadeRAM: parseInt(form.velocidadeRAM) || 0,
+                    quantidadeSlots: Math.max(memoriaRAM.length, parseInt(form.quant_slots) || 0),
+                    memoriaRAM: memoriaRAM,
+                    quantidadeDiscos: Math.max(discos.length, parseInt(form.quant_discos) || 0),
+                    discos: discos,
+                    quantidadePlacasVideo: Math.max(placasVideo.length, parseInt(form.quant_gpus) || 0),
+                    placasVideo: placasVideo,
+                    quantidadeConectoresVideo: Math.max(conectoresVideo.length, parseInt(form.quant_conectores) || 0),
+                    conectoresVideo: conectoresVideo,
+                    sistemaOperacional: form.so || 'Windows11',
+                    ativacaoSO: form.ativacao_so || 'Desativado',
+                    office: form.office || 'Nenhum',
+                    ativacaoOffice: form.ativacao_office || 'Desativado',
+                    setor: form.setor,
+                    usuario: form.usuario,
+                    status: form.status,
+                    observacoes: form.observacoes || null,
+                    dataAquisicao: form.data_aquisicao || new Date().toISOString(),
+                    precoAquisicao: parseFloat(String(form.preco_aquisicao || '0').replace('R$','').replace(',','.').trim()) || 0,
+                };
+            }
             if (categoria === 'monitores') return {
                 modelo: form.modelo, tamanho: parseFloat(form.tamanho) || 0,
                 resolucao: form.resolucao, frequencia: parseInt(form.frequencia) || 0,
+                hdmi: form.hdmi === true || form.hdmi === 'true',
+                displayPort: form.displayPort === true || form.displayPort === 'true',
+                vga: form.vga === true || form.vga === 'true',
+                dvi: form.dvi === true || form.dvi === 'true',
                 setor: form.setor, usuario: form.usuario, status: form.status,
-                dataAquisicao: form.data_aquisicao,
-                precoAquisicao: parseFloat(form.preco_aquisicao) || 0,
+                observacoes: form.observacoes || null,
+                dataAquisicao: form.data_aquisicao || new Date().toISOString(),
+                precoAquisicao: parseFloat(String(form.preco_aquisicao || '0').replace('R$','').replace(',','.').trim()) || 0,
             };
             if (categoria === 'mouses') return {
                 modelo: form.modelo, conectividade: form.conectividade, tipo: form.tipo,
                 setor: form.setor, usuario: form.usuario, status: form.status,
-                dataAquisicao: form.data_aquisicao,
-                precoAquisicao: parseFloat(form.preco_aquisicao) || 0,
+                observacoes: form.observacoes || null,
+                dataAquisicao: form.data_aquisicao || new Date().toISOString(),
+                precoAquisicao: parseFloat(String(form.preco_aquisicao || '0').replace('R$','').replace(',','.').trim()) || 0,
             };
             if (categoria === 'teclados') return {
                 modelo: form.modelo, conectividade: form.conectividade, tipo: form.tipo,
                 switch: form.switch, tamanho: parseInt(form.tamanho) || 0,
                 setor: form.setor, usuario: form.usuario, status: form.status,
-                dataAquisicao: form.data_aquisicao,
-                precoAquisicao: parseFloat(form.preco_aquisicao) || 0,
+                observacoes: form.observacoes || null,
+                dataAquisicao: form.data_aquisicao || new Date().toISOString(),
+                precoAquisicao: parseFloat(String(form.preco_aquisicao || '0').replace('R$','').replace(',','.').trim()) || 0,
             };
             if (categoria === 'fones') return {
-                modelo: form.modelo, tipo: form.tipo, conectividade: form.conectividade,
+                modelo: form.modelo, tipo: form.tipo, microfone: form.microfone === true || form.microfone === 'true',
+                conectividade: form.conectividade,
                 setor: form.setor, usuario: form.usuario, status: form.status,
-                dataAquisicao: form.data_aquisicao,
-                precoAquisicao: parseFloat(form.preco_aquisicao) || 0,
+                observacoes: form.observacoes || null,
+                dataAquisicao: form.data_aquisicao || new Date().toISOString(),
+                precoAquisicao: parseFloat(String(form.preco_aquisicao || '0').replace('R$','').replace(',','.').trim()) || 0,
             };
             if (categoria === 'celulares') return {
                 modelo: form.modelo, armazenamento: parseInt(form.armazenamento) || 0,
                 memoriaRAM: parseInt(form.ram) || 0, conectividade: form.conectividade,
                 setor: form.setor, usuario: form.usuario, status: form.status,
-                dataAquisicao: form.data_aquisicao,
-                precoAquisicao: parseFloat(form.preco_aquisicao) || 0,
+                observacoes: form.observacoes || null,
+                dataAquisicao: form.data_aquisicao || new Date().toISOString(),
+                precoAquisicao: parseFloat(String(form.preco_aquisicao || '0').replace('R$','').replace(',','.').trim()) || 0,
                 chipIds: form.chipIds || [],
                 contasWhatsapp: form.contasWhatsapp || [],
             };
             if (categoria === 'ramais') return {
-                modelo: form.modelo, cor: form.cor, tipo: form.tipo,
-                linha: form.linha, configurado: form.configurado === 'Sim',
+                modelo: form.modelo, cor: form.cor || null, tipo: form.tipo || null,
+                linha: form.linha || null, numero: form.numero || null,
+                ip: form.ip || null, mac: form.mac || null,
+                configurado: form.configurado === true || form.configurado === 'true',
                 setor: form.setor, usuario: form.usuario, status: form.status,
-                dataAquisicao: form.data_aquisicao,
-                precoAquisicao: parseFloat(form.preco_aquisicao) || 0,
+                observacoes: form.observacoes || null,
+                dataAquisicao: form.data_aquisicao || new Date().toISOString(),
+                precoAquisicao: parseFloat(String(form.preco_aquisicao || '0').replace('R$','').replace(',','.').trim()) || 0,
             };
             if (categoria === 'chips') return {
-                numero: form.numero, operadora: form.operadora, dono: form.dono,
-                celularId: form.celular || null, plano: parseFloat(form.plano) || 0,
+                numero: form.numero, operadora: form.operadora, dono: form.dono || null,
+                celularId: form.celularId || null,
+                plano: parseFloat(String(form.plano || '0').replace('R$','').replace(',','.').trim()) || 0,
                 setor: form.setor, usuario: form.usuario, status: form.status,
+                observacoes: form.observacoes || null,
+                dataAquisicao: form.data_aquisicao || new Date().toISOString(),
+                precoAquisicao: parseFloat(String(form.preco_aquisicao || '0').replace('R$','').replace(',','.').trim()) || 0,
             };
             if (categoria === 'extras') return {
-                modelo: form.descricao || form.categoria,
-                caracteristicas: form.descricao,
+                categoria: form.categoria,
+                descricao: form.descricao || null,
                 setor: form.setor, usuario: form.usuario, status: form.status,
-                dataAquisicao: form.data_aquisicao,
-                precoAquisicao: parseFloat(form.preco_aquisicao) || 0,
+                observacoes: form.observacoes || null,
+                dataAquisicao: form.data_aquisicao || new Date().toISOString(),
+                precoAquisicao: parseFloat(String(form.preco_aquisicao || '0').replace('R$','').replace(',','.').trim()) || 0,
             };
             return form;
         }
 
         // ==================== SUBSTITUIR submitAdd e submitEdit ====================
 
+        // Exibe erro inline no modal
+        function mostrarErroModal(modalErrorId, titulo, detalhe = null) {
+            const el = document.getElementById(modalErrorId);
+            if (!el) return;
+            el.innerHTML = `
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <div>
+                    <div>${titulo}</div>
+                    ${detalhe ? `<div class="error-detail">${detalhe}</div>` : ''}
+                </div>`;
+            el.style.display = 'flex';
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function limparErroModal(modalErrorId) {
+            const el = document.getElementById(modalErrorId);
+            if (el) { el.style.display = 'none'; el.innerHTML = ''; }
+        }
+
+        // Valida campos obrigatórios no container do formulário
+        // Retorna lista de labels dos campos vazios
+        function validarObrigatorios(containerId) {
+            const campos = formFields[currentCategory] || [];
+            const faltando = [];
+
+            campos.forEach(f => {
+                if (!f.required || f.section) return;
+
+                const el = document.querySelector(`#${containerId} [name="${f.key}"]`);
+                if (!el) return;
+
+                const vazio = el.type === 'checkbox'
+                    ? false // checkbox nunca é "vazio"
+                    : !el.value || el.value.trim() === '';
+
+                if (vazio) {
+                    faltando.push(f.label);
+                    el.classList.add('field-error');
+                    el.addEventListener('input', () => el.classList.remove('field-error'), { once: true });
+                    el.addEventListener('change', () => el.classList.remove('field-error'), { once: true });
+                }
+            });
+
+            return faltando;
+        }
+
+        // Formata mensagem de erro da API de forma legível
+        function formatarErroApi(status, corpo) {
+            if (status === 400) {
+                // erro de validação do backend
+                let msg = 'Os dados enviados são inválidos.';
+                if (corpo?.errors) {
+                    const detalhes = Object.entries(corpo.errors)
+                        .map(([campo, erros]) => `${campo}: ${erros.join(', ')}`)
+                        .join(' | ');
+                    return { titulo: msg, detalhe: detalhes };
+                }
+                if (corpo?.title) return { titulo: msg, detalhe: corpo.title };
+                return { titulo: msg, detalhe: JSON.stringify(corpo) };
+            }
+            if (status === 404) return { titulo: 'Registro não encontrado. Ele pode ter sido removido.', detalhe: null };
+            if (status === 409) return { titulo: 'Conflito: já existe um registro com esses dados.', detalhe: null };
+            if (status === 500) return { titulo: 'Erro interno no servidor. Tente novamente ou reporte ao administrador.', detalhe: `Status: 500 — ${corpo?.title || 'Internal Server Error'}` };
+            if (status === 0 || status == null) return { titulo: 'Não foi possível conectar com o servidor. Verifique se a API está rodando.', detalhe: 'Sem resposta da API (ERR_CONNECTION_REFUSED)' };
+            return { titulo: `Erro inesperado ao salvar (código ${status}).`, detalhe: JSON.stringify(corpo) };
+        }
+
         submitAdd = async function() {
+            limparErroModal('modalAddError');
+
+            // valida obrigatórios
+            const faltando = validarObrigatorios('formAddFields');
+            if (faltando.length > 0) {
+                mostrarErroModal('modalAddError',
+                    `Preencha os campos obrigatórios antes de salvar:`,
+                    faltando.map(l => `• ${l}`).join('\n')
+                );
+                return;
+            }
+
             const fields = document.querySelectorAll('#formAddFields [name]');
             const form = {};
             fields.forEach(f => {
                 if (f.type === 'checkbox') form[f.name] = f.checked;
                 else form[f.name] = f.value;
             });
-            // coleta chips e whatsapp do celular
             if (currentCategory === 'celulares') {
                 const { chipIds, contasWhatsapp } = coletarDadosCelular('formAddFields');
                 form['chipIds'] = chipIds;
                 form['contasWhatsapp'] = contasWhatsapp;
             }
-            const payload = mapFormToApi(currentCategory, form);
-            const resultado = await apiCreate[currentCategory](payload);
-            if (resultado) {
-                closeModal('modalAdd');
-                await carregarTabela(currentCategory, currentMode);
-            } else {
-                alert('Erro ao salvar. Verifique os dados e tente novamente.');
+            try {
+                const payload = mapFormToApi(currentCategory, form);
+                const resultado = await apiCreate[currentCategory](payload);
+                if (resultado) {
+                    closeModal('modalAdd');
+                    await carregarTabela(currentCategory, currentMode);
+                } else {
+                    mostrarErroModal('modalAddError',
+                        'Não foi possível salvar. Verifique os dados e tente novamente.',
+                        'A API retornou uma resposta vazia ou nula.'
+                    );
+                }
+            } catch (e) {
+                const { titulo, detalhe } = formatarErroApi(e.status, e.corpo);
+                mostrarErroModal('modalAddError', titulo, detalhe);
             }
         };
 
         submitEdit = async function() {
+            limparErroModal('modalEditError');
+
+            // valida obrigatórios
+            const faltando = validarObrigatorios('formEditFields');
+            if (faltando.length > 0) {
+                mostrarErroModal('modalEditError',
+                    `Preencha os campos obrigatórios antes de salvar:`,
+                    faltando.map(l => `• ${l}`).join('\n')
+                );
+                return;
+            }
+
             const id = document.getElementById('modalEdit').dataset.editId;
             const fields = document.querySelectorAll('#formEditFields [name]');
             const form = {};
@@ -2746,19 +3042,27 @@
                 if (f.type === 'checkbox') form[f.name] = f.checked;
                 else form[f.name] = f.value;
             });
-            // coleta chips e whatsapp do celular
             if (currentCategory === 'celulares') {
                 const { chipIds, contasWhatsapp } = coletarDadosCelular('formEditFields');
                 form['chipIds'] = chipIds;
                 form['contasWhatsapp'] = contasWhatsapp;
             }
-            const payload = mapFormToApi(currentCategory, form);
-            const resultado = await apiUpdate[currentCategory](id, payload);
-            if (resultado !== null) {
-                closeModal('modalEdit');
-                await carregarTabela(currentCategory, currentMode);
-            } else {
-                alert('Erro ao salvar alterações. Verifique os dados e tente novamente.');
+
+            try {
+                const payload = mapFormToApi(currentCategory, form);
+                const resultado = await apiUpdate[currentCategory](id, payload);
+                if (resultado !== null) {
+                    closeModal('modalEdit');
+                    await carregarTabela(currentCategory, currentMode);
+                } else {
+                    mostrarErroModal('modalEditError',
+                        'Não foi possível salvar as alterações.',
+                        'A API retornou uma resposta vazia ou nula.'
+                    );
+                }
+            } catch (e) {
+                const { titulo, detalhe } = formatarErroApi(e.status, e.corpo);
+                mostrarErroModal('modalEditError', titulo, detalhe);
             }
         };
 

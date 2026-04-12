@@ -16,9 +16,9 @@ public class Computador : Equipamento
     // referência ao ID do processador
     public string? ProcessadorId { get; set; }
 
-    public GeracaoRAM GeracaoRAM { get; set; }
+    public GeracaoRAM? GeracaoRAM { get; set; }
 
-    [Range(1, 16)]
+    [Range(0, 16)]
     public int QuantidadeSlots { get; set; }
 
     [ListaSize(nameof(QuantidadeSlots))]
@@ -29,7 +29,7 @@ public class Computador : Equipamento
 
     public int VelocidadeRAM { get; set; }
 
-    [Range(1, 20)]
+    [Range(0, 20)]
     public int QuantidadeDiscos { get; set; }
 
     [ListaSize(nameof(QuantidadeDiscos))]

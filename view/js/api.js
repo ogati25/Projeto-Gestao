@@ -9,16 +9,33 @@ async function request(endpoint, method = 'GET', body = null) {
     };
     if (body) options.body = JSON.stringify(body);
 
-    const response = await fetch(`${API_URL}/${endpoint}`, options);
-
-    if (response.status === 204) return true;
-    if (!response.ok) {
-        const erro = await response.json().catch(() => null);
-        console.error(`Erro ${response.status} em ${endpoint}:`, erro);
-        return null;
+    let response;
+    try {
+        response = await fetch(`${API_URL}/${endpoint}`, options);
+    } catch (networkErr) {
+        // sem conexão com o servidor
+        const err = new Error('Sem conexão com o servidor');
+        err.status = 0;
+        err.corpo = null;
+        throw err;
     }
 
-    return await response.json();
+    // 204 No Content — sucesso sem corpo
+    if (response.status === 204) return true;
+
+    // tenta ler o corpo como JSON independente do status
+    let corpo = null;
+    try { corpo = await response.json(); } catch (_) {}
+
+    if (!response.ok) {
+        console.error(`Erro ${response.status} em ${endpoint}:`, corpo);
+        const err = new Error(`HTTP ${response.status}`);
+        err.status = response.status;
+        err.corpo = corpo;
+        throw err;
+    }
+
+    return corpo;
 }
 
 // ==================== PROCESSADORES ====================
