@@ -1098,6 +1098,7 @@
 
         // ==================== RENDER FORM FIELDS ====================
         // Cria um select genérico
+        // options pode ser array de strings ou array de {value, label}
         function criarSelect(name, options, valor = '') {
             const sel = document.createElement('select');
             sel.name = name;
@@ -1106,8 +1107,13 @@
             sel.appendChild(blank);
             options.forEach(opt => {
                 const o = document.createElement('option');
-                o.value = opt; o.textContent = opt;
-                if (valor === opt) o.selected = true;
+                if (typeof opt === 'object') {
+                    o.value = opt.value; o.textContent = opt.label;
+                    if (valor === opt.value) o.selected = true;
+                } else {
+                    o.value = opt; o.textContent = opt;
+                    if (valor === opt) o.selected = true;
+                }
                 sel.appendChild(o);
             });
             return sel;
@@ -1191,7 +1197,7 @@
                 const g2 = document.createElement('div'); g2.className = 'form-group';
                 const l2 = document.createElement('label'); l2.textContent = `GPU ${i+1} — VRAM (GB)`;
                 g2.appendChild(l2);
-                g2.appendChild(criarInput(`gpu_vram_${i}`, valores[i]?.vram || '', 'Ex: 4', 'number'));
+                g2.appendChild(criarInput(`gpu_vram_${i}`, valores[i]?.vram || '', 'Ex: 2048', 'number'));
                 row.appendChild(g1); row.appendChild(g2);
                 div.appendChild(row);
             }
@@ -1227,15 +1233,16 @@
             fields.forEach(f => {
                 // Seção
                 if (f.section) {
-                    if (!f.mode || f.mode === mode) {
-                        const el = document.createElement('div');
-                        el.className = 'form-section-title';
-                        el.textContent = f.section;
-                        container.appendChild(el);
-                    }
+                    // sempre mostra seções no modal de cadastro
+                    const el = document.createElement('div');
+                    el.className = 'form-section-title';
+                    el.textContent = f.section;
+                    container.appendChild(el);
                     return;
                 }
-                if (f.mode && f.mode !== mode) return;
+                // modal sempre mostra todos os campos independente do modo
+                // a separação de modo só afeta a VISUALIZAÇÃO da tabela, não o cadastro
+                // if (f.mode && f.mode !== mode) return;
 
                 const group = document.createElement('div');
                 group.className = 'form-group' + (f.span2 ? ' span-2' : '');
@@ -1307,6 +1314,104 @@
                     input.checked = prefillData[f.key] === true || prefillData[f.key] === 'true';
                     input.style.width = 'auto';
 
+                } else if (f.type === 'chip_selector') {
+                    // Widget de seleção de chips via ID, mostra número na label
+                    input = document.createElement('div');
+                    input.id = 'chip-selector-widget';
+                    input.dataset.max = f.max || 2;
+                    input.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
+                    const chipsSelecionados = prefillData[f.key] || [];
+                    const renderChipSelector = (lista) => {
+                        input.innerHTML = '';
+                        lista.forEach((chip, i) => {
+                            const row = document.createElement('div');
+                            row.style.cssText = 'display:flex;align-items:center;gap:8px;';
+                            const sel = document.createElement('select');
+                            sel.name = `chip_id_${i}`;
+                            sel.style.flex = '1';
+                            const blank = document.createElement('option');
+                            blank.value = ''; blank.textContent = '— Selecione o chip —';
+                            sel.appendChild(blank);
+                            (window._chipsCache || []).forEach(c => {
+                                const o = document.createElement('option');
+                                o.value = c.id; o.textContent = `${c.numero} (${c.dono || 'sem dono'})`;
+                                if (chip === c.id) o.selected = true;
+                                sel.appendChild(o);
+                            });
+                            const btnRem = document.createElement('button');
+                            btnRem.type = 'button';
+                            btnRem.textContent = '✕';
+                            btnRem.style.cssText = 'border:none;background:#fee2e2;color:#ef4444;border-radius:6px;padding:4px 8px;cursor:pointer;';
+                            btnRem.onclick = () => { lista.splice(i, 1); renderChipSelector(lista); };
+                            row.appendChild(sel); row.appendChild(btnRem);
+                            input.appendChild(row);
+                        });
+                        if (lista.length < parseInt(input.dataset.max)) {
+                            const btnAdd = document.createElement('button');
+                            btnAdd.type = 'button';
+                            btnAdd.textContent = '+ Adicionar Chip';
+                            btnAdd.style.cssText = 'border:1px dashed #cbd5e1;background:transparent;border-radius:7px;padding:6px 12px;cursor:pointer;font-size:13px;color:var(--text-muted);';
+                            btnAdd.onclick = () => { lista.push(''); renderChipSelector(lista); };
+                            input.appendChild(btnAdd);
+                        }
+                    };
+                    // carrega chips da API e renderiza
+                    const chipsArr = Array.isArray(chipsArr2 = chipsArr || []) ? chipsArr2 : [];
+                    const chipsInicial = Array.isArray(chipsArr2 = prefillData[f.key]) ? chipsArr2 : [];
+                    getChips().then(lista => {
+                        window._chipsCache = lista || [];
+                        renderChipSelector([...chipsInicial]);
+                    }).catch(() => {
+                        window._chipsCache = [];
+                        renderChipSelector([...chipsInicial]);
+                    });
+
+                } else if (f.type === 'whatsapp_list') {
+                    // Lista dinâmica de contas whatsapp {numero, dono}
+                    input = document.createElement('div');
+                    input.id = 'whatsapp-list-widget';
+                    input.dataset.max = f.max || 6;
+                    input.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
+                    const wppInicial = Array.isArray(prefillData[f.key]) ? prefillData[f.key] : [];
+                    const renderWppList = (lista) => {
+                        input.innerHTML = '';
+                        lista.forEach((wpp, i) => {
+                            const row = document.createElement('div');
+                            row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;';
+                            const g1 = document.createElement('div'); g1.className = 'form-group'; g1.style.margin = '0';
+                            const l1 = document.createElement('label'); l1.textContent = `Número ${i+1}`;
+                            const inp1 = document.createElement('input');
+                            inp1.type = 'text'; inp1.name = `wpp_numero_${i}`;
+                            inp1.placeholder = '+5511999999999';
+                            inp1.value = wpp.numero || '';
+                            inp1.style.cssText = 'padding:7px 10px;border:1px solid var(--border-color);border-radius:7px;font-size:13px;background:var(--background-color);color:var(--text-primary);outline:none;';
+                            g1.appendChild(l1); g1.appendChild(inp1);
+                            const g2 = document.createElement('div'); g2.className = 'form-group'; g2.style.margin = '0';
+                            const l2 = document.createElement('label'); l2.textContent = `Dono ${i+1}`;
+                            const inp2 = document.createElement('input');
+                            inp2.type = 'text'; inp2.name = `wpp_dono_${i}`;
+                            inp2.placeholder = 'Nome do dono';
+                            inp2.value = wpp.dono || '';
+                            inp2.style.cssText = inp1.style.cssText;
+                            g2.appendChild(l2); g2.appendChild(inp2);
+                            const btnRem = document.createElement('button');
+                            btnRem.type = 'button'; btnRem.textContent = '✕';
+                            btnRem.style.cssText = 'border:none;background:#fee2e2;color:#ef4444;border-radius:6px;padding:7px 10px;cursor:pointer;align-self:end;';
+                            btnRem.onclick = () => { lista.splice(i, 1); renderWppList(lista); };
+                            row.appendChild(g1); row.appendChild(g2); row.appendChild(btnRem);
+                            input.appendChild(row);
+                        });
+                        if (lista.length < parseInt(input.dataset.max)) {
+                            const btnAdd = document.createElement('button');
+                            btnAdd.type = 'button';
+                            btnAdd.textContent = '+ Adicionar Conta WhatsApp';
+                            btnAdd.style.cssText = 'border:1px dashed #cbd5e1;background:transparent;border-radius:7px;padding:6px 12px;cursor:pointer;font-size:13px;color:var(--text-muted);';
+                            btnAdd.onclick = () => { lista.push({numero:'',dono:''}); renderWppList(lista); };
+                            input.appendChild(btnAdd);
+                        }
+                    };
+                    renderWppList([...wppInicial]);
+
                 } else {
                     input = criarInput(f.key, prefillData[f.key] || '', f.placeholder || '', f.type || 'text');
                 }
@@ -1320,8 +1425,33 @@
         function openAddModal() {
             const catName = categoryNames[currentCategory] || currentCategory;
             document.getElementById('modalAddTitle').textContent = `Novo — ${catName}`;
-            renderFields('formAddFields', currentCategory, currentMode, {});
+            renderFields('formAddFields', currentCategory, 'all', {});
             openModal('modalAdd');
+        }
+
+        function coletarDadosCelular(containerId) {
+            // coleta chipIds
+            const chipIds = [];
+            let i = 0;
+            while (true) {
+                const sel = document.querySelector(`#${containerId} select[name="chip_id_${i}"]`);
+                if (!sel) break;
+                if (sel.value) chipIds.push(sel.value);
+                i++;
+            }
+            // coleta contasWhatsapp
+            const contasWhatsapp = [];
+            i = 0;
+            while (true) {
+                const num = document.querySelector(`#${containerId} input[name="wpp_numero_${i}"]`);
+                if (!num) break;
+                const dono = document.querySelector(`#${containerId} input[name="wpp_dono_${i}"]`);
+                if (num.value.trim()) {
+                    contasWhatsapp.push({ numero: num.value.trim(), dono: dono?.value.trim() || '' });
+                }
+                i++;
+            }
+            return { chipIds, contasWhatsapp };
         }
 
         function submitAdd() {
@@ -1344,6 +1474,12 @@
                 i++;
             }
             if (conectores.length) data['conector_video'] = conectores;
+            // chips e whatsapp (celular)
+            if (currentCategory === 'celulares') {
+                const { chipIds, contasWhatsapp } = coletarDadosCelular('formAddFields');
+                data['chipIds'] = chipIds;
+                data['contasWhatsapp'] = contasWhatsapp;
+            }
             console.log('ADD:', currentCategory, data);
             closeModal('modalAdd');
         }
@@ -1422,24 +1558,75 @@
         }
 
         // ==================== ENUMS ESPELHADOS DO BACKEND ====================
-        const SETOR    = ['RH','GXT','Suporte','Produtos','Auditoria','Diretoria','Mesa','CallCenter','Dev','Cofre','Servidor'];
-        const STATUS   = ['Em Manutenção','Necessita Manutenção','Em Uso','Desativado','Em Estoque','Indisponível','Aguardando Descarte','Descartado','Vendido'];
-        const SO       = ['Windows 7','Windows 10','Windows 11','Linux','MacOS'];
-        const ATIV_SO  = ['Original Fábrica','Original Comprada','Desativado','Não Possui','Pirata'];
-        const OFFICE   = ['Nenhum','Office 2016','Office 2019','Office 2021','Microsoft 365'];
-        const ATIV_OFF = ['Desativado','Não Possui','Original Fábrica','Original Comprada','Assinatura','Pirata'];
-        const TIPO_PC  = ['PC Desktop','Notebook','All in One'];
-        const RESOLUCAO= ['HD','FHD','QHD','UHD 4K'];
-        const CONECTIV = ['Bluetooth','Cabo','USB','TriMode'];
-        const SWITCH   = ['Não Possui','Red','Blue','Brown','Yellow','Green','Black','Silver','Purple','White','Orange'];
-        const TIPO_PER = ['Gamer','Escritório'];
-        const OPERADORA= ['Vivo','Claro','Tim','Oi','Nextel','Algar','Sercomtel','MVNOs'];
-        const CONECTOR_CARREGADOR = ['USB-C','Lightning','MicroUSB','MiniUSB'];
+        const SETOR    = [
+            {value:'RH', label:'RH'}, {value:'GXT', label:'GXT'}, {value:'Suporte', label:'Suporte'},
+            {value:'Produtos', label:'Produtos'}, {value:'Auditoria', label:'Auditoria'},
+            {value:'Diretoria', label:'Diretoria'}, {value:'Mesa', label:'Mesa'},
+            {value:'CallCenter', label:'Call Center'}, {value:'Dev', label:'Dev'},
+            {value:'Cofre', label:'Cofre'}, {value:'Servidor', label:'Servidor'}
+        ];
+        const STATUS   = [
+            {value:'EmManutenção', label:'Em Manutenção'}, {value:'NecessitaManutenção', label:'Necessita Manutenção'},
+            {value:'EmUso', label:'Em Uso'}, {value:'Desativado', label:'Desativado'},
+            {value:'EmEstoque', label:'Em Estoque'}, {value:'Indisponível', label:'Indisponível'},
+            {value:'AguardandoDescarte', label:'Aguardando Descarte'}, {value:'Descartado', label:'Descartado'},
+            {value:'Vendido', label:'Vendido'}
+        ];
+        const SO       = [
+            {value:'Windows7', label:'Windows 7'}, {value:'Windows10', label:'Windows 10'},
+            {value:'Windows11', label:'Windows 11'}, {value:'Linux', label:'Linux'}, {value:'MacOS', label:'MacOS'}
+        ];
+        const ATIV_SO  = [
+            {value:'Original_Fabrica', label:'Original de Fábrica'}, {value:'Original_Comprada', label:'Original Comprada'},
+            {value:'Desativado', label:'Desativado'}, {value:'Nao_Possui', label:'Não Possui'}, {value:'Pirata', label:'Pirata'}
+        ];
+        const OFFICE   = [
+            {value:'Nenhum', label:'Nenhum'}, {value:'Office2016', label:'Office 2016'},
+            {value:'Office2019', label:'Office 2019'}, {value:'Office2021', label:'Office 2021'},
+            {value:'Microsoft365', label:'Microsoft 365'}
+        ];
+        const ATIV_OFF = [
+            {value:'Desativado', label:'Desativado'}, {value:'NaoPossui', label:'Não Possui'},
+            {value:'Original_Fabrica', label:'Original de Fábrica'}, {value:'Original_Comprada', label:'Original Comprada'},
+            {value:'Assinatura', label:'Assinatura'}, {value:'Pirata', label:'Pirata'}
+        ];
+        const TIPO_PC  = [
+            {value:'PC_Desktop', label:'PC Desktop'}, {value:'Notebook', label:'Notebook'}, {value:'All_in_One', label:'All in One'}
+        ];
+        const RESOLUCAO= [
+            {value:'HD', label:'HD (1280x720)'}, {value:'FHD', label:'Full HD (1920x1080)'},
+            {value:'QHD', label:'QHD (2560x1440)'}, {value:'UHD4K', label:'UHD 4K (3840x2160)'}
+        ];
+        const CONECTIV = [
+            {value:'Bluetooth', label:'Bluetooth'}, {value:'Cabo', label:'Cabo'},
+            {value:'USB', label:'USB'}, {value:'TriMode', label:'Tri-Mode'}
+        ];
+        const SWITCH   = [
+            {value:'NaoPossui', label:'Não Possui'}, {value:'Red', label:'Red'},
+            {value:'Blue', label:'Blue'}, {value:'Brown', label:'Brown'},
+            {value:'Yellow', label:'Yellow'}, {value:'Green', label:'Green'},
+            {value:'Black', label:'Black'}, {value:'Silver', label:'Silver'},
+            {value:'Purple', label:'Purple'}, {value:'White', label:'White'}, {value:'Orange', label:'Orange'}
+        ];
+        const TIPO_PER = [{value:'Gamer', label:'Gamer'}, {value:'Escritorio', label:'Escritório'}];
+        const OPERADORA= [
+            {value:'Vivo', label:'Vivo'}, {value:'Claro', label:'Claro'}, {value:'Tim', label:'TIM'},
+            {value:'Oi', label:'Oi'}, {value:'Nextel', label:'Nextel'}, {value:'Algar', label:'Algar'},
+            {value:'Sercomtel', label:'Sercomtel'}, {value:'MVNOs', label:'MVNOs'}
+        ];
+        const CONECTOR_CARREGADOR = [
+            {value:'USB_C', label:'USB-C'}, {value:'Lightning', label:'Lightning (Apple)'},
+            {value:'MicroUSB', label:'Micro USB'}, {value:'MiniUSB', label:'Mini USB'}
+        ];
         const CONECTOR_VIDEO = ['HDMI', 'DisplayPort', 'VGA', 'DVI'];
-        const TIPO_DISCO = ['HDD','SSD','SSD NVMe'];
-        const GERACAO_RAM = ['DDR3','DDR4','DDR5'];
+        const TIPO_DISCO = [
+            {value:'HDD', label:'HDD'}, {value:'SSD', label:'SSD SATA'}, {value:'NVMe', label:'SSD NVMe'}
+        ];
+        const GERACAO_RAM = [
+            {value:'DDR3', label:'DDR3'}, {value:'DDR4', label:'DDR4'}, {value:'DDR5', label:'DDR5'}
+        ];
         const TIPO_RAM = ['0','2','4','8','16','32','64'];
-        const TIPO_GPU = ['Integrada','Dedicada'];
+        const TIPO_GPU = [{value:'Integrada', label:'Integrada'}, {value:'Dedicada', label:'Dedicada'}];
 
         // ==================== FORM FIELD DEFINITIONS ====================
         // Tipos especiais:
@@ -1452,7 +1639,11 @@
         const QUANT_DISCOS  = ['1','2','3','4','5','6'];
         const QUANT_GPUS    = ['0','1','2','3','4'];
         const QUANT_CON     = ['0','1','2','3','4','5','6'];
-        const TIPO_MEMORIA_RAM = ['GB4','GB8','GB16','GB32','GB64'];
+        const TIPO_MEMORIA_RAM = [
+            {value:'GB4', label:'4 GB'}, {value:'GB8', label:'8 GB'},
+            {value:'GB16', label:'16 GB'}, {value:'GB32', label:'32 GB'},
+            {value:'GB64', label:'64 GB'}
+        ];
 
         const formFields = {
             computadores: [
@@ -1593,14 +1784,22 @@
                 { section: 'Geral' },
                 { label: 'Modelo', key: 'modelo', type: 'text' },
 
-                { section: 'Especificações', mode: 'suporte' },
-                { label: 'Armazenamento (GB)', key: 'armazenamento', type: 'number', placeholder: 'Ex: 128', mode: 'suporte' },
-                { label: 'RAM (GB)', key: 'ram', type: 'number', placeholder: 'Ex: 8', mode: 'suporte' },
-                { label: 'Conector Carregador', key: 'conectividade', type: 'select', options: CONECTOR_CARREGADOR, mode: 'suporte' },
+                { section: 'Especificações' },
+                { label: 'Armazenamento (GB)', key: 'armazenamento', type: 'number', placeholder: 'Ex: 128' },
+                { label: 'RAM (GB)', key: 'ram', type: 'number', placeholder: 'Ex: 8' },
+                { label: 'Conector Carregador', key: 'conectividade', type: 'select', options: CONECTOR_CARREGADOR },
 
-                { section: 'Dados Administrativos', mode: 'gestao' },
-                { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
-                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mode: 'gestao' },
+                { section: 'Chips no Celular' },
+                // tipo chip_selector: carrega chips da API e permite selecionar até 2
+                { label: 'Chips', key: 'chipIds', type: 'chip_selector', max: 2, span2: true },
+
+                { section: 'Contas WhatsApp' },
+                // tipo whatsapp_list: lista dinâmica de até 6 entradas {numero, dono}
+                { label: 'Contas WhatsApp', key: 'contasWhatsapp', type: 'whatsapp_list', max: 6, span2: true },
+
+                { section: 'Dados Administrativos' },
+                { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date' },
+                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00' },
 
                 { section: 'Atribuição' },
                 { label: 'Status', key: 'status', type: 'select', options: STATUS },
@@ -1617,13 +1816,11 @@
                 { label: 'Tipo', key: 'tipo', type: 'text', placeholder: 'Ex: IP, Analógico', mode: 'suporte' },
                 { label: 'IP', key: 'ip', type: 'text', placeholder: 'Ex: 192.168.0.50', mode: 'suporte' },
                 { label: 'MAC', key: 'mac', type: 'text', placeholder: 'Ex: AA:BB:CC:DD:EE:FF', mode: 'suporte' },
-                { label: 'Linha', key: 'linha', type: 'text', placeholder: 'Ex: Linha 1', mode: 'suporte' },
-                { label: 'Número', key: 'numero', type: 'text', placeholder: 'Ex: 1001', mode: 'suporte' },
+                { label: 'Linha', key: 'linha', type: 'text', placeholder: 'Ex: 9000', mode: 'suporte' },
+                { label: 'Número', key: 'numero', type: 'text', placeholder: 'Ex: 15999998888', mode: 'suporte' },
                 { label: 'Configurado', key: 'configurado', type: 'checkbox', mode: 'suporte' },
 
                 { section: 'Dados Administrativos', mode: 'gestao' },
-                { label: 'Linha', key: 'linha', type: 'text', mode: 'gestao' },
-                { label: 'Número', key: 'numero', type: 'text', mode: 'gestao' },
                 { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
                 { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mode: 'gestao' },
 
@@ -1868,7 +2065,11 @@
                 selVal.innerHTML = '<option value="">— Escolha o valor —</option>';
                 def.values.forEach(v => {
                     const opt = document.createElement('option');
-                    opt.value = v; opt.textContent = v;
+                    if (typeof v === 'object') {
+                        opt.value = v.value; opt.textContent = v.label;
+                    } else {
+                        opt.value = v; opt.textContent = v;
+                    }
                     selVal.appendChild(opt);
                 });
                 selVal.style.display = '';
@@ -1890,16 +2091,21 @@
             const def = defs.find(d => d.key === key);
             if (!def) return;
             let value = '';
+            let displayValue = '';
             if (def.values && def.values.length) {
                 value = valSel.value;
                 if (!value) { valSel.focus(); return; }
+                // pega o label visual se for objeto
+                const found = def.values.find(v => (typeof v === 'object' ? v.value : v) === value);
+                displayValue = found ? (typeof found === 'object' ? found.label : found) : value;
             } else {
                 value = valInput.value.trim();
+                displayValue = value;
                 if (!value) { valInput.focus(); return; }
             }
             const exists = activeFilters.find(f => f.key === key && f.value === value);
             if (exists) return;
-            activeFilters.push({ key, label: def.label, value });
+            activeFilters.push({ key, label: def.label, value, displayValue });
             renderChips();
             propSel.value = '';
             valSel.style.display = 'none';
@@ -1933,7 +2139,7 @@
                 chip.className = 'filter-chip';
                 chip.innerHTML = `
                     <span class="chip-label">${f.label}:</span>
-                    <span>${f.value}</span>
+                    <span>${f.displayValue || f.value}</span>
                     <button class="chip-remove" onclick="removeFilter(${i})" title="Remover filtro">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
@@ -2042,7 +2248,7 @@
                 const proc = item.processador ? item.processador.nome : (item.processadorId ? item.processadorId : '—');
                 const ram = item.memoriaRAMTotal ? `${item.memoriaRAMTotal} GB` : '—';
                 const discos = item.discos?.length ? `${item.discos.reduce((s, d) => s + (d.tamanho || 0), 0)} GB` : '—';
-                const vram = item.placasVideo?.length ? `${item.placasVideo.reduce((s, p) => s + (p.vram || 0), 0)} GB` : '—';
+                const vram = item.placasVideo?.length ? `${item.placasVideo.reduce((s, p) => s + (p.vram || 0), 0)} MB` : '—';
                 if (modo === 'suporte') {
                     cells = `
                         <td>${item.codigo || '—'}</td>
@@ -2195,17 +2401,31 @@
             }
 
             else if (categoria === 'celulares') {
-                const chips = item.chips?.map(c => c.numero).join(', ') || item.chipIds?.join(', ') || '—';
-                const wpp = item.contasWhatsapp?.map(c => c.numero || c).join(', ') || '—';
+                // chips: prefere o número resolvido, fallback no ID
+                const chipsHtml = (() => {
+                    const lista = item.chips?.length ? item.chips.map(c => c.numero) : (item.chipIds || []);
+                    if (!lista.length) return '—';
+                    return lista.map(n => `<span style="display:block;font-size:12px;white-space:nowrap;">${n}</span>`).join('');
+                })();
+                // whatsapp: mostra numero e dono empilhados
+                const wppHtml = (() => {
+                    const lista = item.contasWhatsapp || [];
+                    if (!lista.length) return '—';
+                    return lista.map(w => {
+                        const num = w.numero || w;
+                        const dono = w.dono ? ` <span style="color:var(--text-muted);font-size:11px;">(${w.dono})</span>` : '';
+                        return `<span style="display:block;font-size:12px;white-space:nowrap;">${num}${dono}</span>`;
+                    }).join('');
+                })();
                 if (modo === 'suporte') {
                     cells = `
                         <td>${item.codigo || '—'}</td>
                         <td>${item.modelo || '—'}</td>
-                        <td>${item.armazenamento ? item.armazenamento + 'GB' : '—'}</td>
-                        <td>${item.memoriaRAM ? item.memoriaRAM + 'GB' : '—'}</td>
+                        <td>${item.armazenamento ? item.armazenamento + ' GB' : '—'}</td>
+                        <td>${item.memoriaRAM ? item.memoriaRAM + ' GB' : '—'}</td>
                         <td>${item.conectividade || '—'}</td>
-                        <td>${chips}</td>
-                        <td>${wpp}</td>
+                        <td>${chipsHtml}</td>
+                        <td>${wppHtml}</td>
                         <td>${item.status || '—'}</td>
                         <td>${item.setor || '—'}</td>
                         <td>${item.usuario || '—'}</td>
@@ -2357,7 +2577,7 @@
         function abrirEdicao(btn) {
             const tr = btn.closest('tr');
             const item = JSON.parse(tr.dataset.item || '{}');
-            renderFields('formEditFields', currentCategory, currentMode, mapItemToForm(currentCategory, item));
+            renderFields('formEditFields', currentCategory, 'all', mapItemToForm(currentCategory, item));
             // guarda ID no modal para o submit
             document.getElementById('modalEdit').dataset.editId = tr.dataset.id;
             openModal('modalEdit');
@@ -2403,6 +2623,8 @@
                 setor: item.setor, usuario: item.usuario, status: item.status,
                 data_aquisicao: item.dataAquisicao?.split('T')[0],
                 preco_aquisicao: item.precoAquisicao,
+                chipIds: item.chipIds || [],
+                contasWhatsapp: item.contasWhatsapp || [],
             };
             if (categoria === 'ramais') return {
                 modelo: item.modelo, cor: item.cor, tipo: item.tipo,
@@ -2466,7 +2688,8 @@
                 setor: form.setor, usuario: form.usuario, status: form.status,
                 dataAquisicao: form.data_aquisicao,
                 precoAquisicao: parseFloat(form.preco_aquisicao) || 0,
-                chipIds: [], contasWhatsapp: [],
+                chipIds: form.chipIds || [],
+                contasWhatsapp: form.contasWhatsapp || [],
             };
             if (categoria === 'ramais') return {
                 modelo: form.modelo, cor: form.cor, tipo: form.tipo,
@@ -2495,7 +2718,16 @@
         submitAdd = async function() {
             const fields = document.querySelectorAll('#formAddFields [name]');
             const form = {};
-            fields.forEach(f => { form[f.name] = f.value; });
+            fields.forEach(f => {
+                if (f.type === 'checkbox') form[f.name] = f.checked;
+                else form[f.name] = f.value;
+            });
+            // coleta chips e whatsapp do celular
+            if (currentCategory === 'celulares') {
+                const { chipIds, contasWhatsapp } = coletarDadosCelular('formAddFields');
+                form['chipIds'] = chipIds;
+                form['contasWhatsapp'] = contasWhatsapp;
+            }
             const payload = mapFormToApi(currentCategory, form);
             const resultado = await apiCreate[currentCategory](payload);
             if (resultado) {
@@ -2510,7 +2742,16 @@
             const id = document.getElementById('modalEdit').dataset.editId;
             const fields = document.querySelectorAll('#formEditFields [name]');
             const form = {};
-            fields.forEach(f => { form[f.name] = f.value; });
+            fields.forEach(f => {
+                if (f.type === 'checkbox') form[f.name] = f.checked;
+                else form[f.name] = f.value;
+            });
+            // coleta chips e whatsapp do celular
+            if (currentCategory === 'celulares') {
+                const { chipIds, contasWhatsapp } = coletarDadosCelular('formEditFields');
+                form['chipIds'] = chipIds;
+                form['contasWhatsapp'] = contasWhatsapp;
+            }
             const payload = mapFormToApi(currentCategory, form);
             const resultado = await apiUpdate[currentCategory](id, payload);
             if (resultado !== null) {
