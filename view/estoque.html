@@ -699,7 +699,7 @@
 
                     <!-- ========== COMPUTADORES ========== -->
                     <!-- SUPORTE -->
-                    <table class="inv-table ativa" id="computadores-suporte">
+                    <table class="inv-table" id="computadores-suporte">
                         <thead><tr>
                             <th class="col-id">ID</th>
                             <th>Modelo</th>
@@ -1824,7 +1824,7 @@
             monitores: [
                 { section: 'Geral' },
                 { label: 'Modelo', key: 'modelo', type: 'text', maxlen: 100, required: true },
-                { label: 'Tamanho (pol.)', key: 'tamanho', type: 'number', placeholder: 'Ex: 27' },
+                { label: 'Tamanho (pol.)', key: 'tamanho', type: 'number', placeholder: 'Ex: 27.5' },
 
                 { section: 'Especificações', mode: 'suporte' },
                 { label: 'Resolução', key: 'resolucao', type: 'select', options: RESOLUCAO, mode: 'suporte' },
@@ -2253,22 +2253,24 @@
             if (activeFilters.length === 0) {
                 container.querySelector('.filter-empty').style.display = '';
                 clearBtn.style.display = 'none';
-                return;
+            } else {
+                container.querySelector('.filter-empty').style.display = 'none';
+                clearBtn.style.display = '';
+                activeFilters.forEach((f, i) => {
+                    const chip = document.createElement('div');
+                    chip.className = 'filter-chip';
+                    chip.innerHTML = `
+                        <span class="chip-label">${f.label}:</span>
+                        <span>${f.displayValue || f.value}</span>
+                        <button class="chip-remove" onclick="removeFilter(${i})" title="Remover filtro">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    `;
+                    container.appendChild(chip);
+                });
             }
-            container.querySelector('.filter-empty').style.display = 'none';
-            clearBtn.style.display = '';
-            activeFilters.forEach((f, i) => {
-                const chip = document.createElement('div');
-                chip.className = 'filter-chip';
-                chip.innerHTML = `
-                    <span class="chip-label">${f.label}:</span>
-                    <span>${f.displayValue || f.value}</span>
-                    <button class="chip-remove" onclick="removeFilter(${i})" title="Remover filtro">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                `;
-                container.appendChild(chip);
-            });
+            // re-renderiza a tabela com os filtros aplicados (usa cache)
+            aplicarFiltrosNaTabela();
         }
 
         // ====== INIT ======
@@ -2297,6 +2299,66 @@
 
         // cache dos dados carregados por categoria
         const cache = {};
+
+        // Normaliza um valor para comparação de filtro
+        function normalizarValor(v) {
+            if (v === null || v === undefined) return '';
+            return String(v).toLowerCase().trim();
+        }
+
+        // Retorna o valor de uma propriedade do item para comparação com o filtro
+        function extrairValorFiltro(item, key) {
+            // mapeamento de chaves do filterDef para propriedades do item
+            const mapa = {
+                tipo: item.tipo,
+                so: item.sistemaOperacional,
+                ativacao_so: item.ativacaoSO,
+                ativacao_office: item.ativacaoOffice,
+                office: item.office,
+                status: item.status,
+                setor: item.setor,
+                ativo: item.ativo === true ? 'Sim' : 'Não',
+                resolucao: item.resolucao,
+                conectividade: item.conectividade,
+                switch: item.switch,
+                operadora: item.operadora,
+                configurado: item.configurado === true ? 'Sim' : 'Não',
+            };
+            return mapa[key] !== undefined ? mapa[key] : item[key];
+        }
+
+        // Aplica activeFilters no cache e re-renderiza sem buscar da API
+        function aplicarFiltrosNaTabela() {
+            if (!cache[currentCategory]) return;
+            const tableId = `${currentCategory}-${currentMode}`;
+            const tbody = document.querySelector(`#${tableId} tbody`);
+            if (!tbody) return;
+
+            let dados = cache[currentCategory];
+
+            // aplica cada filtro ativo
+            if (activeFilters.length > 0) {
+                dados = dados.filter(item => {
+                    return activeFilters.every(f => {
+                        const valorItem = normalizarValor(extrairValorFiltro(item, f.key));
+                        const valorFiltro = normalizarValor(f.value);
+                        return valorItem === valorFiltro;
+                    });
+                });
+            }
+
+            if (dados.length === 0) {
+                tbody.innerHTML = `<tr class="empty-row"><td colspan="20">Nenhum registro encontrado para os filtros aplicados.</td></tr>`;
+                document.getElementById('tableInfo').textContent = '0 registros';
+                document.getElementById('footerInfo').textContent = '0 registros';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            dados.forEach(item => tbody.appendChild(renderRow(currentCategory, item, currentMode)));
+            document.getElementById('tableInfo').textContent = `${dados.length} registro(s)`;
+            document.getElementById('footerInfo').textContent = `${dados.length} registro(s)`;
+        }
 
         // mapa de categoria → função de busca da api.js
         const apiFetch = {
@@ -2668,13 +2730,8 @@
                     return;
                 }
 
-                tbody.innerHTML = '';
-                dados.forEach(item => {
-                    tbody.appendChild(renderRow(categoria, item, modo));
-                });
-
-                document.getElementById('tableInfo').textContent = `${dados.length} registro(s)`;
-                document.getElementById('footerInfo').textContent = `${dados.length} registro(s)`;
+                // aplica filtros ativos após carregar
+                aplicarFiltrosNaTabela();
             } catch (e) {
                 tbody.innerHTML = `<tr class="empty-row"><td colspan="20"><i class="fa-solid fa-triangle-exclamation"></i> Erro ao conectar com a API.</td></tr>`;
                 console.error('Erro ao carregar:', e);
@@ -2838,7 +2895,7 @@
             }
             if (categoria === 'monitores') return {
                 modelo: form.modelo, tamanho: parseFloat(form.tamanho) || 0,
-                resolucao: form.resolucao, frequencia: parseInt(form.frequencia) || 0,
+                resolucao: form.resolucao || undefined, frequencia: parseInt(form.frequencia) || 0,
                 hdmi: form.hdmi === true || form.hdmi === 'true',
                 displayPort: form.displayPort === true || form.displayPort === 'true',
                 vga: form.vga === true || form.vga === 'true',
@@ -2849,23 +2906,23 @@
                 precoAquisicao: parseFloat(String(form.preco_aquisicao || '0').replace('R$','').replace(',','.').trim()) || 0,
             };
             if (categoria === 'mouses') return {
-                modelo: form.modelo, conectividade: form.conectividade, tipo: form.tipo,
+                modelo: form.modelo, conectividade: form.conectividade || undefined, tipo: form.tipo || undefined,
                 setor: form.setor, usuario: form.usuario, status: form.status,
                 observacoes: form.observacoes || null,
                 dataAquisicao: form.data_aquisicao || new Date().toISOString(),
                 precoAquisicao: parseFloat(String(form.preco_aquisicao || '0').replace('R$','').replace(',','.').trim()) || 0,
             };
             if (categoria === 'teclados') return {
-                modelo: form.modelo, conectividade: form.conectividade, tipo: form.tipo,
-                switch: form.switch, tamanho: parseInt(form.tamanho) || 0,
+                modelo: form.modelo, conectividade: form.conectividade || undefined, tipo: form.tipo || undefined,
+                switch: form.switch || undefined, tamanho: parseInt(form.tamanho) || 0,
                 setor: form.setor, usuario: form.usuario, status: form.status,
                 observacoes: form.observacoes || null,
                 dataAquisicao: form.data_aquisicao || new Date().toISOString(),
                 precoAquisicao: parseFloat(String(form.preco_aquisicao || '0').replace('R$','').replace(',','.').trim()) || 0,
             };
             if (categoria === 'fones') return {
-                modelo: form.modelo, tipo: form.tipo, microfone: form.microfone === true || form.microfone === 'true',
-                conectividade: form.conectividade,
+                modelo: form.modelo, tipo: form.tipo || undefined, microfone: form.microfone === true || form.microfone === 'true',
+                conectividade: form.conectividade || undefined,
                 setor: form.setor, usuario: form.usuario, status: form.status,
                 observacoes: form.observacoes || null,
                 dataAquisicao: form.data_aquisicao || new Date().toISOString(),
@@ -2873,7 +2930,7 @@
             };
             if (categoria === 'celulares') return {
                 modelo: form.modelo, armazenamento: parseInt(form.armazenamento) || 0,
-                memoriaRAM: parseInt(form.ram) || 0, conectividade: form.conectividade,
+                memoriaRAM: parseInt(form.ram) || 0, conectividade: form.conectividade || undefined,
                 setor: form.setor, usuario: form.usuario, status: form.status,
                 observacoes: form.observacoes || null,
                 dataAquisicao: form.data_aquisicao || new Date().toISOString(),
@@ -2892,7 +2949,8 @@
                 precoAquisicao: parseFloat(String(form.preco_aquisicao || '0').replace('R$','').replace(',','.').trim()) || 0,
             };
             if (categoria === 'chips') return {
-                numero: form.numero, operadora: form.operadora, dono: form.dono || null,
+                numero: (form.numero || '').replace(/\D/g, '').replace(/^(\d{2})(\d+)$/, '+$1$2') || form.numero,
+                operadora: form.operadora || undefined, dono: form.dono || null,
                 celularId: form.celularId || null,
                 plano: parseFloat(String(form.plano || '0').replace('R$','').replace(',','.').trim()) || 0,
                 setor: form.setor, usuario: form.usuario, status: form.status,
@@ -3080,6 +3138,10 @@
         };
 
         // ==================== CARGA INICIAL ====================
+        // Garante que a tabela correta (gestao) esteja visível e carregada
+        document.querySelectorAll('.inv-table').forEach(t => t.classList.remove('ativa'));
+        const tabelaInicial = document.getElementById('computadores-gestao');
+        if (tabelaInicial) tabelaInicial.classList.add('ativa');
         carregarTabela('computadores', 'gestao');
     </script>
 </body>

@@ -12,7 +12,7 @@ public class Teclado : Equipamento
     public TipoPeriferico Tipo { get; set; }
     public Conectividade Conectividade { get; set; }
 
-    [Range(50, 100)]
+    [Range(0, 100)]
     public int Tamanho { get; set; }
 
     public Switch Switch { get; set; }

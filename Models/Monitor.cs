@@ -9,7 +9,7 @@ public class Monitor : Equipamento
     [Required]
     public string Modelo { get; set; } = null!;
 
-    [Range(1, 100)]
+    [Range(0, 100)]
     public float Tamanho { get; set; }
 
     public Resolucao Resolucao { get; set; }

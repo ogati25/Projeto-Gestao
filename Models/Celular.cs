@@ -10,10 +10,10 @@ public class Celular : Equipamento
     [Required]
     public string Modelo { get; set; } = null!;
 
-    [Range(1, int.MaxValue, ErrorMessage = "Memória RAM inválida.")]
+    [Range(0, int.MaxValue, ErrorMessage = "Memória RAM inválida.")]
     public int MemoriaRAM { get; set; }
 
-    [Range(1, int.MaxValue, ErrorMessage = "Armazenamento inválido.")]
+    [Range(0, int.MaxValue, ErrorMessage = "Armazenamento inválido.")]
     public int Armazenamento { get; set; }
 
     public TipoConectorCarregador Conectividade { get; set; }
