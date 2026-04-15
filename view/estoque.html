@@ -2758,29 +2758,78 @@
             const tr = btn.closest('tr');
             const item = JSON.parse(tr.dataset.item || '{}');
             renderFields('formEditFields', currentCategory, 'all', mapItemToForm(currentCategory, item));
-            // guarda ID no modal para o submit
             document.getElementById('modalEdit').dataset.editId = tr.dataset.id;
+
+            // pré-popula campos dinâmicos do computador
+            if (currentCategory === 'computadores') {
+                // select de quantidade — seta o valor e dispara os campos dinâmicos
+                const slotsRAM = item.memoriaRAM?.length || 0;
+                const qtdDiscos = item.discos?.length || 0;
+                const qtdGPUs = item.placasVideo?.length || 0;
+                const qtdConn = item.conectoresVideo?.length || 0;
+
+                // seta os selects de quantidade
+                const setarSelect = (name, val) => {
+                    const sel = document.querySelector(`#formEditFields select[name="${name}"]`);
+                    if (sel) sel.value = String(val);
+                };
+                setarSelect('quant_slots', slotsRAM);
+                setarSelect('quant_discos', qtdDiscos);
+                setarSelect('quant_gpus', qtdGPUs);
+                setarSelect('quant_conectores', qtdConn);
+
+                // renderiza os campos dinâmicos com os valores existentes
+                const grupoSlots = document.querySelector('#formEditFields select[name="quant_slots"]')?.closest('.form-group');
+                const grupoDiscos = document.querySelector('#formEditFields select[name="quant_discos"]')?.closest('.form-group');
+                const grupoGPUs  = document.querySelector('#formEditFields select[name="quant_gpus"]')?.closest('.form-group');
+                const grupoConn  = document.querySelector('#formEditFields select[name="quant_conectores"]')?.closest('.form-group');
+
+                if (grupoSlots && slotsRAM > 0)
+                    renderSlotsRAM(grupoSlots, slotsRAM, item.memoriaRAM || []);
+                if (grupoDiscos && qtdDiscos > 0)
+                    renderDiscos(grupoDiscos, qtdDiscos, item.discos || []);
+                if (grupoGPUs && qtdGPUs > 0)
+                    renderPlacasVideo(grupoGPUs, qtdGPUs, item.placasVideo || []);
+                if (grupoConn && qtdConn > 0)
+                    renderConectoresVideo(grupoConn, qtdConn, item.conectoresVideo || []);
+            }
+
             openModal('modalEdit');
         }
 
         // mapeia os campos do item da API para os keys do formFields
         function mapItemToForm(categoria, item) {
             if (categoria === 'computadores') return {
-                modelo: item.modelo, tipo: item.tipo, setor: item.setor,
-                usuario: item.usuario, status: item.status,
-                ativacao_so: item.ativacaoSO, ativacao_office: item.ativacaoOffice,
+                modelo: item.modelo, tipo: item.tipo, ip: item.ip,
+                setor: item.setor, usuario: item.usuario, status: item.status,
+                observacoes: item.observacoes,
+                processadorId: item.processadorId,
+                geracaoRAM: item.geracaoRAM,
+                velocidadeRAM: item.velocidadeRAM,
+                quant_slots: item.memoriaRAM?.length || 0,
+                quant_discos: item.discos?.length || 0,
+                quant_gpus: item.placasVideo?.length || 0,
+                quant_conectores: item.conectoresVideo?.length || 0,
+                so: item.sistemaOperacional,
+                ativacao_so: item.ativacaoSO,
+                office: item.office,
+                ativacao_office: item.ativacaoOffice,
                 data_aquisicao: item.dataAquisicao?.split('T')[0],
                 preco_aquisicao: item.precoAquisicao,
             };
             if (categoria === 'monitores') return {
                 modelo: item.modelo, tamanho: item.tamanho, resolucao: item.resolucao,
-                frequencia: item.frequencia, setor: item.setor, usuario: item.usuario,
-                status: item.status, data_aquisicao: item.dataAquisicao?.split('T')[0],
+                frequencia: item.frequencia,
+                hdmi: item.hdmi, displayPort: item.displayPort, vga: item.vga, dvi: item.dvi,
+                setor: item.setor, usuario: item.usuario, status: item.status,
+                observacoes: item.observacoes,
+                data_aquisicao: item.dataAquisicao?.split('T')[0],
                 preco_aquisicao: item.precoAquisicao,
             };
             if (categoria === 'mouses') return {
                 modelo: item.modelo, conectividade: item.conectividade, tipo: item.tipo,
                 setor: item.setor, usuario: item.usuario, status: item.status,
+                observacoes: item.observacoes,
                 data_aquisicao: item.dataAquisicao?.split('T')[0],
                 preco_aquisicao: item.precoAquisicao,
             };
@@ -2788,12 +2837,15 @@
                 modelo: item.modelo, conectividade: item.conectividade, tipo: item.tipo,
                 switch: item.switch, tamanho: item.tamanho,
                 setor: item.setor, usuario: item.usuario, status: item.status,
+                observacoes: item.observacoes,
                 data_aquisicao: item.dataAquisicao?.split('T')[0],
                 preco_aquisicao: item.precoAquisicao,
             };
             if (categoria === 'fones') return {
-                modelo: item.modelo, tipo: item.tipo, conectividade: item.conectividade,
+                modelo: item.modelo, tipo: item.tipo, microfone: item.microfone,
+                conectividade: item.conectividade,
                 setor: item.setor, usuario: item.usuario, status: item.status,
+                observacoes: item.observacoes,
                 data_aquisicao: item.dataAquisicao?.split('T')[0],
                 preco_aquisicao: item.precoAquisicao,
             };
@@ -2801,6 +2853,7 @@
                 modelo: item.modelo, armazenamento: item.armazenamento,
                 ram: item.memoriaRAM, conectividade: item.conectividade,
                 setor: item.setor, usuario: item.usuario, status: item.status,
+                observacoes: item.observacoes,
                 data_aquisicao: item.dataAquisicao?.split('T')[0],
                 preco_aquisicao: item.precoAquisicao,
                 chipIds: item.chipIds || [],
@@ -2808,19 +2861,26 @@
             };
             if (categoria === 'ramais') return {
                 modelo: item.modelo, cor: item.cor, tipo: item.tipo,
-                linha: item.linha, configurado: item.configurado ? 'Sim' : 'Não',
+                linha: item.linha, numero: item.numero,
+                ip: item.ip, mac: item.mac,
+                configurado: item.configurado,
                 setor: item.setor, usuario: item.usuario, status: item.status,
+                observacoes: item.observacoes,
                 data_aquisicao: item.dataAquisicao?.split('T')[0],
                 preco_aquisicao: item.precoAquisicao,
             };
             if (categoria === 'chips') return {
                 numero: item.numero, operadora: item.operadora, dono: item.dono,
-                celular: item.celularId, plano: item.plano,
+                celularId: item.celularId, plano: item.plano,
                 setor: item.setor, usuario: item.usuario, status: item.status,
+                observacoes: item.observacoes,
+                data_aquisicao: item.dataAquisicao?.split('T')[0],
+                preco_aquisicao: item.precoAquisicao,
             };
             if (categoria === 'extras') return {
-                descricao: item.caracteristicas || item.modelo,
+                categoria: item.categoria, descricao: item.descricao,
                 setor: item.setor, usuario: item.usuario, status: item.status,
+                observacoes: item.observacoes,
                 data_aquisicao: item.dataAquisicao?.split('T')[0],
                 preco_aquisicao: item.precoAquisicao,
             };
