@@ -33,7 +33,7 @@ public class ComputadoresController : ControllerBase
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(string id, Computador computador)
-    {
+    { 
         var existente = await _service.GetByIdAsync(id);
         if (existente is null) return NotFound();
         await _service.UpdateAsync(id, computador);

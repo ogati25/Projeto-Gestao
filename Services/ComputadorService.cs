@@ -34,8 +34,9 @@ public class ComputadorService
     public async Task UpdateAsync(string id, Computador computador)
     {
         // recalcula a memória RAM total na atualização também
-        computador.MemoriaRAMTotal = computador.MemoriaRAM.Sum(m => (int)m);
-        await _computadores.ReplaceOneAsync(c => c.Id == id, computador);
+        computador.MemoriaRAMTotal = computador.MemoriaRAM?.Sum(m => (int)m) ?? 0;
+        computador.Id = id;
+        await _computadores.ReplaceOneAsync(c => c.Id == id, computador); 
     }
 
     public async Task DeleteAsync(string id) =>

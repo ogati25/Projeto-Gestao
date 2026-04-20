@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <title>Cadastro — Tech Logistics</title>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: var(--background-color);
+            overflow: auto;
+            padding: 24px 16px;
+        }
+
+        .cadastro-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            width: 920px;
+            max-width: 98vw;
+            background: var(--secondary-color);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+            overflow: hidden;
+        }
+
+        /* ---- Painel esquerdo (brand) ---- */
+        .cad-brand {
+            background: var(--primary-color);
+            padding: 48px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+        .cad-brand-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .cad-brand-top .brand-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--quinary-color);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cad-brand-top .brand-icon i { font-size: 20px; color: #fff; }
+        .cad-brand-top h2 { font-size: 18px; font-weight: 700; color: #fff; }
+
+        .cad-brand-body h1 { font-size: 22px; font-weight: 700; color: #fff; line-height: 1.35; margin-bottom: 10px; }
+        .cad-brand-body p  { font-size: 13px; color: #94a3b8; line-height: 1.6; }
+
+        .step-list { display: flex; flex-direction: column; gap: 16px; }
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .step-num {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--quinary-color);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .step-item-text strong { display: block; font-size: 13px; color: #e2e8f0; font-weight: 700; }
+        .step-item-text span   { font-size: 12px; color: #64748b; }
+
+        /* ---- Painel direito ---- */
+        .cad-form-panel {
+            padding: 44px 44px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow-y: auto;
+        }
+        .cad-form-panel h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .cad-form-panel p.subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        /* ---- Grid de campos ---- */
+        .fields-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px 16px;
+        }
+        .fields-grid .field-full { grid-column: 1 / -1; }
+
+        .field { display: flex; flex-direction: column; gap: 5px; }
+        .field label { font-size: 12px; font-weight: 700; color: var(--text-primary); letter-spacing: 0.3px; }
+        .field-input-wrap { position: relative; }
+        .field-input-wrap i.fi {
+            position: absolute;
+            left: 11px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 13px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+        .field-input-wrap input,
+        .field-input-wrap select {
+            width: 100%;
+            padding: 9px 12px 9px 34px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 13px;
+            background: var(--background-color);
+            color: var(--text-primary);
+            outline: none;
+            transition: border 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+        }
+        .field-input-wrap input:focus,
+        .field-input-wrap select:focus {
+            border-color: var(--quinary-color);
+            box-shadow: 0 0 0 3px rgba(62,96,143,0.15);
+            background: var(--secondary-color);
+        }
+        .field-input-wrap .toggle-pass {
+            position: absolute;
+            right: 11px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 13px;
+            padding: 0;
+            transition: color 0.2s;
+        }
+        .field-input-wrap .toggle-pass:hover { color: var(--text-primary); }
+        .field-input-wrap input.has-toggle { padding-right: 36px; }
+
+        /* Indicador de força de senha */
+        .strength-bar {
+            height: 4px;
+            background: var(--border-color);
+            border-radius: 2px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        .strength-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.3s, background 0.3s;
+            width: 0%;
+        }
+        .strength-label { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+        /* Termos */
+        .terms-row {
+            margin: 16px 0 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .terms-row input[type="checkbox"] { accent-color: var(--quinary-color); width: 14px; height: 14px; margin-top: 2px; flex-shrink: 0; cursor: pointer; }
+        .terms-row a { color: var(--quinary-color); text-decoration: none; font-weight: 600; }
+
+        /* Botão */
+        .btn-cadastrar {
+            width: 100%;
+            padding: 11px;
+            background: var(--quinary-color);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 18px;
+        }
+        .btn-cadastrar:hover { background: #2d4f7a; }
+        .btn-cadastrar:active { transform: scale(0.98); }
+
+        /* Alerta */
+        .alert-box {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+        .alert-box.show { display: flex; }
+        .alert-error { background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; }
+        .alert-success { background: #d1fae5; border: 1px solid #a7f3d0; color: #065f46; }
+
+        .form-footer {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .form-footer a { color: var(--quinary-color); font-weight: 700; text-decoration: none; }
+
+        /* ---- Responsivo ---- */
+        @media (max-width: 720px) {
+            .cadastro-wrapper { grid-template-columns: 1fr; }
+            .cad-brand { display: none; }
+            .cad-form-panel { padding: 28px 20px; }
+            .fields-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="cadastro-wrapper">
+
+    <!-- Painel esquerdo -->
+    <div class="cad-brand">
+        <div class="cad-brand-top">
+            <div class="brand-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+            <h2>Tech Logistics</h2>
+        </div>
+        <div class="cad-brand-body">
+            <h1>Crie sua conta<br>e comece agora</h1>
+            <p>Gerencie todo o inventário de TI da sua empresa com facilidade.</p>
+        </div>
+        <div class="step-list">
+            <div class="step-item">
+                <div class="step-num">1</div>
+                <div class="step-item-text">
+                    <strong>Crie sua conta</strong>
+                    <span>Preencha seus dados básicos</span>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">2</div>
+                <div class="step-item-text">
+                    <strong>Confirme o e-mail</strong>
+                    <span>Verifique sua caixa de entrada</span>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">3</div>
+                <div class="step-item-text">
+                    <strong>Acesse o painel</strong>
+                    <span>Comece a gerir seus ativos</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Painel direito -->
+    <div class="cad-form-panel">
+        <h2>Criar conta</h2>
+        <p class="subtitle">Preencha os dados para criar seu acesso</p>
+
+        <div class="alert-box alert-error" id="alertError">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span id="alertErrorMsg">Verifique os campos e tente novamente.</span>
+        </div>
+        <div class="alert-box alert-success" id="alertSuccess">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Conta criada! Redirecionando para o login...</span>
+        </div>
+
+        <div class="fields-grid">
+
+            <div class="field">
+                <label for="nome">Nome</label>
+                <div class="field-input-wrap">
+                    <i class="fa-solid fa-user fi"></i>
+                    <input type="text" id="nome" placeholder="João">
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="sobrenome">Sobrenome</label>
+                <div class="field-input-wrap">
+                    <i class="fa-solid fa-user fi"></i>
+                    <input type="text" id="sobrenome" placeholder="Silva">
+                </div>
+            </div>
+
+            <div class="field field-full">
+                <label for="email">E-mail corporativo</label>
+                <div class="field-input-wrap">
+                    <i class="fa-solid fa-envelope fi"></i>
+                    <input type="email" id="email" placeholder="joao.silva@empresa.com">
+                </div>
+            </div>
+
+            <div class="field field-full">
+                <label for="setor">Setor</label>
+                <div class="field-input-wrap">
+                    <i class="fa-solid fa-briefcase fi"></i>
+                    <select id="setor">
+                        <!-- Opções populadas pelo cadastro.js via populateSetores() -->
+                    </select>
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="senha">Senha</label>
+                <div class="field-input-wrap">
+                    <i class="fa-solid fa-lock fi"></i>
+                    <input type="password" id="senha" class="has-toggle"
+                           placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+                    <button type="button" class="toggle-pass" id="togglePass1" tabindex="-1">
+                        <i class="fa-solid fa-eye" id="eye1"></i>
+                    </button>
+                </div>
+                <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+                <span class="strength-label" id="strengthLabel"></span>
+            </div>
+
+            <div class="field">
+                <label for="confirmar">Confirmar senha</label>
+                <div class="field-input-wrap">
+                    <i class="fa-solid fa-lock fi"></i>
+                    <input type="password" id="confirmar" class="has-toggle"
+                           placeholder="Repita a senha" autocomplete="new-password">
+                    <button type="button" class="toggle-pass" id="togglePass2" tabindex="-1">
+                        <i class="fa-solid fa-eye" id="eye2"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <button class="btn-cadastrar" id="btnCadastrar" onclick="handleCadastro()">
+            <i class="fa-solid fa-user-plus"></i> Criar conta
+        </button>
+
+        <div class="form-footer">
+            Já tem conta? <a href="login.html">Fazer login</a>
+        </div>
+    </div>
+
+</div>
+<script src="js/api.js"></script>
+<script src="js/cadastro.js"></script>
+<script>
+    // Toggle senhas
+    function setupToggle(btnId, inputId, iconId) {
+        document.getElementById(btnId).addEventListener('click', () => {
+            const input = document.getElementById(inputId);
+            const icon  = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
+        });
+    }
+    setupToggle('togglePass1', 'senha', 'eye1');
+    setupToggle('togglePass2', 'confirmar', 'eye2');
+
+    // Força da senha
+    document.getElementById('senha').addEventListener('input', function () {
+        const v = this.value;
+        const fill  = document.getElementById('strengthFill');
+        const label = document.getElementById('strengthLabel');
+        let score = 0;
+        if (v.length >= 8)  score++;
+        if (/[A-Z]/.test(v)) score++;
+        if (/[0-9]/.test(v)) score++;
+        if (/[^A-Za-z0-9]/.test(v)) score++;
+
+        const levels = [
+            { w: '0%',   bg: '',          txt: '' },
+            { w: '25%',  bg: '#ef4444',   txt: 'Muito fraca' },
+            { w: '50%',  bg: '#f59e0b',   txt: 'Fraca' },
+            { w: '75%',  bg: '#3b82f6',   txt: 'Boa' },
+            { w: '100%', bg: '#10b981',   txt: 'Forte' },
+        ];
+        const lvl = v.length === 0 ? levels[0] : levels[score] || levels[1];
+        fill.style.width      = lvl.w;
+        fill.style.background = lvl.bg;
+        label.textContent     = lvl.txt;
+        label.style.color     = lvl.bg || 'var(--text-muted)';
+    });
+
+    // =============================================================================
+    // UTILITÁRIOS DE UI
+    // =============================================================================
+
+    function mostrarErro(msg) {
+        document.getElementById('alertErrorMsg').textContent = msg;
+        document.getElementById('alertError').style.display   = 'flex';
+        document.getElementById('alertSuccess').style.display = 'none';
+    }
+
+    function mostrarSucesso() {
+        document.getElementById('alertError').style.display   = 'none';
+        document.getElementById('alertSuccess').style.display = 'flex';
+    }
+
+    function ocultarAlertas() {
+        document.getElementById('alertError').style.display   = 'none';
+        document.getElementById('alertSuccess').style.display = 'none';
+    }
+
+    function setLoading(loading) {
+        const btn = document.getElementById('btnCadastrar');
+        btn.disabled  = loading;
+        btn.innerHTML = loading
+            ? '<i class="fa-solid fa-spinner fa-spin"></i> Criando conta...'
+            : '<i class="fa-solid fa-user-plus"></i> Criar conta';
+    }
+
+    populateSetores();
+</script>
+</body>
+</html>

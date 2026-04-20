@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <title>Configurações — Tech Logistics</title>
+    <style>
+        /* ---- padrão sidebar/avatar ---- */
+        .sidebar-footer {
+            display: flex; align-items: center; justify-content: space-between;
+            padding-top: 12px; border-top: 1px solid #2d3f55;
+            font-size: 11px; color: #475569;
+        }
+        .btn-logout {
+            display: flex; align-items: center; gap: 6px; padding: 5px 10px;
+            background: rgba(239,68,68,0.12); color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2); border-radius: 6px;
+            font-size: 11px; font-weight: 700; cursor: pointer; transition: 0.2s; text-decoration: none;
+        }
+        .btn-logout:hover { background: rgba(239,68,68,0.22); color: #fca5a5; }
+        .header-user { display: flex; align-items: center; gap: 10px; }
+        .user-avatar {
+            width: 34px; height: 34px; background: var(--quinary-color);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 700; color: #fff; cursor: pointer; flex-shrink: 0;
+        }
+
+        /* ==================== CONFIGURAÇÕES ==================== */
+        .config-layout {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        /* ---- Menu lateral de configurações ---- */
+        .config-nav {
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+        .config-nav-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+        .config-nav-list { list-style: none; padding: 6px; }
+        .config-nav-list li a {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 12px; border-radius: 7px;
+            font-size: 13px; font-weight: 500;
+            color: var(--text-muted); text-decoration: none;
+            transition: 0.15s; cursor: pointer;
+        }
+        .config-nav-list li a i { width: 16px; text-align: center; font-size: 14px; }
+        .config-nav-list li a:hover { background: var(--background-color); color: var(--text-primary); }
+        .config-nav-list li.active a { background: var(--quinary-color); color: #fff; }
+
+        /* ---- Painel de configurações ---- */
+        .config-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .config-section {
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+        .cs-header {
+            padding: 16px 22px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .cs-header-icon {
+            width: 34px; height: 34px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; color: #fff; flex-shrink: 0;
+        }
+        .cs-header-icon.blue   { background: var(--info-color); }
+        .cs-header-icon.purple { background: #8b5cf6; }
+        .cs-header-icon.green  { background: var(--success-color); }
+        .cs-header-icon.orange { background: var(--warning-color); }
+        .cs-header-icon.red    { background: var(--danger-color); }
+
+        .cs-header h3 { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+        .cs-header p  { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+
+        .cs-body { padding: 20px 22px; display: flex; flex-direction: column; gap: 0; }
+
+        /* ---- Item de configuração ---- */
+        .config-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border-color);
+            gap: 20px;
+        }
+        .config-row:last-child { border-bottom: none; }
+        .cr-info { flex: 1; }
+        .cr-info strong { font-size: 13px; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 2px; }
+        .cr-info span   { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+        .cr-control { flex-shrink: 0; }
+
+        /* ---- Toggle switch ---- */
+        .toggle-switch {
+            position: relative;
+            width: 44px; height: 24px;
+            display: inline-block;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute; cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--border-color);
+            border-radius: 24px;
+            transition: 0.2s;
+        }
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 18px; height: 18px;
+            left: 3px; bottom: 3px;
+            background: #fff;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+        .toggle-switch input:checked + .toggle-slider { background: var(--quinary-color); }
+        .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+        /* ---- Select inline ---- */
+        .cr-select {
+            padding: 7px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 7px;
+            font-size: 13px;
+            background: var(--background-color);
+            color: var(--text-primary);
+            outline: none;
+            cursor: pointer;
+            font-family: inherit;
+            transition: border 0.2s;
+        }
+        .cr-select:focus { border-color: var(--quinary-color); box-shadow: 0 0 0 2px rgba(62,96,143,0.12); }
+
+        /* ---- Tema picker ---- */
+        .theme-picker {
+            display: flex;
+            gap: 8px;
+        }
+        .theme-opt {
+            width: 36px; height: 36px;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+            transition: 0.15s;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+        }
+        .theme-opt:hover { border-color: var(--quinary-color); transform: scale(1.08); }
+        .theme-opt.selected { border-color: var(--quinary-color); box-shadow: 0 0 0 3px rgba(62,96,143,0.2); }
+        .theme-opt.light-opt { background: #f0f2f5; }
+        .theme-opt.dark-opt  { background: #0f1117; }
+
+        /* ---- Botão de perigo ---- */
+        .btn-danger {
+            background: #fee2e2; color: #991b1b;
+            border: 1px solid #fecaca;
+            padding: 7px 14px; border-radius: 7px;
+            font-size: 12px; font-weight: 700;
+            cursor: pointer; display: flex; align-items: center; gap: 6px;
+            transition: 0.2s;
+        }
+        .btn-danger:hover { background: #fecaca; }
+
+        /* ---- Tag de status ---- */
+        .status-tag {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 3px 10px; border-radius: 20px;
+            font-size: 11px; font-weight: 700;
+        }
+        .tag-green { background: #d1fae5; color: #065f46; }
+        .tag-gray  { background: #f1f5f9; color: #475569; }
+
+        /* ---- Salvar strip ---- */
+        .save-strip {
+            display: none;
+            position: fixed;
+            bottom: 24px;
+            right: 28px;
+            background: var(--primary-color);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+            align-items: center;
+            gap: 12px;
+            z-index: 999;
+            animation: slideUp 0.2s ease;
+        }
+        .save-strip.show { display: flex; }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .save-strip button {
+            padding: 6px 14px; border-radius: 7px; border: none;
+            background: var(--quinary-color); color: #fff;
+            font-size: 12px; font-weight: 700; cursor: pointer;
+        }
+        .save-strip button:hover { background: #2d4f7a; }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+        <button id="toggleSidebar" class="toggle-btn">
+            <i class="fa-solid fa-angles-left icon-close"></i>
+            <i class="fa-solid fa-angles-right icon-open"></i>
+        </button>
+        <div class="sidebar-brand">
+            <div class="brand-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+            <h2>Tech Logistics</h2>
+        </div>
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="Buscar...">
+            <i class="fa-solid fa-xmark clear-btn"></i>
+        </div>
+        <ul class="menu">
+            <li><a href="dashboard.html"><i class="material-icons" style="font-size:18px">dashboard</i><span>Dashboard</span></a></li>
+            <li><a href="estoque.html"><i class="fa-solid fa-box-archive"></i><span>Inventário</span></a></li>
+            <li><a href="pedidos.html"><i class="fa-solid fa-clipboard-list"></i><span>Pedidos</span></a></li>
+            <li><a href="funcionarios.html"><i class="fa-solid fa-users"></i><span>Funcionários</span></a></li>
+            <li><a href="configuracoes.html"><i class="fa-solid fa-gear"></i><span>Configurações</span></a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <span>v1.0</span>
+            <a href="login.html" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <main>
+        <header>
+            <h1>Configurações</h1>
+            <div class="header-buttons">
+                <div class="header-user">
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fa-solid fa-sun icon-sun"></i>
+                        <i class="fa-solid fa-moon icon-moon"></i>
+                    </button>
+                    <div class="user-avatar" title="Meu Perfil" onclick="window.location.href='perfil.html'" style="cursor:pointer">U</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="main">
+            <div class="config-layout">
+
+                <!-- Nav lateral -->
+                <div class="config-nav">
+                    <div class="config-nav-header">Categorias</div>
+                    <ul class="config-nav-list">
+                        <li class="active"><a onclick="scrollTo(0,0)"><i class="fa-solid fa-palette"></i> Aparência</a></li>
+                        <li><a onclick="document.getElementById('sec-notif').scrollIntoView({behavior:'smooth'})"><i class="fa-solid fa-bell"></i> Notificações</a></li>
+                        <li><a onclick="document.getElementById('sec-sistema').scrollIntoView({behavior:'smooth'})"><i class="fa-solid fa-sliders"></i> Sistema</a></li>
+                        <li><a onclick="document.getElementById('sec-seguranca').scrollIntoView({behavior:'smooth'})"><i class="fa-solid fa-shield-halved"></i> Segurança</a></li>
+                        <li><a onclick="document.getElementById('sec-dados').scrollIntoView({behavior:'smooth'})"><i class="fa-solid fa-database"></i> Dados</a></li>
+                        <li><a onclick="window.location.href='perfil.html'"><i class="fa-solid fa-user"></i> Meu Perfil</a></li>
+                    </ul>
+                </div>
+
+                <!-- Painel -->
+                <div class="config-panel">
+
+                    <!-- APARÊNCIA -->
+                    <div class="config-section">
+                        <div class="cs-header">
+                            <div class="cs-header-icon purple"><i class="fa-solid fa-palette"></i></div>
+                            <div><h3>Aparência</h3><p>Personalize a interface do sistema</p></div>
+                        </div>
+                        <div class="cs-body">
+
+                            <div class="config-row">
+                                <div class="cr-info">
+                                    <strong>Tema</strong>
+                                    <span>Escolha entre o modo claro e escuro</span>
+                                </div>
+                                <div class="cr-control">
+                                    <div class="theme-picker">
+                                        <div class="theme-opt light-opt" id="themeOptLight" title="Claro" onclick="setTheme('light')">☀️</div>
+                                        <div class="theme-opt dark-opt"  id="themeOptDark"  title="Escuro" onclick="setTheme('dark')">🌙</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="config-row">
+                                <div class="cr-info">
+                                    <strong>Idioma</strong>
+                                    <span>Idioma da interface do sistema</span>
+                                </div>
+                                <div class="cr-control">
+                                    <select class="cr-select" id="cfgIdioma">
+                                        <option value="pt-br" selected>🇧🇷 Português (BR)</option>
+                                        <option value="en">🇺🇸 English</option>
+                                        <option value="es">🇪🇸 Español</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="config-row">
+                                <div class="cr-info">
+                                    <strong>Sidebar recolhida por padrão</strong>
+                                    <span>Iniciar com o menu lateral fechado</span>
+                                </div>
+                                <div class="cr-control">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="cfgSidebarClosed">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="config-row">
+                                <div class="cr-info">
+                                    <strong>Animações</strong>
+                                    <span>Exibir transições e animações na interface</span>
+                                </div>
+                                <div class="cr-control">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="cfgAnimacoes" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- NOTIFICAÇÕES -->
+                    <div class="config-section" id="sec-notif">
+                        <div class="cs-header">
+                            <div class="cs-header-icon orange"><i class="fa-solid fa-bell"></i></div>
+                            <div><h3>Notificações</h3><p>Controle os alertas do sistema</p></div>
+                        </div>
+                        <div class="cs-body">
+
+                            <div class="config-row">
+                                <div class="cr-info">
+                                    <strong>Alertas de estoque baixo</strong>
+                                    <span>Notificar quando itens atingirem quantidade mínima</span>
+                                </div>
+                                <div class="cr-control">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="cfgAlertaEstoque" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="config-row">
+                                <div class="cr-info">
+                                    <strong>Novos pedidos</strong>
+                                    <span>Receber alertas sobre pedidos criados</span>
+                                </div>
+                                <div class="cr-control">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="cfgAlertaPedidos" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="config-row">
+                                <div class="cr-info">
+                                    <strong>Notificações por e-mail</strong>
+                                    <span>Enviar resumo diário por e-mail</span>
+                                </div>
+                                <div class="cr-control">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="cfgEmailNotif">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="config-row">
+                                <div class="cr-info">
+                                    <strong>Frequência dos resumos</strong>
+                                    <span>Com que frequência receber o resumo por e-mail</span>
+                                </div>
+                                <div class="cr-control">
+                                    <select class="cr-select" id="cfgFreqEmail">
+                                        <option>Diário</option>
+                                        <option>Semanal</option>
+                                        <option>Quinzenal</option>
+                                        <option>Mensal</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- SISTEMA -->
+                    <div class="config-section" id="sec-sistema">
+                        <div class="cs-header">
+                            <div class="cs-header-icon blue"><i class="fa-solid fa-sliders"></i></div>
+                            <div><h3>Sistema</h3><p>Configurações gerais do painel</p></div>
+                        </div>
+                        <div class="cs-body">
+
+                            <div class="config-row">
+                                <div class="cr-info">
+                                    <strong>Itens por página</strong>
+                                    <span>Quantidade de registros exibidos nas tabelas</span>
+                                </div>
+                                <div class="cr-control">
+                                    <select class="cr-select" id="cfgItensPagina">
+                                        <option>10</option>
+                                        <option selected>25</option>
+                                        <option>50</option>
+                                        <option>100</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="config-row">
+                                <div class="cr-info">
+                                    <strong>Formato de data</strong>
+                                    <span>Como as datas serão exibidas no sistema</span>
+                                </div>
+                                <div class="cr-control">
+                                    <select class="cr-select" id="cfgFormatoData">
+                                        <option selected>DD/MM/AAAA</option>
+                                        <option>MM/DD/AAAA</option>
+                                        <option>AAAA-MM-DD</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="config-row">
+                                <div class="cr-info">
+                                    <strong>Versão da API</strong>
+                                    <span>Endpoint atual do backend</span>
+                                </div>
+                                <div class="cr-control">
+                                    <span class="status-tag tag-green"><i class="fa-solid fa-circle" style="font-size:7px"></i> localhost:5085</span>
+                                </div>
+                            </div>
+
+                            <div class="config-row">
+                                <div class="cr-info">
+                                    <strong>Versão do sistema</strong>
+                                    <span>Tech Logistics Frontend</span>
+                                </div>
+                                <div class="cr-control">
+                                    <span class="status-tag tag-gray">v1.0.0</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- SEGURANÇA -->
+                    <div class="config-section" id="sec-seguranca">
+                        <div class="cs-header">
+                            <div class="cs-header-icon green"><i class="fa-solid fa-shield-halved"></i></div>
+                            <div><h3>Segurança</h3><p>Controle de acesso e sessão</p></div>
+                        </div>
+                        <div class="cs-body">
+
+                            <div class="config-row">
+                                <div class="cr-info">
+                                    <strong>Tempo de sessão</strong>
+                                    <span>Deslogar automaticamente após inatividade</span>
+                                </div>
+                                <div class="cr-control">
+                                    <select class="cr-select" id="cfgSessao">
+                                        <option>30 minutos</option>
+                                        <option selected>1 hora</option>
+                                        <option>4 horas</option>
+                                        <option>8 horas</option>
+                                        <option>Nunca</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="config-row">
+                                <div class="cr-info">
+                                    <strong>Autenticação em dois fatores</strong>
+                                    <span>Aumenta a segurança da sua conta</span>
+                                </div>
+                                <div class="cr-control">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="cfg2FA">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="config-row">
+                                <div class="cr-info">
+                                    <strong>Log de acessos</strong>
+                                    <span>Registrar logins e ações do usuário</span>
+                                </div>
+                                <div class="cr-control">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="cfgLog" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- DADOS -->
+                    <div class="config-section" id="sec-dados">
+                        <div class="cs-header">
+                            <div class="cs-header-icon red"><i class="fa-solid fa-database"></i></div>
+                            <div><h3>Dados</h3><p>Importação, exportação e reset</p></div>
+                        </div>
+                        <div class="cs-body">
+
+                            <div class="config-row">
+                                <div class="cr-info">
+                                    <strong>Exportar dados do sistema</strong>
+                                    <span>Baixar backup de todos os registros em CSV</span>
+                                </div>
+                                <div class="cr-control">
+                                    <button class="btn btn-outline" onclick="alert('Conecte ao endpoint /api/export para exportar os dados.')">
+                                        <i class="fa-solid fa-download"></i> Exportar
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="config-row">
+                                <div class="cr-info">
+                                    <strong>Importar dados</strong>
+                                    <span>Carregar registros a partir de um arquivo CSV</span>
+                                </div>
+                                <div class="cr-control">
+                                    <button class="btn btn-outline" onclick="alert('Conecte ao endpoint /api/import para importar dados.')">
+                                        <i class="fa-solid fa-upload"></i> Importar
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="config-row">
+                                <div class="cr-info">
+                                    <strong>Limpar preferências locais</strong>
+                                    <span>Apagar configurações salvas neste navegador</span>
+                                </div>
+                                <div class="cr-control">
+                                    <button class="btn-danger" onclick="limparPreferencias()">
+                                        <i class="fa-solid fa-trash"></i> Limpar
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div><!-- /config-panel -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Strip de salvar -->
+    <div class="save-strip" id="saveStrip">
+        <span>Configurações alteradas</span>
+        <button onclick="salvarConfiguracoes()"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
+    </div>
+
+    <script>
+        // ── TEMA persistente ─────────────────────────────────
+        (function () {
+            const saved = localStorage.getItem('tl_theme') || 'light';
+            if (saved === 'dark') document.body.classList.add('dark');
+            const btn = document.getElementById('themeToggle');
+            if (saved === 'light') btn.classList.add('light');
+            btn.addEventListener('click', () => {
+                const isDark = document.body.classList.toggle('dark');
+                btn.classList.toggle('light', !isDark);
+                localStorage.setItem('tl_theme', isDark ? 'dark' : 'light');
+                syncThemeOpts();
+            });
+        })();
+
+        // ── SIDEBAR ──────────────────────────────────────────
+        document.getElementById('toggleSidebar').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('closed');
+        });
+        const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
+        document.querySelectorAll('.menu li a').forEach(link => {
+            if (link.getAttribute('href') === currentPage) link.parentElement.classList.add('active');
+        });
+        document.querySelector('.clear-btn')?.addEventListener('click', () => {
+            document.querySelector('.search-box input').value = '';
+        });
+
+        // ── AVATAR ───────────────────────────────────────────
+        const userData = JSON.parse(localStorage.getItem('tl_user') || '{}');
+        if (userData.nome) {
+            const av = document.querySelector('.user-avatar');
+            if (av) av.textContent = userData.nome.charAt(0).toUpperCase();
+        }
+
+        // ── THEME OPTS ───────────────────────────────────────
+        function setTheme(mode) {
+            if (mode === 'dark') {
+                document.body.classList.add('dark');
+                document.getElementById('themeToggle').classList.remove('light');
+            } else {
+                document.body.classList.remove('dark');
+                document.getElementById('themeToggle').classList.add('light');
+            }
+            localStorage.setItem('tl_theme', mode);
+            syncThemeOpts();
+            showSaveStrip();
+        }
+        function syncThemeOpts() {
+            const isDark = document.body.classList.contains('dark');
+            document.getElementById('themeOptLight').classList.toggle('selected', !isDark);
+            document.getElementById('themeOptDark').classList.toggle('selected', isDark);
+        }
+        syncThemeOpts();
+
+        // ── SHOW SAVE STRIP ao mudar qualquer controle ───────
+        function showSaveStrip() {
+            document.getElementById('saveStrip').classList.add('show');
+        }
+        document.querySelectorAll('input[type=checkbox], select.cr-select').forEach(el => {
+            el.addEventListener('change', showSaveStrip);
+        });
+
+        // ── SALVAR configs no localStorage ──────────────────
+        function salvarConfiguracoes() {
+            const cfg = {
+                idioma:        document.getElementById('cfgIdioma').value,
+                sidebarClosed: document.getElementById('cfgSidebarClosed').checked,
+                animacoes:     document.getElementById('cfgAnimacoes').checked,
+                alertaEstoque: document.getElementById('cfgAlertaEstoque').checked,
+                alertaPedidos: document.getElementById('cfgAlertaPedidos').checked,
+                emailNotif:    document.getElementById('cfgEmailNotif').checked,
+                freqEmail:     document.getElementById('cfgFreqEmail').value,
+                itensPagina:   document.getElementById('cfgItensPagina').value,
+                formatoData:   document.getElementById('cfgFormatoData').value,
+                sessao:        document.getElementById('cfgSessao').value,
+                fa2:           document.getElementById('cfg2FA').checked,
+                log:           document.getElementById('cfgLog').checked,
+            };
+            localStorage.setItem('tl_config', JSON.stringify(cfg));
+            document.getElementById('saveStrip').classList.remove('show');
+
+            // feedback rápido
+            const strip = document.getElementById('saveStrip');
+            strip.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#4ade80"></i> Salvo!';
+            setTimeout(() => {
+                strip.classList.remove('show');
+                strip.innerHTML = '<span>Configurações alteradas</span><button onclick="salvarConfiguracoes()"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>';
+            }, 1500);
+        }
+
+        // ── CARREGAR configs salvas ───────────────────────────
+        function carregarConfiguracoes() {
+            const cfg = JSON.parse(localStorage.getItem('tl_config') || '{}');
+            if (cfg.idioma)        document.getElementById('cfgIdioma').value = cfg.idioma;
+            if (cfg.sidebarClosed !== undefined) document.getElementById('cfgSidebarClosed').checked = cfg.sidebarClosed;
+            if (cfg.animacoes     !== undefined) document.getElementById('cfgAnimacoes').checked     = cfg.animacoes;
+            if (cfg.alertaEstoque !== undefined) document.getElementById('cfgAlertaEstoque').checked = cfg.alertaEstoque;
+            if (cfg.alertaPedidos !== undefined) document.getElementById('cfgAlertaPedidos').checked = cfg.alertaPedidos;
+            if (cfg.emailNotif    !== undefined) document.getElementById('cfgEmailNotif').checked    = cfg.emailNotif;
+            if (cfg.freqEmail)     document.getElementById('cfgFreqEmail').value   = cfg.freqEmail;
+            if (cfg.itensPagina)   document.getElementById('cfgItensPagina').value = cfg.itensPagina;
+            if (cfg.formatoData)   document.getElementById('cfgFormatoData').value = cfg.formatoData;
+            if (cfg.sessao)        document.getElementById('cfgSessao').value       = cfg.sessao;
+            if (cfg.fa2  !== undefined) document.getElementById('cfg2FA').checked = cfg.fa2;
+            if (cfg.log  !== undefined) document.getElementById('cfgLog').checked  = cfg.log;
+        }
+
+        // ── LIMPAR preferências ───────────────────────────────
+        function limparPreferencias() {
+            if (!confirm('Tem certeza? Isso vai apagar as configurações e preferências salvas neste navegador.')) return;
+            localStorage.removeItem('tl_config');
+            localStorage.removeItem('tl_theme');
+            location.reload();
+        }
+
+        carregarConfiguracoes();
+        syncThemeOpts();
+    </script>
+</body>
+</html>

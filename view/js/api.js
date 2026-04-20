@@ -38,6 +38,56 @@ async function request(endpoint, method = 'GET', body = null) {
     return corpo;
 }
 
+// ==================== USUÁRIOS ====================
+// Espelha o UsuariosController (/api/usuarios)
+
+// GET /api/usuarios/{id} → UsuarioResponseDto
+async function getUsuario(id) {
+    return await request(`usuarios/${id}`);
+}
+
+// GET /api/usuarios/email/{email} → UsuarioResponseDto
+async function getUsuarioPorEmail(email) {
+    return await request(`usuarios/email/${email}`);
+}
+
+// POST /api/usuarios → UsuarioResponseDto (201 Created)
+// Body: UsuarioCreateDto { nome, sobrenome, email, setor (número), senha }
+// O hash da senha é aplicado pelo backend (PasswordHasher)
+async function criarUsuario(dados) {
+    return await request('usuarios', 'POST', dados);
+}
+
+// PUT /api/usuarios/{id}/dados-pessoais → 204 No Content
+// Body: UsuarioUpdateDadosPessoaisDto { nome, sobrenome, setor (número) }
+async function atualizarDadosPessoais(id, dados) {
+    return await request(`usuarios/${id}/dados-pessoais`, 'PUT', dados);
+}
+
+// PUT /api/usuarios/{id}/email → 204 No Content | 400 se email já em uso
+// Body: UsuarioUpdateEmailDto { novoEmail }
+async function atualizarEmail(id, novoEmail) {
+    return await request(`usuarios/${id}/email`, 'PUT', { novoEmail });
+}
+
+// PUT /api/usuarios/{id}/senha → 204 No Content
+// Body: UsuarioUpdateSenhaDto { novaSenha }
+// O hash é aplicado pelo backend — nunca enviar a senha já hasheada
+async function atualizarSenha(id, novaSenha) {
+    return await request(`usuarios/${id}/senha`, 'PUT', { novaSenha });
+}
+
+// DELETE /api/usuarios/{id} → 204 No Content
+async function deletarUsuario(id) {
+    return await request(`usuarios/${id}`, 'DELETE');
+}
+
+// POST /api/usuarios/authenticate → UsuarioResponseDto | 401 se inválido
+// Body: AuthenticateDto { email, senha }
+async function autenticarUsuario(email, senha) {
+    return await request('usuarios/authenticate', 'POST', { email, senha });
+}
+
 // ==================== PROCESSADORES ====================
 // uso interno/admin, não expor no frontend do usuário comum
 

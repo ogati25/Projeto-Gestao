@@ -162,7 +162,58 @@
         .progress-bar-fill.green  { background: var(--success-color); }
         .progress-bar-fill.orange { background: var(--warning-color); }
         .progress-bar-fill.red    { background: var(--danger-color); }
-    </style>
+    
+        /* ---- Logout / Avatar ---- */
+        .sidebar-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 12px;
+            border-top: 1px solid #2d3f55;
+            font-size: 11px;
+            color: #475569;
+        }
+        .btn-logout {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px;
+            background: rgba(239,68,68,0.12);
+            color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            text-decoration: none;
+        }
+        .btn-logout:hover { background: rgba(239,68,68,0.22); color: #fca5a5; }
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            background: var(--quinary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .user-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+</style>
 </head>
 <body>
 
@@ -185,35 +236,19 @@
         </div>
 
         <ul class="menu">
-            <li>
-                <a href="dashboard.html">
-                    <i class="material-icons" style="font-size:18px">dashboard</i>
-                    <span>Dashboard</span>
-                </a>
-            </li>
-            <li>
-                <a href="estoque.html">
-                    <i class="fa-solid fa-box-archive"></i><span>Inventário</span>
-                </a>
-            </li>
-            <li>
-                <a href="pedidos.html">
-                    <i class="fa-solid fa-clipboard-list"></i><span>Pedidos</span>
-                </a>
-            </li>
-            <li>
-                <a href="relatorios.html">
-                    <i class="fa-solid fa-file-lines"></i><span>Relatórios</span>
-                </a>
-            </li>
-            <li>
-                <a href="funcionarios.html">
-                    <i class="fa-solid fa-users"></i><span>Funcionários</span>
-                </a>
-            </li>
+            <li><a href="dashboard.html"><i class="material-icons" style="font-size:18px">dashboard</i><span>Dashboard</span></a></li>
+            <li><a href="estoque.html"><i class="fa-solid fa-box-archive"></i><span>Inventário</span></a></li>
+            <li><a href="pedidos.html"><i class="fa-solid fa-clipboard-list"></i><span>Pedidos</span></a></li>
+            <li><a href="funcionarios.html"><i class="fa-solid fa-users"></i><span>Funcionários</span></a></li>
+            <li><a href="configuracoes.html"><i class="fa-solid fa-gear"></i><span>Configurações</span></a></li>
         </ul>
 
-        <div class="sidebar-footer">Tech Logistics v1.0</div>
+        <div class="sidebar-footer">
+            <span>v1.0</span>
+            <a href="login.html" class="btn-logout" id="btnLogout">
+                <i class="fa-solid fa-right-from-bracket"></i> Sair
+            </a>
+        </div>
     </div>
 
     <!-- ==================== MAIN ==================== -->
@@ -221,13 +256,16 @@
         <header>
             <h1>Dashboard</h1>
             <div class="header-buttons">
-                <button class="theme-toggle" id="themeToggle">
-                    <i class="fa-solid fa-sun icon-sun"></i>
-                    <i class="fa-solid fa-moon icon-moon"></i>
-                </button>
-                <button class="btn-config">
-                    <i class="fa-solid fa-gear"></i>
-                </button>
+                <div class="header-user">
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fa-solid fa-sun icon-sun"></i>
+                        <i class="fa-solid fa-moon icon-moon"></i>
+                    </button>
+                    <button class="btn-config">
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
+                    <div class="user-avatar" title="Meu Perfil" onclick="window.location.href='perfil.html'" style="cursor:pointer">U</div>
+                </div>
             </div>
         </header>
 
@@ -235,7 +273,7 @@
 
             <!-- Greeting -->
             <div>
-                <p class="greeting">Olá, <span>Usuário</span> 👋</p>
+                <p class="greeting">Olá, <span id="greeting-name">Usuário</span> 👋</p>
                 <p class="greeting-sub">Aqui está um resumo do inventário hoje.</p>
             </div>
 
@@ -386,36 +424,49 @@
     </main>
 
     <script>
-        // Tema
-        const themeBtn = document.getElementById("themeToggle");
-        themeBtn.addEventListener("click", () => themeBtn.classList.toggle("light"));
+        // ── TEMA persistente ─────────────────────────────────
+        (function () {
+            const saved = localStorage.getItem('tl_theme') || 'light';
+            if (saved === 'dark') document.body.classList.add('dark');
+            const btn = document.getElementById('themeToggle');
+            if (saved === 'light') btn.classList.add('light');
+            btn.addEventListener('click', () => {
+                const isDark = document.body.classList.toggle('dark');
+                btn.classList.toggle('light', !isDark);
+                localStorage.setItem('tl_theme', isDark ? 'dark' : 'light');
+            });
+        })();
 
-        // Sidebar
-        const sidebar = document.getElementById("sidebar");
-        document.getElementById("toggleSidebar").addEventListener("click", () => {
-            sidebar.classList.toggle("closed");
+        // ── SIDEBAR ──────────────────────────────────────────
+        const sidebar = document.getElementById('sidebar');
+        document.getElementById('toggleSidebar').addEventListener('click', () => sidebar.classList.toggle('closed'));
+
+        // ── ACTIVE LINK ──────────────────────────────────────
+        const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
+        document.querySelectorAll('.menu li a').forEach(link => {
+            if (link.getAttribute('href') === currentPage) link.parentElement.classList.add('active');
         });
 
-        // Ativar link atual
-        const currentPage = window.location.pathname.split("/").pop() || "dashboard.html";
-        document.querySelectorAll(".menu li a").forEach(link => {
-            if (link.getAttribute("href") === currentPage) {
-                link.parentElement.classList.add("active");
-            }
-        });
-
-        // View toggle (semanas)
-        document.querySelectorAll(".view-toggle button").forEach(btn => {
-            btn.addEventListener("click", () => {
-                btn.parentElement.querySelectorAll("button").forEach(b => b.classList.remove("active"));
-                btn.classList.add("active");
+        // ── VIEW TOGGLE ──────────────────────────────────────
+        document.querySelectorAll('.view-toggle button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
             });
         });
 
-        // Clear search
-        document.querySelector(".clear-btn")?.addEventListener("click", () => {
-            document.querySelector(".search-box input").value = "";
+        // ── CLEAR SEARCH ─────────────────────────────────────
+        document.querySelector('.clear-btn')?.addEventListener('click', () => {
+            document.querySelector('.search-box input').value = '';
         });
+
+        // ── CARREGAR DADOS DO USUÁRIO ─────────────────────────
+        const userData = JSON.parse(localStorage.getItem('tl_user') || '{}');
+        if (userData.nome) {
+            document.querySelector('.user-avatar').textContent = userData.nome.charAt(0).toUpperCase();
+            const gr = document.getElementById('greeting-name');
+            if (gr) gr.textContent = userData.nome.split(' ')[0];
+        }
     </script>
 </body>
 </html>

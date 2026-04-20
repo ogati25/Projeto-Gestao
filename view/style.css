@@ -440,3 +440,43 @@ tbody td {
     color: var(--text-primary);
 }
 .btn-outline:hover { background: var(--background-color); }
+
+/* ==================== DARK MODE ==================== */
+body.dark {
+    --background-color: #0f1117;
+    --primary-color: #0d1117;
+    --primary-hover: #161b22;
+    --secondary-color: #161b22;
+    --tertiary-color: #6e7681;
+    --quaternary-color: #30363d;
+    --quinary-color: #3e608f;
+    --quinary-hover: #60a5fa;
+    --text-primary: #e6edf3;
+    --text-secondary: #8b949e;
+    --text-muted: #6e7681;
+    --border-color: #30363d;
+    --card-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+    --card-shadow-hover: 0 4px 12px rgba(0,0,0,0.4);
+}
+body.dark .sidebar { background: #0d1117; border-right: 1px solid #30363d; }
+body.dark .search-box { background: #1c2128; }
+body.dark .search-box:hover { background: #22272e; }
+body.dark tbody tr:hover { background: #1c2128; }
+body.dark thead th { background: #0d1117; border-bottom-color: #30363d; }
+body.dark .chart-placeholder { background: linear-gradient(135deg,#1c2128 0%,#161b22 100%); border-color: #30363d; }
+body.dark .filter-select, body.dark .filter-value-select, body.dark .filter-value-input,
+body.dark .field-input-wrap input, body.dark .field-input-wrap select { background: #1c2128; color: var(--text-primary); border-color: #30363d; }
+body.dark .nav-bar { background: #161b22; border-color: #30363d; }
+body.dark .nav-btn:hover { background: #1c2128; }
+body.dark .theme-toggle { background: #1c2128; border-color: #30363d; }
+body.dark .btn-config { background: #1c2128; border-color: #30363d; }
+body.dark .btn-config i { color: #8b949e; }
+body.dark .view-mode { background: #1c2128; border-color: #30363d; }
+body.dark .filter-bar { background: #161b22; border-color: #30363d; }
+body.dark .filter-chip { background: #1c2128; border-color: #30363d; color: #60a5fa; }
+body.dark .report-type-card { background: #161b22; border-color: #30363d; }
+body.dark .report-type-card.selected { background: #1c2128; border-color: #3e608f; }
+body.dark .kpi-mini { background: #161b22; border-color: #30363d; }
+body.dark .search-inline { background: #1c2128; border-color: #30363d; }
+body.dark .search-inline input { color: var(--text-primary); }
+body.dark mark { background: #3d2b00; color: #ffd60a; }

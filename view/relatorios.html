@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="js/api.js"></script>
+    <title>Relatórios — Tech Logistics</title>
+    <style>
+        /* ===== RELATÓRIOS ESPECÍFICO ===== */
+
+        /* ---- Cards de tipo de relatório ---- */
+        .report-types {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        .report-type-card {
+            background: var(--secondary-color);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px 18px;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.15s;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .report-type-card:hover {
+            border-color: var(--quinary-color);
+            box-shadow: 0 0 0 3px rgba(62,96,143,0.10);
+        }
+        .report-type-card.selected {
+            border-color: var(--quinary-color);
+            background: #eef3fb;
+            box-shadow: 0 0 0 3px rgba(62,96,143,0.12);
+        }
+        .rtc-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .rtc-icon i { font-size: 17px; color: #fff; }
+        .rtc-icon.blue   { background: var(--info-color); }
+        .rtc-icon.green  { background: var(--success-color); }
+        .rtc-icon.orange { background: var(--warning-color); }
+        .rtc-icon.purple { background: #8b5cf6; }
+        .rtc-label { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+        .rtc-desc  { font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: -4px; }
+
+        /* ---- Filtros ---- */
+        .filter-panel {
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 18px 20px;
+        }
+        .filter-panel h3 {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .filter-panel h3 i { color: var(--text-muted); font-size: 13px; }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr) auto;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        .filter-field { display: flex; flex-direction: column; gap: 5px; }
+        .filter-field label { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.3px; text-transform: uppercase; }
+        .filter-field input,
+        .filter-field select {
+            padding: 8px 11px;
+            border: 1px solid var(--border-color);
+            border-radius: 7px;
+            font-size: 13px;
+            background: var(--background-color);
+            color: var(--text-primary);
+            outline: none;
+            transition: border 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+        }
+        .filter-field input:focus,
+        .filter-field select:focus {
+            border-color: var(--quinary-color);
+            box-shadow: 0 0 0 2px rgba(62,96,143,0.12);
+        }
+        .btn-gerar {
+            padding: 8px 18px;
+            background: var(--quinary-color);
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            transition: background 0.2s;
+            white-space: nowrap;
+            height: 38px;
+        }
+        .btn-gerar:hover { background: #2d4f7a; }
+
+        /* ---- Barra de ações sobre a tabela ---- */
+        .table-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .table-actions-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .table-actions-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .search-inline {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 7px;
+            padding: 6px 11px;
+            transition: border 0.2s;
+        }
+        .search-inline:focus-within {
+            border-color: var(--quinary-color);
+            box-shadow: 0 0 0 2px rgba(62,96,143,0.12);
+        }
+        .search-inline i { font-size: 13px; color: var(--text-muted); }
+        .search-inline input {
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 13px;
+            color: var(--text-primary);
+            width: 180px;
+        }
+        .search-inline input::placeholder { color: var(--text-muted); }
+
+        /* Export buttons */
+        .btn-export {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 13px;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid;
+            transition: 0.2s;
+        }
+        .btn-export.pdf   { background: #fee2e2; border-color: #fecaca; color: #b91c1c; }
+        .btn-export.pdf:hover   { background: #fecaca; }
+        .btn-export.excel { background: #d1fae5; border-color: #a7f3d0; color: #065f46; }
+        .btn-export.excel:hover { background: #a7f3d0; }
+        .btn-export.print { background: var(--background-color); border-color: var(--border-color); color: var(--text-muted); }
+        .btn-export.print:hover { background: var(--border-color); }
+
+        /* ---- KPI mini row ---- */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        .kpi-mini {
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px 16px;
+            box-shadow: var(--card-shadow);
+        }
+        .kpi-mini-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 6px; }
+        .kpi-mini-value { font-size: 24px; font-weight: 700; color: var(--text-primary); line-height: 1; }
+        .kpi-mini-sub   { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+        /* ---- Estado vazio / carregando ---- */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 24px;
+            gap: 10px;
+            color: var(--text-muted);
+        }
+        .empty-state i { font-size: 36px; opacity: 0.35; }
+        .empty-state p { font-size: 13px; }
+
+        /* ---- Tag de status ---- */
+        .tag-ativo   { background: #d1fae5; color: #065f46; }
+        .tag-inativo { background: #f1f5f9; color: #475569; }
+
+        /* ---- Highlight na busca ---- */
+        mark { background: #fef3c7; padding: 0 2px; border-radius: 2px; }
+
+        /* ---- Linha de registros ---- */
+        #info-registros { font-size: 12px; color: var(--text-muted); }
+    
+        /* ---- Logout / Avatar ---- */
+        .sidebar-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 12px;
+            border-top: 1px solid #2d3f55;
+            font-size: 11px;
+            color: #475569;
+        }
+        .btn-logout {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px;
+            background: rgba(239,68,68,0.12);
+            color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            text-decoration: none;
+        }
+        .btn-logout:hover { background: rgba(239,68,68,0.22); color: #fca5a5; }
+        .header-user { display: flex; align-items: center; gap: 10px; }
+        .user-avatar {
+            width: 34px; height: 34px;
+            background: var(--quinary-color);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 700; color: #fff; cursor: pointer; flex-shrink: 0;
+        }
+</style>
+</head>
+<body>
+
+    <!-- ==================== SIDEBAR ==================== -->
+    <div class="sidebar" id="sidebar">
+        <button id="toggleSidebar" class="toggle-btn">
+            <i class="fa-solid fa-angles-left icon-close"></i>
+            <i class="fa-solid fa-angles-right icon-open"></i>
+        </button>
+
+        <div class="sidebar-brand">
+            <div class="brand-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+            <h2>Tech Logistics</h2>
+        </div>
+
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="Buscar...">
+            <i class="fa-solid fa-xmark clear-btn"></i>
+        </div>
+
+        <ul class="menu">
+            <li>
+                <a href="dashboard.html">
+                    <i class="material-icons" style="font-size:18px">dashboard</i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="estoque.html">
+                    <i class="fa-solid fa-box-archive"></i><span>Inventário</span>
+                </a>
+            </li>
+            <li>
+                <a href="pedidos.html">
+                    <i class="fa-solid fa-clipboard-list"></i><span>Pedidos</span>
+                </a>
+            </li>
+            <li>
+                <a href="relatorios.html">
+                    <i class="fa-solid fa-file-lines"></i><span>Relatórios</span>
+                </a>
+            </li>
+            <li>
+                <a href="funcionarios.html">
+                    <i class="fa-solid fa-users"></i><span>Funcionários</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <span>v1.0</span>
+            <a href="login.html" class="btn-logout">
+                <i class="fa-solid fa-right-from-bracket"></i> Sair
+            </a>
+        </div>
+    </div>
+
+    <!-- ==================== MAIN ==================== -->
+    <main>
+        <header>
+            <h1>Relatórios</h1>
+            <div class="header-buttons">
+                <div class="header-user">
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fa-solid fa-sun icon-sun"></i>
+                        <i class="fa-solid fa-moon icon-moon"></i>
+                    </button>
+                    <button class="btn-config">
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
+                    <div class="user-avatar" title="Perfil">U</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="main">
+
+            <!-- Tipo de relatório -->
+            <div>
+                <div class="section-header" style="margin-bottom:10px">
+                    <div>
+                        <h2>Tipo de Relatório</h2>
+                        <p>Selecione o módulo para gerar o relatório</p>
+                    </div>
+                </div>
+                <div class="report-types">
+                    <div class="report-type-card selected" data-type="inventario" onclick="selectType(this)">
+                        <div class="rtc-icon blue"><i class="fa-solid fa-box-archive"></i></div>
+                        <div>
+                            <div class="rtc-label">Inventário</div>
+                            <div class="rtc-desc">Todos os ativos cadastrados por categoria</div>
+                        </div>
+                    </div>
+                    <div class="report-type-card" data-type="movimentacoes" onclick="selectType(this)">
+                        <div class="rtc-icon green"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
+                        <div>
+                            <div class="rtc-label">Movimentações</div>
+                            <div class="rtc-desc">Entradas e saídas de equipamentos</div>
+                        </div>
+                    </div>
+                    <div class="report-type-card" data-type="manutencao" onclick="selectType(this)">
+                        <div class="rtc-icon orange"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+                        <div>
+                            <div class="rtc-label">Manutenção</div>
+                            <div class="rtc-desc">Itens em reparo ou manutenção</div>
+                        </div>
+                    </div>
+                    <div class="report-type-card" data-type="alocacao" onclick="selectType(this)">
+                        <div class="rtc-icon purple"><i class="fa-solid fa-users"></i></div>
+                        <div>
+                            <div class="rtc-label">Alocação</div>
+                            <div class="rtc-desc">Ativos alocados por funcionário</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="filter-panel">
+                <h3><i class="fa-solid fa-sliders"></i> Filtros do Relatório</h3>
+                <div class="filter-row">
+                    <div class="filter-field">
+                        <label>Categoria</label>
+                        <select id="filtroCategoria">
+                            <option value="">Todas</option>
+                            <option>Computadores</option>
+                            <option>Monitores</option>
+                            <option>Celulares</option>
+                            <option>Mouses</option>
+                            <option>Teclados</option>
+                            <option>Fones</option>
+                            <option>Ramais</option>
+                            <option>Extras</option>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label>Status</label>
+                        <select id="filtroStatus">
+                            <option value="">Todos</option>
+                            <option>Ativo</option>
+                            <option>Inativo</option>
+                            <option>Em manutenção</option>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label>Data início</label>
+                        <input type="date" id="filtroDataInicio">
+                    </div>
+                    <div class="filter-field">
+                        <label>Data fim</label>
+                        <input type="date" id="filtroDataFim">
+                    </div>
+                    <button class="btn-gerar" id="btnGerar" onclick="gerarRelatorio()">
+                        <i class="fa-solid fa-magnifying-glass-chart"></i> Gerar
+                    </button>
+                </div>
+            </div>
+
+            <!-- KPIs do relatório -->
+            <div class="kpi-row" id="kpiRow">
+                <div class="kpi-mini">
+                    <div class="kpi-mini-label">Total de itens</div>
+                    <div class="kpi-mini-value" id="kpi1">—</div>
+                    <div class="kpi-mini-sub">no filtro atual</div>
+                </div>
+                <div class="kpi-mini">
+                    <div class="kpi-mini-label">Ativos</div>
+                    <div class="kpi-mini-value" id="kpi2" style="color:var(--success-color)">—</div>
+                    <div class="kpi-mini-sub">em uso</div>
+                </div>
+                <div class="kpi-mini">
+                    <div class="kpi-mini-label">Inativos</div>
+                    <div class="kpi-mini-value" id="kpi3" style="color:var(--text-muted)">—</div>
+                    <div class="kpi-mini-sub">sem uso</div>
+                </div>
+                <div class="kpi-mini">
+                    <div class="kpi-mini-label">Em manutenção</div>
+                    <div class="kpi-mini-value" id="kpi4" style="color:var(--warning-color)">—</div>
+                    <div class="kpi-mini-sub">em reparo</div>
+                </div>
+            </div>
+
+            <!-- Tabela de resultados -->
+            <div>
+                <div class="table-actions" style="margin-bottom:10px">
+                    <div class="table-actions-left">
+                        <div class="section-header" style="margin-bottom:0">
+                            <h2 id="tableTitle">Inventário — Todos os itens</h2>
+                        </div>
+                        <span id="info-registros"></span>
+                    </div>
+                    <div class="table-actions-right">
+                        <div class="search-inline">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="searchTable" placeholder="Buscar na tabela..." oninput="filtrarTabela()">
+                        </div>
+                        <button class="btn-export pdf" onclick="exportarPDF()">
+                            <i class="fa-solid fa-file-pdf"></i> PDF
+                        </button>
+                        <button class="btn-export excel" onclick="exportarExcel()">
+                            <i class="fa-solid fa-file-excel"></i> Excel
+                        </button>
+                        <button class="btn-export print" onclick="window.print()">
+                            <i class="fa-solid fa-print"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <div class="table-scroll">
+                        <table id="tblRelatorio">
+                            <thead>
+                                <tr id="theadRow">
+                                    <th>ID</th>
+                                    <th>Descrição / Modelo</th>
+                                    <th>Categoria</th>
+                                    <th>Número de Série</th>
+                                    <th>Localização</th>
+                                    <th>Status</th>
+                                    <th>Responsável</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyRelatorio">
+                                <tr>
+                                    <td colspan="7">
+                                        <div class="empty-state">
+                                            <i class="fa-solid fa-magnifying-glass-chart"></i>
+                                            <p>Selecione um tipo de relatório e clique em <strong>Gerar</strong></p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /main -->
+    </main>
+
+    <script>
+        // ========== SIDEBAR & TEMA ==========
+        const themeBtn = document.getElementById("themeToggle");
+        themeBtn.addEventListener("click", () => themeBtn.classList.toggle("light"));
+
+        const sidebar = document.getElementById("sidebar");
+        document.getElementById("toggleSidebar").addEventListener("click", () => {
+            sidebar.classList.toggle("closed");
+        });
+
+        const currentPage = window.location.pathname.split("/").pop() || "dashboard.html";
+        document.querySelectorAll(".menu li a").forEach(link => {
+            if (link.getAttribute("href") === currentPage) {
+                link.parentElement.classList.add("active");
+            }
+        });
+
+        document.querySelector(".clear-btn")?.addEventListener("click", () => {
+            document.querySelector(".search-box input").value = "";
+        });
+
+        // ========== TIPO DE RELATÓRIO ==========
+        let tipoAtivo = "inventario";
+
+        function selectType(el) {
+            document.querySelectorAll(".report-type-card").forEach(c => c.classList.remove("selected"));
+            el.classList.add("selected");
+            tipoAtivo = el.dataset.type;
+            atualizarCabecalho();
+        }
+
+        const configTipos = {
+            inventario: {
+                titulo: "Inventário — Todos os itens",
+                colunas: ["ID", "Descrição / Modelo", "Categoria", "Nº de Série", "Localização", "Status", "Responsável"]
+            },
+            movimentacoes: {
+                titulo: "Movimentações de Ativos",
+                colunas: ["ID", "Ativo", "Tipo", "De", "Para", "Data", "Responsável"]
+            },
+            manutencao: {
+                titulo: "Itens em Manutenção",
+                colunas: ["ID", "Ativo", "Categoria", "Problema Reportado", "Entrada", "Previsão", "Status"]
+            },
+            alocacao: {
+                titulo: "Alocação por Funcionário",
+                colunas: ["Funcionário", "Cargo", "Setor", "Item Alocado", "Categoria", "Data Alocação", "Status"]
+            }
+        };
+
+        function atualizarCabecalho() {
+            const cfg = configTipos[tipoAtivo];
+            document.getElementById("tableTitle").textContent = cfg.titulo;
+            document.getElementById("theadRow").innerHTML = cfg.colunas.map(c => `<th>${c}</th>`).join("");
+            document.getElementById("tbodyRelatorio").innerHTML = `
+                <tr><td colspan="${cfg.colunas.length}">
+                    <div class="empty-state">
+                        <i class="fa-solid fa-magnifying-glass-chart"></i>
+                        <p>Clique em <strong>Gerar</strong> para carregar os dados</p>
+                    </div>
+                </td></tr>`;
+            document.getElementById("info-registros").textContent = "";
+            ["kpi1","kpi2","kpi3","kpi4"].forEach(id => document.getElementById(id).textContent = "—");
+        }
+
+        // ========== DADOS SIMULADOS ==========
+        // Substitua pelo retorno real da API (ex: await getComputadores(), await getMonitores(), etc.)
+        const dadosSimulados = {
+            inventario: [
+                [1, "Dell OptiPlex 7090",   "Computadores",  "SN-001-ABC", "Sala TI",      "Ativo",          "João Pereira"],
+                [2, "LG 27UK850",           "Monitores",     "SN-002-XYZ", "Sala TI",      "Ativo",          "João Pereira"],
+                [3, "iPhone 13",            "Celulares",     "SN-003-DEF", "Vendas",        "Ativo",          "Maria Costa"],
+                [4, "Logitech MX Master",   "Mouses",        "SN-004-GHI", "Marketing",     "Ativo",          "Larissa Nunes"],
+                [5, "Dell Latitude 5520",   "Computadores",  "SN-005-JKL", "Financeiro",    "Ativo",          "Bruno Alves"],
+                [6, "Samsung Odyssey G5",   "Monitores",     "SN-006-MNO", "Almoxarifado",  "Inativo",        "—"],
+                [7, "Motorola Edge 30",     "Celulares",     "SN-007-PQR", "Suporte",       "Em manutenção",  "Carlos Silva"],
+                [8, "JBL Tune 510BT",       "Fones",         "SN-008-STU", "Recepção",      "Ativo",          "Tatiane Melo"],
+                [9, "Ramal Intelbras 4128", "Ramais",        "SN-009-VWX", "Diretoria",     "Ativo",          "Tatiane Melo"],
+                [10,"Lenovo ThinkPad E14",  "Computadores",  "SN-010-YZA", "Jurídico",      "Ativo",          "Pedro Dias"],
+                [11,"HP LaserJet Pro",      "Extras",        "SN-011-BCD", "Sala de Reunião","Inativo",       "—"],
+                [12,"Teclado Mecânico HyperX","Teclados",    "SN-012-EFG", "Sala TI",       "Ativo",          "João Pereira"],
+            ],
+            movimentacoes: [
+                [101, "Dell OptiPlex 7090",  "Saída",    "Almoxarifado", "Sala TI",      "10/04/2026", "João Pereira"],
+                [102, "iPhone 13",           "Entrada",  "—",            "Almoxarifado", "08/04/2026", "Logística"],
+                [103, "LG 27UK850",          "Saída",    "Almoxarifado", "Sala TI",      "07/04/2026", "João Pereira"],
+                [104, "Motorola Edge 30",    "Saída",    "Suporte",      "Manutenção",   "05/04/2026", "Carlos Silva"],
+                [105, "HP LaserJet Pro",     "Entrada",  "—",            "Almoxarifado", "01/04/2026", "Logística"],
+            ],
+            manutencao: [
+                [201, "Motorola Edge 30",  "Celulares",   "Tela trincada",        "05/04/2026", "19/04/2026", "Em reparo"],
+                [202, "Dell OptiPlex 3080","Computadores","Não liga",             "02/04/2026", "16/04/2026", "Aguardando peça"],
+                [203, "LG 24MK430H",      "Monitores",   "Pixel morto",          "28/03/2026", "14/04/2026", "Concluído"],
+            ],
+            alocacao: [
+                ["João Pereira",   "Dev Senior",  "TI",        "Dell OptiPlex 7090", "Computadores", "03/2021", "Ativo"],
+                ["Maria Costa",    "Analista",    "Vendas",    "iPhone 13",          "Celulares",    "01/2024", "Ativo"],
+                ["Larissa Nunes",  "Analista",    "Financeiro","Logitech MX Master", "Mouses",       "06/2023", "Ativo"],
+                ["Bruno Alves",    "Dev Junior",  "TI",        "Dell Latitude 5520", "Computadores", "09/2023", "Ativo"],
+                ["Tatiane Melo",   "Gerente",     "Vendas",    "Ramal Intelbras",    "Ramais",       "11/2018", "Ativo"],
+                ["Carlos Silva",   "Suporte",     "TI",        "—",                 "—",            "—",       "Inativo"],
+            ]
+        };
+
+        let dadosAtivos = [];
+        let dadosFiltrados = [];
+
+        // ========== GERAR RELATÓRIO ==========
+        async function gerarRelatorio() {
+            const btn = document.getElementById("btnGerar");
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
+
+            // Aqui você chamaria a API real:
+            // try {
+            //   dadosAtivos = await getComputadores(); // exemplo
+            // } catch(e) { ... }
+
+            await new Promise(r => setTimeout(r, 600)); // simulação
+
+            dadosAtivos = dadosSimulados[tipoAtivo] || [];
+
+            // Filtrar por status
+            const filtroStatus = document.getElementById("filtroStatus").value.toLowerCase();
+            dadosFiltrados = filtroStatus
+                ? dadosAtivos.filter(r => {
+                    const statusCol = r.find(c => typeof c === 'string' && (
+                        c.toLowerCase().includes('ativo') || c.toLowerCase().includes('inativo') || c.toLowerCase().includes('manuten')
+                    ));
+                    return statusCol && statusCol.toLowerCase().includes(filtroStatus);
+                  })
+                : [...dadosAtivos];
+
+            renderTabela(dadosFiltrados);
+            atualizarKPIs(dadosFiltrados);
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-magnifying-glass-chart"></i> Gerar';
+        }
+
+        function statusBadge(val) {
+            if (!val) return val;
+            const v = val.toLowerCase();
+            if (v.includes('ativo') && !v.includes('in')) return `<span class="badge badge-success">${val}</span>`;
+            if (v.includes('inativo'))                     return `<span class="badge badge-gray">${val}</span>`;
+            if (v.includes('manuten') || v.includes('reparo') || v.includes('peça')) return `<span class="badge badge-warning">${val}</span>`;
+            if (v.includes('concluído'))                   return `<span class="badge badge-success">${val}</span>`;
+            if (v.includes('aguardando'))                  return `<span class="badge badge-info">${val}</span>`;
+            return val;
+        }
+
+        function renderTabela(dados) {
+            const cfg = configTipos[tipoAtivo];
+            const tbody = document.getElementById("tbodyRelatorio");
+            if (!dados.length) {
+                tbody.innerHTML = `<tr><td colspan="${cfg.colunas.length}">
+                    <div class="empty-state">
+                        <i class="fa-solid fa-inbox"></i>
+                        <p>Nenhum registro encontrado com os filtros aplicados</p>
+                    </div></td></tr>`;
+                document.getElementById("info-registros").textContent = "0 registros";
+                return;
+            }
+            tbody.innerHTML = dados.map(row =>
+                `<tr>${row.map(cell => `<td>${statusBadge(String(cell))}</td>`).join("")}</tr>`
+            ).join("");
+            document.getElementById("info-registros").textContent = `${dados.length} registro${dados.length !== 1 ? 's' : ''}`;
+        }
+
+        function atualizarKPIs(dados) {
+            document.getElementById("kpi1").textContent = dados.length;
+            const flat = dados.map(r => r.join(" ").toLowerCase());
+            const ativos     = flat.filter(r => r.includes("ativo") && !r.includes("inativo")).length;
+            const inativos   = flat.filter(r => r.includes("inativo")).length;
+            const manutencao = flat.filter(r => r.includes("manuten") || r.includes("reparo")).length;
+            document.getElementById("kpi2").textContent = ativos;
+            document.getElementById("kpi3").textContent = inativos;
+            document.getElementById("kpi4").textContent = manutencao;
+        }
+
+        // ========== BUSCA NA TABELA ==========
+        function filtrarTabela() {
+            const q = document.getElementById("searchTable").value.toLowerCase().trim();
+            if (!dadosFiltrados.length) return;
+            const filtrados = q
+                ? dadosFiltrados.filter(row => row.join(" ").toLowerCase().includes(q))
+                : dadosFiltrados;
+            renderTabela(filtrados);
+        }
+
+        // ========== EXPORTAR ==========
+        function exportarPDF() {
+            alert("🖨️ Integre com a sua API ou biblioteca de PDF (ex: jsPDF, Puppeteer) para exportar.");
+        }
+
+        function exportarExcel() {
+            // Exportação CSV simples como fallback
+            const cfg = configTipos[tipoAtivo];
+            const linhas = [cfg.colunas.join(";")];
+            dadosFiltrados.forEach(row => linhas.push(row.join(";")));
+            const blob = new Blob([linhas.join("\n")], { type: "text/csv;charset=utf-8;" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = `relatorio_${tipoAtivo}_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+        }
+
+        // ========== INIT ==========
+        atualizarCabecalho();
+    </script>
+</body>
+</html>

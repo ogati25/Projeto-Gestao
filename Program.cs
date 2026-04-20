@@ -20,6 +20,7 @@ builder.Services.AddSingleton<TecladoService>();
 builder.Services.AddSingleton<FoneService>();
 builder.Services.AddSingleton<RamalService>();
 builder.Services.AddSingleton<ExtraService>();
+builder.Services.AddSingleton<UsuarioService>();
 
 builder.Services.AddCors(options =>
 {

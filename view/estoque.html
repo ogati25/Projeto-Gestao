@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <script src="js/api.js"></script>
     <title>Inventário — Tech Logistics</title>
     <style>
         /* ===== INVENTÁRIO ESPECÍFICO ===== */
@@ -291,7 +290,7 @@
             background: transparent;
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            font-size: 12px;
+            font-size: 12px; 
             font-weight: 600;
             cursor: pointer;
             color: var(--text-muted);
@@ -479,7 +478,9 @@
             border-color: #ef4444 !important;
             box-shadow: 0 0 0 3px rgba(239,68,68,0.12) !important;
         }
-        .form-group input[type="number"] { -moz-appearance: textfield; }
+        .form-group input[type="number"] {
+            appearance: textfield;
+        }
         .form-group input[type="number"]::-webkit-outer-spin-button,
         .form-group input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .form-section-title {
@@ -645,10 +646,7 @@
                     <select class="filter-select" id="filterProp" onchange="updateFilterValueOptions()">
                         <option value="">— Escolha a propriedade —</option>
                     </select>
-                    <select class="filter-value-select" id="filterValue" style="display:none">
-                        <option value="">— Escolha o valor —</option>
-                    </select>
-                    <input class="filter-value-input" id="filterValueInput" type="text" placeholder="Digite o valor..." style="display:none">
+                    <div id="filterValueArea" style="display:inline-flex;align-items:center;"></div>
                     <button class="btn-add-filter" onclick="addFilter()">
                         <i class="fa-solid fa-plus"></i> Adicionar Filtro
                     </button>
@@ -709,11 +707,10 @@
                             <th>Armazenamento</th>
                             <th>VRAM</th>
                             <th>Sistema Op.</th>
-                            <th>Ativação SO</th>
                             <th>Office</th>
-                            <th>Ativação Office</th>
                             <th>Status</th>
                             <th>Setor</th>
+                            <th>IP</th>
                             <th>Usuário</th>
                             <th>Ativo</th>
                             <th class="col-acoes">Ações</th>
@@ -1111,1151 +1108,443 @@
     </div>
 
     <script>
-        // ====== STATE ======
-        let currentCategory = 'computadores';
-        let currentMode = 'gestao';
-        let activeFilters = [];
-        let pendingToggleRow = null; // row element being toggled
+       /**
+         * ============================================================
+         *  INVENTÁRIO — SCRIPT DE FRONTEND
+         * ============================================================
+         *  Responsabilidade: APENAS o que é visual e interativo.
+         *  Este arquivo não conhece nada sobre a API, modelos de dados,
+         *  schemas de campos ou lógica de negócio.
+         *
+         *  O que está aqui:
+         *   - Abertura e fechamento de modais
+         *   - Toggle de tema dark/light
+         *   - Controle da sidebar
+         *   - Chips de filtro (adicionar e remover visualmente)
+         *   - Máscaras de input (IP, MAC, telefone, dinheiro)
+         *   - Feedback de erros inline nos modais
+         *   - Highlight de campos obrigatórios vazios
+         *   - Badge ativo/inativo na linha da tabela
+         *   - Alternância de modo de visualização (Suporte / Gestão)
+         *   - Navegação entre categorias (só a parte de UI)
+         *   - Confirmação de inativar/reativar (só o visual do modal)
+         *
+         *  O que NÃO está aqui (ver inventario.backend.js):
+         *   - Definição de formFields, filterDefs, enums de domínio
+         *   - Render dos campos do formulário (renderFields)
+         *   - Render das linhas da tabela (renderRow)
+         *   - Qualquer comunicação com a API
+         *   - Mapeamento de dados form ↔ API
+         * ============================================================
+         */
 
-        // ==================== MODAL HELPERS ====================
+
+        // ============================================================
+        //  ESTADO GLOBAL DE NAVEGAÇÃO
+        //  Compartilhado com o backend para saber qual categoria/modo
+        //  está ativo no momento.
+        // ============================================================
+
+        /** Categoria de inventário atualmente visível (ex: 'computadores') */
+        var currentCategory = 'computadores';
+
+        /** Modo de visualização ativo: 'gestao' ou 'suporte' */
+        var currentMode = 'gestao';
+
+        /** Lista de filtros ativos. Cada filtro tem { key, label, value, displayValue } */
+        var activeFilters = [];
+
+        /**
+         * Linha da tabela aguardando confirmação de toggle ativo/inativo.
+         * Armazenada aqui para o modal de confirmação saber qual linha processar.
+         */
+        var pendingToggleRow = null;
+
+
+        // ============================================================
+        //  MODAIS — ABRIR E FECHAR
+        //  Funções puramente visuais: adicionam/removem a classe 'open'
+        //  e limpam estados visuais de erro ao fechar.
+        // ============================================================
+
+        /**
+         * Abre um modal pelo seu ID.
+         * @param {string} id — ID do elemento .modal-overlay
+         */
         function openModal(id) {
             document.getElementById(id).classList.add('open');
         }
+
+        /**
+         * Fecha um modal e limpa erros visuais associados.
+         * @param {string} id — ID do elemento .modal-overlay
+         */
         function closeModal(id) {
             document.getElementById(id).classList.remove('open');
-            // limpa erros ao fechar (limparErroModal pode ainda não existir se chamado cedo)
+
+            // Limpa mensagem de erro inline se existir
             if (typeof limparErroModal === 'function') {
                 limparErroModal(id === 'modalAdd' ? 'modalAddError' : 'modalEditError');
             }
-            // limpa destaques de campo com erro
+
+            // Remove destaque vermelho dos campos com erro
             const formId = id === 'modalAdd' ? 'formAddFields' : 'formEditFields';
             document.querySelectorAll(`#${formId} .field-error`)
                 .forEach(el => el.classList.remove('field-error'));
         }
+
+        // Fecha qualquer modal ao clicar fora da área de conteúdo dele
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', e => {
                 if (e.target === overlay) overlay.classList.remove('open');
             });
         });
 
-        // ==================== RENDER FORM FIELDS ====================
-        // Cria um select genérico
-        // options pode ser array de strings ou array de {value, label}
-        function criarSelect(name, options, valor = '') {
-            const sel = document.createElement('select');
-            sel.name = name;
-            const blank = document.createElement('option');
-            blank.value = ''; blank.textContent = '— Selecione —';
-            sel.appendChild(blank);
-            options.forEach(opt => {
-                const o = document.createElement('option');
-                if (typeof opt === 'object') {
-                    o.value = opt.value; o.textContent = opt.label;
-                    if (valor === opt.value) o.selected = true;
-                } else {
-                    o.value = opt; o.textContent = opt;
-                    if (valor === opt) o.selected = true;
-                }
-                sel.appendChild(o);
-            });
-            return sel;
-        }
 
-        // Cria um input de texto genérico com suporte a máscara e maxlength
-        function criarInput(name, valor = '', placeholder = '', tipo = 'text', mask = null, maxlen = null) {
-            const inp = document.createElement('input');
-            inp.type = tipo; inp.name = name;
-            inp.value = valor;
-            if (placeholder) inp.placeholder = placeholder;
-            if (maxlen) inp.maxLength = maxlen;
+        // ============================================================
+        //  MODAL DE ADIÇÃO — Abertura (visual)
+        //  A montagem dos campos (renderFields) é responsabilidade do backend.
+        //  O frontend só define o título e chama o backend para popular o form.
+        // ============================================================
 
-            if (mask === 'ip') {
-                inp.addEventListener('input', () => {
-                    let v = inp.value.replace(/[^0-9.]/g, '');
-                    if (v.length > 15) v = v.slice(0, 15);
-                    inp.value = v;
-                });
-            } else if (mask === 'mac') {
-                inp.addEventListener('input', () => {
-                    let v = inp.value.replace(/[^0-9a-fA-F]/g, '').toUpperCase();
-                    v = v.match(/.{1,2}/g)?.join(':') || v;
-                    if (v.length > 17) v = v.slice(0, 17);
-                    inp.value = v;
-                });
-                inp.maxLength = 17;
-            } else if (mask === 'phone') {
-                // Formata ao digitar: +55 (11) 99999-9999
-                const aplicarMascaraTelefone = () => {
-                    let v = inp.value.replace(/\D/g, '');
-                    let resultado = '';
-                    if (v.startsWith('55') && v.length > 2) {
-                        // número brasileiro com DDI
-                        const sem55 = v.slice(2);
-                        if (sem55.length <= 2) {
-                            resultado = `+55 (${sem55}`;
-                        } else if (sem55.length <= 7) {
-                            resultado = `+55 (${sem55.slice(0,2)}) ${sem55.slice(2)}`;
-                        } else if (sem55.length <= 11) {
-                            const meio = sem55.length === 11 ? 5 : 4;
-                            resultado = `+55 (${sem55.slice(0,2)}) ${sem55.slice(2, 2+meio)}-${sem55.slice(2+meio)}`;
-                        } else {
-                            resultado = `+55 (${sem55.slice(0,2)}) ${sem55.slice(2,7)}-${sem55.slice(7,11)}`;
-                        }
-                    } else if (v.length > 0) {
-                        // número sem DDI
-                        if (v.length <= 2) {
-                            resultado = `(${v}`;
-                        } else if (v.length <= 7) {
-                            resultado = `(${v.slice(0,2)}) ${v.slice(2)}`;
-                        } else if (v.length <= 11) {
-                            const meio = v.length === 11 ? 5 : 4;
-                            resultado = `(${v.slice(0,2)}) ${v.slice(2, 2+meio)}-${v.slice(2+meio)}`;
-                        } else {
-                            resultado = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7,11)}`;
-                        }
-                    }
-                    inp.value = resultado;
-                };
-                inp.addEventListener('input', aplicarMascaraTelefone);
-                // se já tem valor ao carregar, aplica a máscara
-                if (valor) setTimeout(aplicarMascaraTelefone, 0);
-            } else if (mask === 'money') {
-                const aplicarMoney = () => {
-                    // remove R$, espaços e converte vírgula pra ponto
-                    let raw = inp.value.replace('R$', '').replace(/\s/g, '').replace(',', '.').trim();
-                    const n = parseFloat(raw);
-                    if (!isNaN(n)) {
-                        inp.value = 'R$ ' + n.toFixed(2).replace('.', ',');
-                    } else if (raw === '' || raw === '0') {
-                        inp.value = '';
-                    }
-                };
-                inp.addEventListener('blur', aplicarMoney);
-                // ao focar, remove o R$ para edição limpa
-                inp.addEventListener('focus', () => {
-                    inp.value = inp.value.replace('R$', '').replace(/\s/g, '').replace(',', '.').trim();
-                });
-                if (valor) setTimeout(aplicarMoney, 0);
-            }
-
-            return inp;
-        }
-
-        // Sem contador — apenas append direto
-        function encapsularInput(inp, group) {
-            group.appendChild(inp);
-        }
-
-        // Renderiza a lista dinâmica de slots de RAM
-        // Insere o wrapper dinâmico logo APÓS o grupo que o disparou
-        function inserirApos(afterEl, novoEl) {
-            afterEl.insertAdjacentElement('afterend', novoEl);
-        }
-
-        function renderSlotsRAM(afterGroup, quantidade, valores = []) {
-            const antigo = document.getElementById('slots-ram-wrapper');
-            if (antigo) antigo.remove();
-            if (!quantidade || quantidade < 1) return;
-            const div = document.createElement('div');
-            div.id = 'slots-ram-wrapper';
-            div.className = 'span-2';
-            div.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:10px;';
-            for (let i = 0; i < quantidade; i++) {
-                const group = document.createElement('div');
-                group.className = 'form-group';
-                const lbl = document.createElement('label');
-                lbl.textContent = `Slot ${i + 1}`;
-                group.appendChild(lbl);
-                group.appendChild(criarSelect(`ram_slot_${i}`, TIPO_MEMORIA_RAM, valores[i] || ''));
-                div.appendChild(group);
-            }
-            inserirApos(afterGroup, div);
-        }
-
-        function renderDiscos(afterGroup, quantidade, valores = []) {
-            const antigo = document.getElementById('discos-wrapper');
-            if (antigo) antigo.remove();
-            if (!quantidade || quantidade < 1) return;
-            const div = document.createElement('div');
-            div.id = 'discos-wrapper';
-            div.className = 'span-2';
-            div.style.cssText = 'display:flex;flex-direction:column;gap:10px;';
-            for (let i = 0; i < quantidade; i++) {
-                const row = document.createElement('div');
-                row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:10px;';
-                const g1 = document.createElement('div'); g1.className = 'form-group';
-                const l1 = document.createElement('label'); l1.textContent = `Disco ${i+1} — Tipo`;
-                g1.appendChild(l1);
-                g1.appendChild(criarSelect(`disco_tipo_${i}`, TIPO_DISCO, valores[i]?.tipo || ''));
-                const g2 = document.createElement('div'); g2.className = 'form-group';
-                const l2 = document.createElement('label'); l2.textContent = `Disco ${i+1} — Tamanho (GB)`;
-                g2.appendChild(l2);
-                g2.appendChild(criarInput(`disco_tamanho_${i}`, valores[i]?.tamanho || '', 'Ex: 512', 'number'));
-                row.appendChild(g1); row.appendChild(g2);
-                div.appendChild(row);
-            }
-            inserirApos(afterGroup, div);
-        }
-
-        function renderPlacasVideo(afterGroup, quantidade, valores = []) {
-            const antigo = document.getElementById('gpus-wrapper');
-            if (antigo) antigo.remove();
-            if (!quantidade || quantidade < 1) return;
-            const div = document.createElement('div');
-            div.id = 'gpus-wrapper';
-            div.className = 'span-2';
-            div.style.cssText = 'display:flex;flex-direction:column;gap:10px;';
-            for (let i = 0; i < quantidade; i++) {
-                const row = document.createElement('div');
-                row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:10px;';
-                const g1 = document.createElement('div'); g1.className = 'form-group';
-                const l1 = document.createElement('label'); l1.textContent = `GPU ${i+1} — Tipo`;
-                g1.appendChild(l1);
-                g1.appendChild(criarSelect(`gpu_tipo_${i}`, TIPO_GPU, valores[i]?.tipo || ''));
-                const g2 = document.createElement('div'); g2.className = 'form-group';
-                const l2 = document.createElement('label'); l2.textContent = `GPU ${i+1} — VRAM (MB)`;
-                g2.appendChild(l2);
-                g2.appendChild(criarInput(`gpu_vram_${i}`, valores[i]?.vram || '', 'Ex: 2048', 'number'));
-                row.appendChild(g1); row.appendChild(g2);
-                div.appendChild(row);
-            }
-            inserirApos(afterGroup, div);
-        }
-
-        // Conectores de vídeo: lista de selects com enum (não mais checkboxes)
-        function renderConectoresVideo(afterGroup, quantidade, selecionados = []) {
-            const antigo = document.getElementById('conectores-wrapper');
-            if (antigo) antigo.remove();
-            if (!quantidade || quantidade < 1) return;
-            const div = document.createElement('div');
-            div.id = 'conectores-wrapper';
-            div.className = 'span-2';
-            div.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:10px;';
-            for (let i = 0; i < quantidade; i++) {
-                const group = document.createElement('div');
-                group.className = 'form-group';
-                const lbl = document.createElement('label');
-                lbl.textContent = `Conector ${i + 1}`;
-                group.appendChild(lbl);
-                group.appendChild(criarSelect(`conector_video_${i}`, CONECTOR_VIDEO, selecionados[i] || ''));
-                div.appendChild(group);
-            }
-            inserirApos(afterGroup, div);
-        }
-
-        function renderFields(containerId, category, mode, prefillData = {}) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = '';
-            const fields = formFields[category] || [];
-
-            fields.forEach(f => {
-                // Seção
-                if (f.section) {
-                    // sempre mostra seções no modal de cadastro
-                    const el = document.createElement('div');
-                    el.className = 'form-section-title';
-                    el.textContent = f.section;
-                    container.appendChild(el);
-                    return;
-                }
-                // modal sempre mostra todos os campos independente do modo
-                // a separação de modo só afeta a VISUALIZAÇÃO da tabela, não o cadastro
-                // if (f.mode && f.mode !== mode) return;
-
-                const group = document.createElement('div');
-                group.className = 'form-group' + (f.span2 ? ' span-2' : '');
-
-                const label = document.createElement('label');
-                label.textContent = f.label;
-                if (f.required) {
-                    const star = document.createElement('span');
-                    star.textContent = ' *';
-                    star.style.cssText = 'color:#ef4444;font-weight:700;';
-                    label.appendChild(star);
-                }
-                group.appendChild(label);
-
-                let input;
-
-                if (f.type === 'select') {
-                    input = criarSelect(f.key, f.options || [], prefillData[f.key] || '');
-
-                    // Campos que disparam listas dinâmicas
-                    // passa o "group" (o div pai do select) para inserir logo após ele
-                    if (f.key === 'quant_slots') {
-                        input.addEventListener('change', () => {
-                            renderSlotsRAM(group, parseInt(input.value) || 0);
-                        });
-                    }
-                    if (f.key === 'quant_discos') {
-                        input.addEventListener('change', () => {
-                            renderDiscos(group, parseInt(input.value) || 0);
-                        });
-                    }
-                    if (f.key === 'quant_gpus') {
-                        input.addEventListener('change', () => {
-                            renderPlacasVideo(group, parseInt(input.value) || 0);
-                        });
-                    }
-                    if (f.key === 'quant_conectores') {
-                        input.addEventListener('change', () => {
-                            renderConectoresVideo(group, parseInt(input.value) || 0);
-                        });
-                    }
-
-                } else if (f.type === 'processador_select') {
-                    // Select populado dinamicamente via API
-                    input = document.createElement('select');
-                    input.name = f.key;
-                    const loading = document.createElement('option');
-                    loading.textContent = 'Carregando...';
-                    input.appendChild(loading);
-                    getProcessadores().then(lista => {
-                        input.innerHTML = '';
-                        const blank = document.createElement('option');
-                        blank.value = ''; blank.textContent = '— Selecione o processador —';
-                        input.appendChild(blank);
-                        (lista || []).forEach(p => {
-                            const o = document.createElement('option');
-                            o.value = p.id;
-                            o.textContent = `${p.nome} ${p.velocidade}GHz (${p.nucleosThreads?.nucleos}c/${p.nucleosThreads?.threads}t)`;
-                            if (prefillData[f.key] === p.id) o.selected = true;
-                            input.appendChild(o);
-                        });
-                    }).catch(() => {
-                        input.innerHTML = '<option value="">Erro ao carregar processadores</option>';
-                    });
-
-                } else if (f.type === 'textarea') {
-                    input = document.createElement('textarea');
-                    input.name = f.key;
-                    input.value = prefillData[f.key] || '';
-
-                } else if (f.type === 'checkbox') {
-                    input = document.createElement('input');
-                    input.type = 'checkbox';
-                    input.name = f.key;
-                    input.checked = prefillData[f.key] === true || prefillData[f.key] === 'true';
-                    input.style.width = 'auto';
-
-                } else if (f.type === 'chip_selector') {
-                    // Widget de seleção de chips via ID, mostra número na label
-                    input = document.createElement('div');
-                    input.id = 'chip-selector-widget';
-                    input.dataset.max = f.max || 2;
-                    input.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
-                    const chipsSelecionados = prefillData[f.key] || [];
-                    const renderChipSelector = (lista) => {
-                        input.innerHTML = '';
-                        lista.forEach((chip, i) => {
-                            const row = document.createElement('div');
-                            row.style.cssText = 'display:flex;align-items:center;gap:8px;';
-                            const sel = document.createElement('select');
-                            sel.name = `chip_id_${i}`;
-                            sel.style.flex = '1';
-                            const blank = document.createElement('option');
-                            blank.value = ''; blank.textContent = '— Selecione o chip —';
-                            sel.appendChild(blank);
-                            (window._chipsCache || []).forEach(c => {
-                                const o = document.createElement('option');
-                                o.value = c.id; o.textContent = `${c.numero} (${c.dono || 'sem dono'})`;
-                                if (chip === c.id) o.selected = true;
-                                sel.appendChild(o);
-                            });
-                            const btnRem = document.createElement('button');
-                            btnRem.type = 'button';
-                            btnRem.textContent = '✕';
-                            btnRem.style.cssText = 'border:none;background:#fee2e2;color:#ef4444;border-radius:6px;padding:4px 8px;cursor:pointer;';
-                            btnRem.onclick = () => { lista.splice(i, 1); renderChipSelector(lista); };
-                            row.appendChild(sel); row.appendChild(btnRem);
-                            input.appendChild(row);
-                        });
-                        if (lista.length < parseInt(input.dataset.max)) {
-                            const btnAdd = document.createElement('button');
-                            btnAdd.type = 'button';
-                            btnAdd.textContent = '+ Adicionar Chip';
-                            btnAdd.style.cssText = 'border:1px dashed #cbd5e1;background:transparent;border-radius:7px;padding:6px 12px;cursor:pointer;font-size:13px;color:var(--text-muted);';
-                            btnAdd.onclick = () => { lista.push(''); renderChipSelector(lista); };
-                            input.appendChild(btnAdd);
-                        }
-                    };
-                    // carrega chips da API e renderiza
-                    const chipsInicial = Array.isArray(prefillData[f.key]) ? prefillData[f.key] : [];
-                    getChips().then(lista => {
-                        window._chipsCache = lista || [];
-                        renderChipSelector([...chipsInicial]);
-                    }).catch(() => {
-                        window._chipsCache = [];
-                        renderChipSelector([...chipsInicial]);
-                    });
-
-                } else if (f.type === 'whatsapp_list') {
-                    // Lista dinâmica de contas whatsapp {numero, dono}
-                    input = document.createElement('div');
-                    input.id = 'whatsapp-list-widget';
-                    input.dataset.max = f.max || 6;
-                    input.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
-                    const wppInicial = Array.isArray(prefillData[f.key]) ? prefillData[f.key] : [];
-                    const renderWppList = (lista) => {
-                        input.innerHTML = '';
-                        lista.forEach((wpp, i) => {
-                            const row = document.createElement('div');
-                            row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;';
-                            const g1 = document.createElement('div'); g1.className = 'form-group'; g1.style.margin = '0';
-                            const l1 = document.createElement('label'); l1.textContent = `Número ${i+1}`;
-                            const inp1 = document.createElement('input');
-                            inp1.type = 'text'; inp1.name = `wpp_numero_${i}`;
-                            inp1.placeholder = '+55 (11) 99999-9999';
-                            inp1.value = wpp.numero || '';
-                            inp1.style.cssText = 'padding:7px 10px;border:1px solid var(--border-color);border-radius:7px;font-size:13px;background:var(--background-color);color:var(--text-primary);outline:none;';
-                            g1.appendChild(l1); g1.appendChild(inp1);
-                            const g2 = document.createElement('div'); g2.className = 'form-group'; g2.style.margin = '0';
-                            const l2 = document.createElement('label'); l2.textContent = `Dono ${i+1}`;
-                            const inp2 = document.createElement('input');
-                            inp2.type = 'text'; inp2.name = `wpp_dono_${i}`;
-                            inp2.placeholder = 'Nome do dono';
-                            inp2.value = wpp.dono || '';
-                            inp2.style.cssText = inp1.style.cssText;
-                            g2.appendChild(l2); g2.appendChild(inp2);
-                            const btnRem = document.createElement('button');
-                            btnRem.type = 'button'; btnRem.textContent = '✕';
-                            btnRem.style.cssText = 'border:none;background:#fee2e2;color:#ef4444;border-radius:6px;padding:7px 10px;cursor:pointer;align-self:end;';
-                            btnRem.onclick = () => { lista.splice(i, 1); renderWppList(lista); };
-                            row.appendChild(g1); row.appendChild(g2); row.appendChild(btnRem);
-                            input.appendChild(row);
-                        });
-                        if (lista.length < parseInt(input.dataset.max)) {
-                            const btnAdd = document.createElement('button');
-                            btnAdd.type = 'button';
-                            btnAdd.textContent = '+ Adicionar Conta WhatsApp';
-                            btnAdd.style.cssText = 'border:1px dashed #cbd5e1;background:transparent;border-radius:7px;padding:6px 12px;cursor:pointer;font-size:13px;color:var(--text-muted);';
-                            btnAdd.onclick = () => { lista.push({numero:'',dono:''}); renderWppList(lista); };
-                            input.appendChild(btnAdd);
-                        }
-                    };
-                    renderWppList([...wppInicial]);
-
-                } else {
-                    input = criarInput(f.key, prefillData[f.key] || '', f.placeholder || '', f.type || 'text', f.mask || null, f.maxlen || null);
-                }
-
-                group.appendChild(input);
-                container.appendChild(group);
-            });
-        }
-
-        // ==================== ADD MODAL ====================
+        /**
+         * Abre o modal de cadastro de novo item.
+         * O título é definido aqui (visual). Os campos são renderizados
+         * pela função renderFields() do backend.
+         */
         function openAddModal() {
-            const catName = categoryNames[currentCategory] || currentCategory;
+            // categoryNames é definido no backend, mas o título é responsabilidade visual
+            const catName = (typeof categoryNames !== 'undefined' && categoryNames[currentCategory])
+                || currentCategory;
+
             document.getElementById('modalAddTitle').textContent = `Novo — ${catName}`;
-            renderFields('formAddFields', currentCategory, 'all', {});
+
+            // Delega a montagem dos campos ao backend
+            if (typeof renderFields === 'function') {
+                renderFields('formAddFields', currentCategory, 'all', {});
+            }
+
             openModal('modalAdd');
         }
 
-        function coletarDadosCelular(containerId) {
-            // coleta chipIds
-            const chipIds = [];
-            let i = 0;
-            while (true) {
-                const sel = document.querySelector(`#${containerId} select[name="chip_id_${i}"]`);
-                if (!sel) break;
-                if (sel.value) chipIds.push(sel.value);
-                i++;
-            }
-            // coleta contasWhatsapp
-            const contasWhatsapp = [];
-            i = 0;
-            while (true) {
-                const num = document.querySelector(`#${containerId} input[name="wpp_numero_${i}"]`);
-                if (!num) break;
-                const dono = document.querySelector(`#${containerId} input[name="wpp_dono_${i}"]`);
-                if (num.value.trim()) {
-                    contasWhatsapp.push({ numero: num.value.trim(), dono: dono?.value.trim() || '' });
-                }
-                i++;
-            }
-            return { chipIds, contasWhatsapp };
-        }
 
-        function submitAdd() {
-            const fields = document.querySelectorAll('#formAddFields [name]');
-            const data = {};
-            fields.forEach(f => {
-                if (f.type === 'checkbox') {
-                    data[f.name] = f.checked;
-                } else {
-                    data[f.name] = f.value;
-                }
-            });
-            // conectores de vídeo: selects indexados
-            const conectores = [];
-            let i = 0;
-            while (true) {
-                const sel = document.querySelector(`#formAddFields select[name="conector_video_${i}"]`);
-                if (!sel) break;
-                if (sel.value) conectores.push(sel.value);
-                i++;
-            }
-            if (conectores.length) data['conector_video'] = conectores;
-            // chips e whatsapp (celular)
-            if (currentCategory === 'celulares') {
-                const { chipIds, contasWhatsapp } = coletarDadosCelular('formAddFields');
-                data['chipIds'] = chipIds;
-                data['contasWhatsapp'] = contasWhatsapp;
-            }
-            console.log('ADD:', currentCategory, data);
-            closeModal('modalAdd');
-        }
+        // ============================================================
+        //  MODAL DE CONFIRMAÇÃO — Toggle Ativo/Inativo
+        //  Apenas visual: muda ícones, textos e classes do modal.
+        //  A ação real (chamada à API) está no backend.
+        // ============================================================
 
-        // ==================== EDIT MODAL ====================
-        function openEditModal(rowEl) {
-            const cells = rowEl.querySelectorAll('td');
-            const fields = formFields[currentCategory] || [];
-            const visibleFields = fields.filter(f => !f.section && (!f.mode || f.mode === currentMode));
-            const prefill = {};
-            visibleFields.forEach((f, i) => {
-                if (cells[i + 1]) prefill[f.key] = cells[i + 1].textContent.trim();
-            });
-            renderFields('formEditFields', currentCategory, currentMode, prefill);
-            openModal('modalEdit');
-        }
-
-        function submitEdit() {
-            const fields = document.querySelectorAll('#formEditFields [name]');
-            const data = {};
-            fields.forEach(f => { data[f.name] = f.value; });
-            console.log('EDIT:', currentCategory, data);
-            closeModal('modalEdit');
-        }
-
-        // ==================== TOGGLE ACTIVE ====================
+        /**
+         * Prepara e abre o modal de confirmação para inativar ou reativar um item.
+         * Toda a lógica aqui é puramente de apresentação (ícones, textos, cores).
+         * @param {HTMLElement} rowEl — linha <tr> da tabela
+         */
         function openToggleConfirm(rowEl) {
             pendingToggleRow = rowEl;
             const isCurrentlyInactive = rowEl.classList.contains('row-inactive');
-            const icon = document.getElementById('confirmIcon');
-            const iconSymbol = document.getElementById('confirmIconSymbol');
-            const heading = document.getElementById('confirmHeading');
-            const desc = document.getElementById('confirmDesc');
-            const btn = document.getElementById('confirmActionBtn');
-            const title = document.getElementById('modalConfirmTitle');
+
+            const icon        = document.getElementById('confirmIcon');
+            const iconSymbol  = document.getElementById('confirmIconSymbol');
+            const heading     = document.getElementById('confirmHeading');
+            const desc        = document.getElementById('confirmDesc');
+            const btn         = document.getElementById('confirmActionBtn');
+            const title       = document.getElementById('modalConfirmTitle');
+
             if (isCurrentlyInactive) {
-                icon.className = 'confirm-icon';
-                icon.style.background = '#d1fae5';
-                iconSymbol.className = 'fa-solid fa-circle-check';
-                iconSymbol.style.color = '#10b981';
-                heading.textContent = 'Reativar este item?';
-                desc.textContent = 'O item voltará a aparecer como ativo no inventário.';
-                btn.className = 'btn-success';
-                btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Reativar';
-                title.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#10b981"></i> Reativar Item';
+                // Visual de reativação — verde, ícone de check
+                icon.className          = 'confirm-icon';
+                icon.style.background   = '#d1fae5';
+                iconSymbol.className    = 'fa-solid fa-circle-check';
+                iconSymbol.style.color  = '#10b981';
+                heading.textContent     = 'Reativar este item?';
+                desc.textContent        = 'O item voltará a aparecer como ativo no inventário.';
+                btn.className           = 'btn-success';
+                btn.innerHTML           = '<i class="fa-solid fa-circle-check"></i> Reativar';
+                title.innerHTML         = '<i class="fa-solid fa-circle-check" style="color:#10b981"></i> Reativar Item';
             } else {
-                icon.className = 'confirm-icon danger';
-                icon.style.background = '';
-                iconSymbol.className = 'fa-solid fa-power-off';
-                iconSymbol.style.color = '';
-                heading.textContent = 'Tornar item inativo?';
-                desc.textContent = 'O item será marcado como inativo. Esta ação pode ser desfeita.';
-                btn.className = 'btn-danger';
-                btn.innerHTML = '<i class="fa-solid fa-power-off"></i> Inativar';
-                title.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b"></i> Inativar Item';
+                // Visual de inativação — vermelho/âmbar, ícone de power
+                icon.className          = 'confirm-icon danger';
+                icon.style.background   = '';
+                iconSymbol.className    = 'fa-solid fa-power-off';
+                iconSymbol.style.color  = '';
+                heading.textContent     = 'Tornar item inativo?';
+                desc.textContent        = 'O item será marcado como inativo. Esta ação pode ser desfeita.';
+                btn.className           = 'btn-danger';
+                btn.innerHTML           = '<i class="fa-solid fa-power-off"></i> Inativar';
+                title.innerHTML         = '<i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b"></i> Inativar Item';
             }
+
             openModal('modalConfirm');
         }
 
-        function confirmToggleActive() {
-            if (!pendingToggleRow) return;
-            const isInactive = pendingToggleRow.classList.contains('row-inactive');
-            const btn = pendingToggleRow.querySelector('.btn-action.toggle-active');
-            const ativoCell = pendingToggleRow.querySelector('.cell-ativo');
-            if (isInactive) {
-                pendingToggleRow.classList.remove('row-inactive');
-                if (btn) { btn.classList.remove('is-inactive'); btn.title = 'Tornar Inativo'; btn.innerHTML = '<i class="fa-solid fa-power-off"></i>'; }
-                if (ativoCell) { ativoCell.innerHTML = '<span class="badge badge-success">Sim</span>'; }
+        /**
+         * Aplica a mudança visual na linha após confirmação do toggle.
+         * Esta função é chamada pelo backend depois que a API responde com sucesso.
+         * O backend faz a chamada à API e, ao terminar, chama este método para
+         * refletir a mudança visual imediatamente, sem precisar recarregar tudo.
+         *
+         * @param {HTMLElement} rowEl — linha <tr> a ser atualizada visualmente
+         * @param {boolean} tornouInativo — true se o item foi inativado, false se reativado
+         */
+        function aplicarToggleVisual(rowEl, tornouInativo) {
+            const btn       = rowEl.querySelector('.btn-action.toggle-active');
+            const ativoCell = rowEl.querySelector('.cell-ativo');
+
+            if (tornouInativo) {
+                // Marca linha como inativa visualmente
+                rowEl.classList.add('row-inactive');
+                if (btn) {
+                    btn.classList.add('is-inactive');
+                    btn.title   = 'Reativar';
+                    btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i>';
+                }
+                if (ativoCell) {
+                    ativoCell.innerHTML = '<span class="badge badge-gray">Não</span>';
+                }
             } else {
-                pendingToggleRow.classList.add('row-inactive');
-                if (btn) { btn.classList.add('is-inactive'); btn.title = 'Reativar'; btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i>'; }
-                if (ativoCell) { ativoCell.innerHTML = '<span class="badge badge-gray">Não</span>'; }
+                // Restaura linha como ativa visualmente
+                rowEl.classList.remove('row-inactive');
+                if (btn) {
+                    btn.classList.remove('is-inactive');
+                    btn.title   = 'Tornar Inativo';
+                    btn.innerHTML = '<i class="fa-solid fa-power-off"></i>';
+                }
+                if (ativoCell) {
+                    ativoCell.innerHTML = '<span class="badge badge-success">Sim</span>';
+                }
             }
-            pendingToggleRow = null;
+
+            // Fecha o modal de confirmação
             closeModal('modalConfirm');
+            pendingToggleRow = null;
         }
 
-        // ==================== ENUMS ESPELHADOS DO BACKEND ====================
-        const SETOR    = [
-            {value:'RH', label:'RH'}, {value:'GXT', label:'GXT'}, {value:'Suporte', label:'Suporte'},
-            {value:'Produtos', label:'Produtos'}, {value:'Auditoria', label:'Auditoria'},
-            {value:'Diretoria', label:'Diretoria'}, {value:'Mesa', label:'Mesa'},
-            {value:'CallCenter', label:'Call Center'}, {value:'Dev', label:'Dev'},
-            {value:'Cofre', label:'Cofre'}, {value:'Servidor', label:'Servidor'}
-        ];
-        const STATUS   = [
-            {value:'EmManutenção', label:'Em Manutenção'}, {value:'NecessitaManutenção', label:'Necessita Manutenção'},
-            {value:'EmUso', label:'Em Uso'}, {value:'Desativado', label:'Desativado'},
-            {value:'EmEstoque', label:'Em Estoque'}, {value:'Indisponível', label:'Indisponível'},
-            {value:'AguardandoDescarte', label:'Aguardando Descarte'}, {value:'Descartado', label:'Descartado'},
-            {value:'Vendido', label:'Vendido'}
-        ];
-        const SO       = [
-            {value:'Windows7', label:'Windows 7'}, {value:'Windows10', label:'Windows 10'},
-            {value:'Windows11', label:'Windows 11'}, {value:'Linux', label:'Linux'}, {value:'MacOS', label:'MacOS'}
-        ];
-        const ATIV_SO  = [
-            {value:'Original_Fabrica', label:'Original de Fábrica'}, {value:'Original_Comprada', label:'Original Comprada'},
-            {value:'Desativado', label:'Desativado'}, {value:'Nao_Possui', label:'Não Possui'}, {value:'Pirata', label:'Pirata'}
-        ];
-        const OFFICE   = [
-            {value:'Nenhum', label:'Nenhum'}, {value:'Office2016', label:'Office 2016'},
-            {value:'Office2019', label:'Office 2019'}, {value:'Office2021', label:'Office 2021'},
-            {value:'Microsoft365', label:'Microsoft 365'}
-        ];
-        const ATIV_OFF = [
-            {value:'Desativado', label:'Desativado'}, {value:'NaoPossui', label:'Não Possui'},
-            {value:'Original_Fabrica', label:'Original de Fábrica'}, {value:'Original_Comprada', label:'Original Comprada'},
-            {value:'Assinatura', label:'Assinatura'}, {value:'Pirata', label:'Pirata'}
-        ];
-        const TIPO_PC  = [
-            {value:'PC_Desktop', label:'PC Desktop'}, {value:'Notebook', label:'Notebook'}, {value:'All_in_One', label:'All in One'}
-        ];
-        const RESOLUCAO= [
-            {value:'HD', label:'HD (1280x720)'}, {value:'FHD', label:'Full HD (1920x1080)'},
-            {value:'QHD', label:'QHD (2560x1440)'}, {value:'UHD4K', label:'UHD 4K (3840x2160)'}
-        ];
-        const CONECTIV = [
-            {value:'Bluetooth', label:'Bluetooth'}, {value:'Cabo', label:'Cabo'},
-            {value:'USB', label:'USB'}, {value:'TriMode', label:'Tri-Mode'}
-        ];
-        const SWITCH   = [
-            {value:'NaoPossui', label:'Não Possui'}, {value:'Red', label:'Red'},
-            {value:'Blue', label:'Blue'}, {value:'Brown', label:'Brown'},
-            {value:'Yellow', label:'Yellow'}, {value:'Green', label:'Green'},
-            {value:'Black', label:'Black'}, {value:'Silver', label:'Silver'},
-            {value:'Purple', label:'Purple'}, {value:'White', label:'White'}, {value:'Orange', label:'Orange'}
-        ];
-        const TIPO_PER = [{value:'Gamer', label:'Gamer'}, {value:'Escritorio', label:'Escritório'}];
-        const OPERADORA= [
-            {value:'Vivo', label:'Vivo'}, {value:'Claro', label:'Claro'}, {value:'Tim', label:'TIM'},
-            {value:'Oi', label:'Oi'}, {value:'Nextel', label:'Nextel'}, {value:'Algar', label:'Algar'},
-            {value:'Sercomtel', label:'Sercomtel'}, {value:'MVNOs', label:'MVNOs'}
-        ];
-        const CONECTOR_CARREGADOR = [
-            {value:'USB_C', label:'USB-C'}, {value:'Lightning', label:'Lightning (Apple)'},
-            {value:'MicroUSB', label:'Micro USB'}, {value:'MiniUSB', label:'Mini USB'}
-        ];
-        const CONECTOR_VIDEO = ['HDMI', 'DisplayPort', 'VGA', 'DVI'];
-        const TIPO_DISCO = [
-            {value:'HDD', label:'HDD'}, {value:'SSD', label:'SSD SATA'}, {value:'SSD_NVMe', label:'SSD NVMe'}
-        ];
-        const GERACAO_RAM = [
-            {value:'DDR3', label:'DDR3'}, {value:'DDR4', label:'DDR4'}, {value:'DDR5', label:'DDR5'}
-        ];
-        const TIPO_RAM = ['0','2','4','8','16','32','64'];
-        const TIPO_GPU = [{value:'Integrada', label:'Integrada'}, {value:'Dedicada', label:'Dedicada'}];
 
-        // ==================== FORM FIELD DEFINITIONS ====================
-        // Tipos especiais:
-        //   'processador_select' → select populado via API de processadores
-        //   'checkbox'           → campo booleano
-        //   Chaves quant_slots / quant_discos / quant_gpus / quant_conectores
-        //   disparam listas dinâmicas ao mudar valor
+        // ============================================================
+        //  ERRO INLINE NOS MODAIS
+        //  Exibe e limpa mensagens de erro diretamente no corpo do modal,
+        //  sem alert() ou redirecionamento — puramente visual.
+        // ============================================================
 
-        const QUANT_SLOTS   = ['1','2','3','4','5','6','7','8'];
-        const QUANT_DISCOS  = ['1','2','3','4','5','6'];
-        const QUANT_GPUS    = ['0','1','2','3','4'];
-        const QUANT_CON     = ['0','1','2','3','4','5','6'];
-        const TIPO_MEMORIA_RAM = [
-            {value:'GB4', label:'4 GB'}, {value:'GB8', label:'8 GB'},
-            {value:'GB16', label:'16 GB'}, {value:'GB32', label:'32 GB'},
-            {value:'GB64', label:'64 GB'}
-        ];
+        /**
+         * Exibe uma mensagem de erro dentro do modal.
+         * @param {string} modalErrorId — ID do elemento de erro no modal
+         * @param {string} titulo       — Mensagem principal do erro
+         * @param {string|null} detalhe — Detalhes técnicos opcionais (para debug)
+         */
+        function mostrarErroModal(modalErrorId, titulo, detalhe = null) {
+            const el = document.getElementById(modalErrorId);
+            if (!el) return;
 
-        const formFields = {
-            computadores: [
-                // ── Geral ────────────────────────────────────────────
-                { section: 'Geral' },
-                { label: 'Modelo', key: 'modelo', type: 'text', span2: false, maxlen: 100, required: true },
-                { label: 'Tipo', key: 'tipo', type: 'select', options: TIPO_PC, required: true },
-                { label: 'IP', key: 'ip', type: 'text', placeholder: 'Ex: 192.168.0.10', mask: 'ip', maxlen: 15 },
+            el.innerHTML = `
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <div>
+                    <div>${titulo}</div>
+                    ${detalhe ? `<div class="error-detail">${detalhe}</div>` : ''}
+                </div>`;
 
-                // ── Processador ──────────────────────────────────────
-                { section: 'Processador', mode: 'suporte' },
-                { label: 'Processador', key: 'processadorId', type: 'processador_select', mode: 'suporte' },
+            el.style.display = 'flex';
 
-                // ── Memória RAM ──────────────────────────────────────
-                { section: 'Memória RAM', mode: 'suporte' },
-                { label: 'Geração RAM', key: 'geracaoRAM', type: 'select', options: GERACAO_RAM, mode: 'suporte' },
-                { label: 'Velocidade RAM (MHz)', key: 'velocidadeRAM', type: 'number', placeholder: 'Ex: 3200', maxlen: 4, mode: 'suporte' },
-                { label: 'Qtd. Slots', key: 'quant_slots', type: 'select', options: QUANT_SLOTS },
-                // slots gerados dinamicamente ao escolher Qtd. Slots
-
-                // ── Armazenamento ────────────────────────────────────
-                { section: 'Armazenamento', mode: 'suporte' },
-                { label: 'Qtd. Discos', key: 'quant_discos', type: 'select', options: QUANT_DISCOS },
-                // discos gerados dinamicamente
-
-                // ── Placa de Vídeo ───────────────────────────────────
-                { section: 'Placa de Vídeo', mode: 'suporte' },
-                { label: 'Qtd. GPUs', key: 'quant_gpus', type: 'select', options: QUANT_GPUS, mode: 'suporte' },
-                // gpus geradas dinamicamente
-
-                // ── Conectores de Vídeo ──────────────────────────────
-                { section: 'Conectores de Vídeo', mode: 'suporte' },
-                { label: 'Qtd. Conectores', key: 'quant_conectores', type: 'select', options: QUANT_CON, mode: 'suporte' },
-                // checkboxes gerados dinamicamente
-
-                // ── Sistema Operacional ──────────────────────────────
-                { section: 'Sistema Operacional' },
-                { label: 'Sistema Op.', key: 'so', type: 'select', options: SO, mode: 'suporte' },
-                { label: 'Ativação SO', key: 'ativacao_so', type: 'select', options: ATIV_SO },
-                { label: 'Office', key: 'office', type: 'select', options: OFFICE, mode: 'suporte' },
-                { label: 'Ativação Office', key: 'ativacao_office', type: 'select', options: ATIV_OFF },
-
-                // ── Dados Administrativos ────────────────────────────
-                { section: 'Dados Administrativos', mode: 'gestao' },
-                { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
-                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mask: 'money', maxlen: 12, mode: 'gestao' },
-
-                // ── Atribuição ───────────────────────────────────────
-                { section: 'Atribuição' },
-                { label: 'Status', key: 'status', type: 'select', options: STATUS, required: true },
-                { label: 'Setor', key: 'setor', type: 'select', options: SETOR, required: true },
-                { label: 'Usuário', key: 'usuario', type: 'text', maxlen: 60, required: true },
-                { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
-            ],
-            monitores: [
-                { section: 'Geral' },
-                { label: 'Modelo', key: 'modelo', type: 'text', maxlen: 100, required: true },
-                { label: 'Tamanho (pol.)', key: 'tamanho', type: 'number', placeholder: 'Ex: 27.5' },
-
-                { section: 'Especificações', mode: 'suporte' },
-                { label: 'Resolução', key: 'resolucao', type: 'select', options: RESOLUCAO, mode: 'suporte' },
-                { label: 'Frequência (Hz)', key: 'frequencia', type: 'number', placeholder: 'Ex: 144', mode: 'suporte' },
-
-                { section: 'Conectividade', mode: 'suporte' },
-                { label: 'HDMI', key: 'hdmi', type: 'checkbox', mode: 'suporte' },
-                { label: 'DisplayPort', key: 'displayPort', type: 'checkbox', mode: 'suporte' },
-                { label: 'VGA', key: 'vga', type: 'checkbox', mode: 'suporte' },
-                { label: 'DVI', key: 'dvi', type: 'checkbox', mode: 'suporte' },
-
-                { section: 'Dados Administrativos', mode: 'gestao' },
-                { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
-                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mask: 'money', maxlen: 12, mode: 'gestao' },
-
-                { section: 'Atribuição' },
-                { label: 'Status', key: 'status', type: 'select', options: STATUS, required: true },
-                { label: 'Setor', key: 'setor', type: 'select', options: SETOR, required: true },
-                { label: 'Usuário', key: 'usuario', type: 'text', maxlen: 60, required: true },
-                { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
-            ],
-            mouses: [
-                { section: 'Geral' },
-                { label: 'Modelo', key: 'modelo', type: 'text', maxlen: 100, required: true },
-
-                { section: 'Especificações', mode: 'suporte' },
-                { label: 'Tipo', key: 'tipo', type: 'select', options: TIPO_PER, mode: 'suporte' },
-                { label: 'Conectividade', key: 'conectividade', type: 'select', options: CONECTIV, mode: 'suporte' },
-
-                { section: 'Dados Administrativos', mode: 'gestao' },
-                { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
-                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mask: 'money', maxlen: 12, mode: 'gestao' },
-
-                { section: 'Atribuição' },
-                { label: 'Status', key: 'status', type: 'select', options: STATUS, required: true },
-                { label: 'Setor', key: 'setor', type: 'select', options: SETOR, required: true },
-                { label: 'Usuário', key: 'usuario', type: 'text', maxlen: 60, required: true },
-                { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
-            ],
-            teclados: [
-                { section: 'Geral' },
-                { label: 'Modelo', key: 'modelo', type: 'text', maxlen: 100, required: true },
-
-                { section: 'Especificações', mode: 'suporte' },
-                { label: 'Tipo', key: 'tipo', type: 'select', options: TIPO_PER, mode: 'suporte' },
-                { label: 'Conectividade', key: 'conectividade', type: 'select', options: CONECTIV, mode: 'suporte' },
-                { label: 'Switch', key: 'switch', type: 'select', options: SWITCH, mode: 'suporte' },
-                { label: 'Tamanho (%)', key: 'tamanho', type: 'number', placeholder: 'Ex: 75', mode: 'suporte' },
-
-                { section: 'Dados Administrativos', mode: 'gestao' },
-                { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
-                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mask: 'money', maxlen: 12, mode: 'gestao' },
-
-                { section: 'Atribuição' },
-                { label: 'Status', key: 'status', type: 'select', options: STATUS, required: true },
-                { label: 'Setor', key: 'setor', type: 'select', options: SETOR, required: true },
-                { label: 'Usuário', key: 'usuario', type: 'text', maxlen: 60, required: true },
-                { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
-            ],
-            fones: [
-                { section: 'Geral' },
-                { label: 'Modelo', key: 'modelo', type: 'text', maxlen: 100, required: true },
-
-                { section: 'Especificações', mode: 'suporte' },
-                { label: 'Tipo', key: 'tipo', type: 'select', options: TIPO_PER, mode: 'suporte' },
-                { label: 'Conectividade', key: 'conectividade', type: 'select', options: CONECTIV, mode: 'suporte' },
-                { label: 'Microfone', key: 'microfone', type: 'checkbox', mode: 'suporte' },
-
-                { section: 'Dados Administrativos', mode: 'gestao' },
-                { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
-                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mask: 'money', maxlen: 12, mode: 'gestao' },
-
-                { section: 'Atribuição' },
-                { label: 'Status', key: 'status', type: 'select', options: STATUS, required: true },
-                { label: 'Setor', key: 'setor', type: 'select', options: SETOR, required: true },
-                { label: 'Usuário', key: 'usuario', type: 'text', maxlen: 60, required: true },
-                { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
-            ],
-            celulares: [
-                { section: 'Geral' },
-                { label: 'Modelo', key: 'modelo', type: 'text', maxlen: 100, required: true },
-
-                { section: 'Especificações' },
-                { label: 'Armazenamento (GB)', key: 'armazenamento', type: 'number', placeholder: 'Ex: 128' },
-                { label: 'RAM (GB)', key: 'ram', type: 'number', placeholder: 'Ex: 8' },
-                { label: 'Conector Carregador', key: 'conectividade', type: 'select', options: CONECTOR_CARREGADOR },
-
-                { section: 'Chips no Celular' },
-                // tipo chip_selector: carrega chips da API e permite selecionar até 2
-                { label: 'Chips', key: 'chipIds', type: 'chip_selector', max: 2, span2: true },
-
-                { section: 'Contas WhatsApp' },
-                // tipo whatsapp_list: lista dinâmica de até 6 entradas {numero, dono}
-                { label: 'Contas WhatsApp', key: 'contasWhatsapp', type: 'whatsapp_list', max: 6, span2: true },
-
-                { section: 'Dados Administrativos' },
-                { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date' },
-                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mask: 'money', maxlen: 12 },
-
-                { section: 'Atribuição' },
-                { label: 'Status', key: 'status', type: 'select', options: STATUS, required: true },
-                { label: 'Setor', key: 'setor', type: 'select', options: SETOR, required: true },
-                { label: 'Usuário', key: 'usuario', type: 'text', maxlen: 60, required: true },
-                { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
-            ],
-            ramais: [
-                { section: 'Geral' },
-                { label: 'Modelo', key: 'modelo', type: 'text', maxlen: 100, required: true },
-                { label: 'Cor', key: 'cor', type: 'text', placeholder: 'Ex: Preto', maxlen: 30 },
-
-                { section: 'Especificações', mode: 'suporte' },
-                { label: 'Tipo', key: 'tipo', type: 'text', placeholder: 'Ex: IP, Analógico', mode: 'suporte' },
-                { label: 'IP', key: 'ip', type: 'text', placeholder: 'Ex: 192.168.0.50', mask: 'ip', maxlen: 15, mode: 'suporte' },
-                { label: 'MAC', key: 'mac', type: 'text', placeholder: 'Ex: AA:BB:CC:DD:EE:FF', mask: 'mac', mode: 'suporte' },
-                { label: 'Linha', key: 'linha', type: 'text', placeholder: 'Ex: 9000', maxlen: 20, mode: 'suporte' },
-                { label: 'Número', key: 'numero', type: 'text', placeholder: '(11) 99999-9999', mask: 'phone', mode: 'suporte' },
-                { label: 'Configurado', key: 'configurado', type: 'checkbox', mode: 'suporte' },
-
-                { section: 'Dados Administrativos', mode: 'gestao' },
-                { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
-                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mask: 'money', maxlen: 12, mode: 'gestao' },
-
-                { section: 'Atribuição' },
-                { label: 'Status', key: 'status', type: 'select', options: STATUS, required: true },
-                { label: 'Setor', key: 'setor', type: 'select', options: SETOR, required: true },
-                { label: 'Usuário', key: 'usuario', type: 'text', maxlen: 60, required: true },
-                { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
-            ],
-            chips: [
-                { section: 'Dados do Chip' },
-                { label: 'Número', key: 'numero', type: 'text', placeholder: '+55 (11) 99999-9999', mask: 'phone', required: true },
-                { label: 'Operadora', key: 'operadora', type: 'select', options: OPERADORA, required: true },
-                { label: 'Dono', key: 'dono', type: 'text', maxlen: 80 },
-                { label: 'Celular Vinculado (ID)', key: 'celularId', type: 'text', placeholder: 'ID do celular no banco' },
-
-                { section: 'Dados Administrativos', mode: 'gestao' },
-                { label: 'Plano (R$)', key: 'plano', type: 'text', placeholder: 'R$ 0,00', mask: 'money', maxlen: 10, mode: 'gestao' },
-                { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
-                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mask: 'money', maxlen: 12, mode: 'gestao' },
-
-                { section: 'Atribuição' },
-                { label: 'Status', key: 'status', type: 'select', options: STATUS, required: true },
-                { label: 'Setor', key: 'setor', type: 'select', options: SETOR, required: true },
-                { label: 'Usuário', key: 'usuario', type: 'text', maxlen: 60, required: true },
-                { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
-            ],
-            extras: [
-                { section: 'Geral' },
-                { label: 'Categoria', key: 'categoria', type: 'text', placeholder: 'Ex: Adaptador, Hub, Cabo...', required: true },
-                { label: 'Descrição', key: 'descricao', type: 'textarea', span2: true },
-
-                { section: 'Dados Administrativos', mode: 'gestao' },
-                { label: 'Data Aquisição', key: 'data_aquisicao', type: 'date', mode: 'gestao' },
-                { label: 'Preço Aquisição', key: 'preco_aquisicao', type: 'text', placeholder: 'R$ 0,00', mask: 'money', maxlen: 12, mode: 'gestao' },
-
-                { section: 'Atribuição' },
-                { label: 'Status', key: 'status', type: 'select', options: STATUS, required: true },
-                { label: 'Setor', key: 'setor', type: 'select', options: SETOR, required: true },
-                { label: 'Usuário', key: 'usuario', type: 'text', maxlen: 60, required: true },
-                { label: 'Observações', key: 'observacoes', type: 'textarea', span2: true },
-            ],
-        };
-
-        // ====== FILTER DEFINITIONS ======
-        const filterDefs = {
-            computadores: {
-                suporte: [
-                    { label: 'Tipo', key: 'tipo', values: TIPO_PC },
-                    { label: 'Sistema Op.', key: 'so', values: SO },
-                    { label: 'Ativação SO', key: 'ativacao_so', values: ATIV_SO },
-                    { label: 'Office', key: 'office', values: OFFICE },
-                    { label: 'Status', key: 'status', values: STATUS },
-                    { label: 'Setor', key: 'setor', values: SETOR },
-                    { label: 'Ativo', key: 'ativo', values: ['Sim','Não'] },
-                ],
-                gestao: [
-                    { label: 'Tipo', key: 'tipo', values: TIPO_PC },
-                    { label: 'Ativação SO', key: 'ativacao_so', values: ATIV_SO },
-                    { label: 'Ativação Office', key: 'ativacao_office', values: ATIV_OFF },
-                    { label: 'Status', key: 'status', values: STATUS },
-                    { label: 'Setor', key: 'setor', values: SETOR },
-                    { label: 'Ativo', key: 'ativo', values: ['Sim','Não'] },
-                ],
-            },
-            monitores: {
-                suporte: [
-                    { label: 'Resolução', key: 'resolucao', values: RESOLUCAO },
-                    { label: 'Status', key: 'status', values: STATUS },
-                    { label: 'Setor', key: 'setor', values: SETOR },
-                    { label: 'Ativo', key: 'ativo', values: ['Sim','Não'] },
-                ],
-                gestao: [
-                    { label: 'Status', key: 'status', values: STATUS },
-                    { label: 'Setor', key: 'setor', values: SETOR },
-                    { label: 'Ativo', key: 'ativo', values: ['Sim','Não'] },
-                ],
-            },
-            mouses: {
-                suporte: [
-                    { label: 'Conectividade', key: 'conectividade', values: CONECTIV },
-                    { label: 'Tipo', key: 'tipo', values: TIPO_PER },
-                    { label: 'Status', key: 'status', values: STATUS },
-                    { label: 'Setor', key: 'setor', values: SETOR },
-                    { label: 'Ativo', key: 'ativo', values: ['Sim','Não'] },
-                ],
-                gestao: [
-                    { label: 'Status', key: 'status', values: STATUS },
-                    { label: 'Setor', key: 'setor', values: SETOR },
-                    { label: 'Ativo', key: 'ativo', values: ['Sim','Não'] },
-                ],
-            },
-            teclados: {
-                suporte: [
-                    { label: 'Conectividade', key: 'conectividade', values: CONECTIV },
-                    { label: 'Tipo', key: 'tipo', values: TIPO_PER },
-                    { label: 'Switch', key: 'switch', values: SWITCH },
-                    { label: 'Status', key: 'status', values: STATUS },
-                    { label: 'Setor', key: 'setor', values: SETOR },
-                    { label: 'Ativo', key: 'ativo', values: ['Sim','Não'] },
-                ],
-                gestao: [
-                    { label: 'Status', key: 'status', values: STATUS },
-                    { label: 'Setor', key: 'setor', values: SETOR },
-                    { label: 'Ativo', key: 'ativo', values: ['Sim','Não'] },
-                ],
-            },
-            fones: {
-                suporte: [
-                    { label: 'Tipo', key: 'tipo', values: TIPO_PER },
-                    { label: 'Conectividade', key: 'conectividade', values: CONECTIV },
-                    { label: 'Status', key: 'status', values: STATUS },
-                    { label: 'Setor', key: 'setor', values: SETOR },
-                    { label: 'Ativo', key: 'ativo', values: ['Sim','Não'] },
-                ],
-                gestao: [
-                    { label: 'Status', key: 'status', values: STATUS },
-                    { label: 'Setor', key: 'setor', values: SETOR },
-                    { label: 'Ativo', key: 'ativo', values: ['Sim','Não'] },
-                ],
-            },
-            celulares: {
-                suporte: [
-                    { label: 'Conector Carregador', key: 'conectividade', values: CONECTOR_CARREGADOR },
-                    { label: 'Status', key: 'status', values: STATUS },
-                    { label: 'Setor', key: 'setor', values: SETOR },
-                    { label: 'Ativo', key: 'ativo', values: ['Sim','Não'] },
-                ],
-                gestao: [
-                    { label: 'Status', key: 'status', values: STATUS },
-                    { label: 'Setor', key: 'setor', values: SETOR },
-                    { label: 'Ativo', key: 'ativo', values: ['Sim','Não'] },
-                ],
-            },
-            ramais: {
-                suporte: [
-                    { label: 'Configurado', key: 'configurado', values: ['Sim','Não'] },
-                    { label: 'Status', key: 'status', values: STATUS },
-                    { label: 'Setor', key: 'setor', values: SETOR },
-                    { label: 'Ativo', key: 'ativo', values: ['Sim','Não'] },
-                ],
-                gestao: [
-                    { label: 'Status', key: 'status', values: STATUS },
-                    { label: 'Setor', key: 'setor', values: SETOR },
-                    { label: 'Ativo', key: 'ativo', values: ['Sim','Não'] },
-                ],
-            },
-            chips: {
-                suporte: [
-                    { label: 'Operadora', key: 'operadora', values: OPERADORA },
-                    { label: 'Status', key: 'status', values: STATUS },
-                    { label: 'Setor', key: 'setor', values: SETOR },
-                    { label: 'Ativo', key: 'ativo', values: ['Sim','Não'] },
-                ],
-                gestao: [
-                    { label: 'Operadora', key: 'operadora', values: OPERADORA },
-                    { label: 'Status', key: 'status', values: STATUS },
-                    { label: 'Setor', key: 'setor', values: SETOR },
-                    { label: 'Ativo', key: 'ativo', values: ['Sim','Não'] },
-                ],
-            },
-            extras: {
-                suporte: [
-                    { label: 'Status', key: 'status', values: STATUS },
-                    { label: 'Setor', key: 'setor', values: SETOR },
-                    { label: 'Ativo', key: 'ativo', values: ['Sim','Não'] },
-                ],
-                gestao: [
-                    { label: 'Status', key: 'status', values: STATUS },
-                    { label: 'Setor', key: 'setor', values: SETOR },
-                    { label: 'Ativo', key: 'ativo', values: ['Sim','Não'] },
-                ],
-            },
-        };
-
-        const categoryNames = {
-            computadores: 'Computadores', monitores: 'Monitores', mouses: 'Mouses',
-            teclados: 'Teclados', fones: 'Fones', celulares: 'Celulares',
-            ramais: 'Ramais', chips: 'Chips/Números', extras: 'Extras',
-        };
-
-        // ====== NAVIGATION ======
-        function mostrar(category, btn) {
-            currentCategory = category;
-            activeFilters = [];
-            renderChips();
-
-            document.querySelectorAll('.inv-table').forEach(t => t.classList.remove('ativa'));
-            const el = document.getElementById(`${category}-${currentMode}`);
-            if (el) el.classList.add('ativa');
-
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            document.getElementById('tableTitle').textContent = categoryNames[category] || category;
-            buildFilterPropSelect();
+            // Rola suavemente para o erro ficar visível
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
-        // ====== VIEW MODE ======
-        function setViewMode(mode, btn) {
-            currentMode = mode;
-            document.querySelectorAll('.view-mode button').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            document.querySelectorAll('.inv-table').forEach(t => t.classList.remove('ativa'));
-            const el = document.getElementById(`${currentCategory}-${mode}`);
-            if (el) el.classList.add('ativa');
-
-            activeFilters = [];
-            renderChips();
-            buildFilterPropSelect();
+        /**
+         * Remove a mensagem de erro do modal.
+         * @param {string} modalErrorId — ID do elemento de erro a limpar
+         */
+        function limparErroModal(modalErrorId) {
+            const el = document.getElementById(modalErrorId);
+            if (el) {
+                el.style.display = 'none';
+                el.innerHTML     = '';
+            }
         }
 
-        // ====== FILTERS ======
-        function buildFilterPropSelect() {
-            const sel = document.getElementById('filterProp');
-            const defs = (filterDefs[currentCategory] || {})[currentMode] || [];
+        /**
+         * Destaca campos obrigatórios vazios com borda vermelha.
+         * Retorna a lista de labels dos campos em falta para exibição no erro.
+         *
+         * Nota: depende de `formFields` (definido no backend) para saber
+         * quais campos são obrigatórios. Se o backend não estiver carregado,
+         * retorna array vazio.
+         *
+         * @param {string} containerId — ID do container do formulário
+         * @returns {string[]} — labels dos campos obrigatórios vazios
+         */
+        function validarObrigatorios(containerId) {
+            if (typeof formFields === 'undefined') return [];
 
-            sel.innerHTML = '<option value="">— Escolha a propriedade —</option>';
-            defs.forEach(def => {
-                const opt = document.createElement('option');
-                opt.value = def.key;
-                opt.textContent = def.label;
-                sel.appendChild(opt);
+            const campos   = formFields[currentCategory] || [];
+            const faltando = [];
+
+            campos.forEach(f => {
+                // Ignora seções e campos não obrigatórios
+                if (!f.required || f.section) return;
+
+                const el = document.querySelector(`#${containerId} [name="${f.key}"]`);
+                if (!el) return;
+
+                // Checkbox nunca é "vazio" semanticamente
+                const vazio = el.type === 'checkbox'
+                    ? false
+                    : !el.value || el.value.trim() === '';
+
+                if (vazio) {
+                    faltando.push(f.label);
+
+                    // Aplica destaque vermelho temporário
+                    el.classList.add('field-error');
+
+                    // Remove destaque assim que o usuário começar a preencher
+                    el.addEventListener('input',  () => el.classList.remove('field-error'), { once: true });
+                    el.addEventListener('change', () => el.classList.remove('field-error'), { once: true });
+                }
             });
 
-            document.getElementById('filterValue').style.display = 'none';
-            document.getElementById('filterValueInput').style.display = 'none';
+            return faltando;
         }
 
-        function updateFilterValueOptions() {
-            const key = document.getElementById('filterProp').value;
-            const defs = (filterDefs[currentCategory] || {})[currentMode] || [];
-            const def = defs.find(d => d.key === key);
 
-            const selVal = document.getElementById('filterValue');
-            const inputVal = document.getElementById('filterValueInput');
+        // ============================================================
+        //  MÁSCARAS DE INPUT
+        //  Funções de formatação aplicadas enquanto o usuário digita.
+        //  São puramente visuais — não validam nem enviam dados.
+        //
+        //  Usadas dentro de criarInput() no backend para enriquecer os
+        //  campos gerados. A lógica de criação do input fica no backend,
+        //  mas as máscaras em si pertencem ao frontend.
+        // ============================================================
 
-            if (!def) { selVal.style.display = 'none'; inputVal.style.display = 'none'; return; }
+        /**
+         * Aplica máscara de endereço IP ao elemento de input.
+         * Aceita apenas dígitos e pontos, máximo 15 caracteres.
+         * @param {HTMLInputElement} inp
+         */
+        function aplicarMascaraIP(inp) {
+            inp.addEventListener('input', () => {
+                let v = inp.value.replace(/[^0-9.]/g, '');
+                if (v.length > 15) v = v.slice(0, 15);
+                inp.value = v;
+            });
+        }
 
-            if (def.values && def.values.length) {
-                selVal.innerHTML = '<option value="">— Escolha o valor —</option>';
-                def.values.forEach(v => {
-                    const opt = document.createElement('option');
-                    if (typeof v === 'object') {
-                        opt.value = v.value; opt.textContent = v.label;
+        /**
+         * Aplica máscara de endereço MAC ao elemento de input.
+         * Formata automaticamente em grupos de 2 separados por ':' (ex: AA:BB:CC:DD:EE:FF).
+         * @param {HTMLInputElement} inp
+         */
+        function aplicarMascaraMAC(inp) {
+            inp.maxLength = 17;
+            inp.addEventListener('input', () => {
+                let v = inp.value.replace(/[^0-9a-fA-F]/g, '').toUpperCase();
+                v = v.match(/.{1,2}/g)?.join(':') || v;
+                if (v.length > 17) v = v.slice(0, 17);
+                inp.value = v;
+            });
+        }
+
+        /**
+         * Aplica máscara de telefone brasileiro ao elemento de input.
+         * Formata em tempo real como: (11) 99999-9999 ou +55 (11) 99999-9999
+         * @param {HTMLInputElement} inp
+         * @param {string} valorInicial — valor já existente para aplicar máscara ao carregar
+         */
+        function aplicarMascaraTelefone(inp, valorInicial = '') {
+            const aplicar = () => {
+                let v        = inp.value.replace(/\D/g, '');
+                let resultado = '';
+
+                if (v.startsWith('55') && v.length > 2) {
+                    // Número com DDI +55
+                    const sem55 = v.slice(2);
+                    if      (sem55.length <= 2)  { resultado = `+55 (${sem55}`; }
+                    else if (sem55.length <= 7)  { resultado = `+55 (${sem55.slice(0,2)}) ${sem55.slice(2)}`; }
+                    else if (sem55.length <= 11) {
+                        const meio = sem55.length === 11 ? 5 : 4;
+                        resultado = `+55 (${sem55.slice(0,2)}) ${sem55.slice(2, 2+meio)}-${sem55.slice(2+meio)}`;
                     } else {
-                        opt.value = v; opt.textContent = v;
+                        resultado = `+55 (${sem55.slice(0,2)}) ${sem55.slice(2,7)}-${sem55.slice(7,11)}`;
                     }
-                    selVal.appendChild(opt);
-                });
-                selVal.style.display = '';
-                inputVal.style.display = 'none';
-            } else {
-                selVal.style.display = 'none';
-                inputVal.style.display = '';
-                inputVal.value = '';
-            }
+                } else if (v.length > 0) {
+                    // Número sem DDI
+                    if      (v.length <= 2)  { resultado = `(${v}`; }
+                    else if (v.length <= 7)  { resultado = `(${v.slice(0,2)}) ${v.slice(2)}`; }
+                    else if (v.length <= 11) {
+                        const meio = v.length === 11 ? 5 : 4;
+                        resultado = `(${v.slice(0,2)}) ${v.slice(2, 2+meio)}-${v.slice(2+meio)}`;
+                    } else {
+                        resultado = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7,11)}`;
+                    }
+                }
+
+                inp.value = resultado;
+            };
+
+            inp.addEventListener('input', aplicar);
+
+            // Aplica máscara no valor já existente ao carregar a página/modal
+            if (valorInicial) setTimeout(aplicar, 0);
         }
 
-        function addFilter() {
-            const propSel = document.getElementById('filterProp');
-            const valSel = document.getElementById('filterValue');
-            const valInput = document.getElementById('filterValueInput');
-            const key = propSel.value;
-            if (!key) { propSel.focus(); return; }
-            const defs = (filterDefs[currentCategory] || {})[currentMode] || [];
-            const def = defs.find(d => d.key === key);
-            if (!def) return;
-            let value = '';
-            let displayValue = '';
-            if (def.values && def.values.length) {
-                value = valSel.value;
-                if (!value) { valSel.focus(); return; }
-                // pega o label visual se for objeto
-                const found = def.values.find(v => (typeof v === 'object' ? v.value : v) === value);
-                displayValue = found ? (typeof found === 'object' ? found.label : found) : value;
-            } else {
-                value = valInput.value.trim();
-                displayValue = value;
-                if (!value) { valInput.focus(); return; }
-            }
-            const exists = activeFilters.find(f => f.key === key && f.value === value);
-            if (exists) return;
-            activeFilters.push({ key, label: def.label, value, displayValue });
-            renderChips();
-            propSel.value = '';
-            valSel.style.display = 'none';
-            valInput.style.display = 'none';
-            valInput.value = '';
+        /**
+         * Aplica máscara de valor monetário (R$) ao elemento de input.
+         * - Ao focar: remove o R$ para edição limpa
+         * - Ao perder foco: formata como "R$ 0,00"
+         * @param {HTMLInputElement} inp
+         * @param {string} valorInicial — valor já existente para formatar ao carregar
+         */
+        function aplicarMascaraMoney(inp, valorInicial = '') {
+            const formatar = () => {
+                let raw = inp.value.replace('R$', '').replace(/\s/g, '').replace(',', '.').trim();
+                const n = parseFloat(raw);
+                if (!isNaN(n)) {
+                    inp.value = 'R$ ' + n.toFixed(2).replace('.', ',');
+                } else if (raw === '' || raw === '0') {
+                    inp.value = '';
+                }
+            };
+
+            // Ao perder o foco, aplica a máscara visual
+            inp.addEventListener('blur', formatar);
+
+            // Ao focar, limpa para edição
+            inp.addEventListener('focus', () => {
+                inp.value = inp.value.replace('R$', '').replace(/\s/g, '').replace(',', '.').trim();
+            });
+
+            if (valorInicial) setTimeout(formatar, 0);
         }
 
-        function removeFilter(index) {
-            activeFilters.splice(index, 1);
-            renderChips();
-        }
 
-        function clearAllFilters() {
-            activeFilters = [];
-            renderChips();
-        }
+        // ============================================================
+        //  CHIPS DE FILTRO — RENDERIZAÇÃO VISUAL
+        //  Exibe os filtros ativos como chips removíveis na barra de filtros.
+        //  A lógica de quais filtros existem (filterDefs) está no backend.
+        //  Aqui só criamos e destruímos os elementos visuais.
+        // ============================================================
 
+        /**
+         * Re-renderiza a área de chips de filtro com base em `activeFilters`.
+         * Chamado toda vez que um filtro é adicionado ou removido.
+         */
         function renderChips() {
             const container = document.getElementById('filterChips');
-            const clearBtn = document.getElementById('clearAllBtn');
+            const clearBtn  = document.getElementById('clearAllBtn');
+
+            // Remove chips existentes (mantém apenas o elemento de estado vazio)
             container.querySelectorAll('.filter-chip').forEach(c => c.remove());
+
             if (activeFilters.length === 0) {
+                // Estado vazio: mostra placeholder e esconde botão "Limpar tudo"
                 container.querySelector('.filter-empty').style.display = '';
                 clearBtn.style.display = 'none';
             } else {
+                // Esconde placeholder e mostra botão "Limpar tudo"
                 container.querySelector('.filter-empty').style.display = 'none';
                 clearBtn.style.display = '';
+
+                // Cria um chip para cada filtro ativo
                 activeFilters.forEach((f, i) => {
                     const chip = document.createElement('div');
                     chip.className = 'filter-chip';
@@ -2269,940 +1558,170 @@
                     container.appendChild(chip);
                 });
             }
-            // re-renderiza a tabela com os filtros aplicados (usa cache)
-            aplicarFiltrosNaTabela();
+
+            // Após atualizar os chips, pede ao backend para reaplicar filtros na tabela
+            // (o backend tem o cache dos dados e sabe filtrar)
+            if (typeof aplicarFiltrosNaTabela === 'function') {
+                aplicarFiltrosNaTabela();
+            }
         }
 
-        // ====== INIT ======
-        buildFilterPropSelect();
+        /**
+         * Remove um filtro da lista ativa pelo índice e re-renderiza os chips.
+         * @param {number} index — índice do filtro em `activeFilters`
+         */
+        function removeFilter(index) {
+            activeFilters.splice(index, 1);
+            renderChips();
+        }
+
+        /**
+         * Remove todos os filtros ativos e re-renderiza.
+         */
+        function clearAllFilters() {
+            activeFilters = [];
+            renderChips();
+        }
+
+        /**
+         * Lê os controles de filtro da barra (select de propriedade + select/input de valor)
+         * e adiciona um novo chip se os valores forem válidos.
+         * Delega para o backend (filterDefs) a validação de quais valores são aceitos.
+         */
+        function addFilter() {
+            // Delega completamente para o backend se ele expor essa função
+            if (typeof addFilterBackend === 'function') {
+                addFilterBackend();
+                return;
+            }
+
+            // Fallback visual: só verifica se os selects estão preenchidos
+            const propSel  = document.getElementById('filterProp');
+            const valSel   = document.getElementById('filterValue');
+            const valInput = document.getElementById('filterValueInput');
+            const key      = propSel.value;
+
+            if (!key) { propSel.focus(); return; }
+
+            const value = valSel.style.display !== 'none' ? valSel.value : valInput.value.trim();
+            if (!value) {
+                (valSel.style.display !== 'none' ? valSel : valInput).focus();
+                return;
+            }
+        }
+
+
+        // ============================================================
+        //  NAVEGAÇÃO ENTRE CATEGORIAS
+        //  Controla qual tabela fica visível e destaca o botão ativo.
+        //  A lógica de carregar dados (carregarTabela) é do backend.
+        // ============================================================
+
+        /**
+         * Troca a categoria visível e destaca o botão correspondente na sidebar.
+         * @param {string} category — slug da categoria (ex: 'computadores')
+         * @param {HTMLElement} btn — botão clicado na sidebar
+         */
+        function mostrar(category, btn) {
+            currentCategory = category;
+            activeFilters   = [];
+            renderChips();
+
+            // Esconde todas as tabelas e mostra apenas a correta
+            document.querySelectorAll('.inv-table').forEach(t => t.classList.remove('ativa'));
+            const el = document.getElementById(`${category}-${currentMode}`);
+            if (el) el.classList.add('ativa');
+
+            // Destaca o botão ativo na sidebar
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Atualiza o título da seção
+            const catName = (typeof categoryNames !== 'undefined' && categoryNames[category]) || category;
+            document.getElementById('tableTitle').textContent = catName;
+
+            // Pede ao backend para atualizar o select de propriedades de filtro
+            if (typeof buildFilterPropSelect === 'function') buildFilterPropSelect();
+
+            // Pede ao backend para carregar os dados da tabela
+            if (typeof carregarTabela === 'function') carregarTabela(category, currentMode);
+        }
+
+        /**
+         * Alterna o modo de visualização entre 'suporte' e 'gestao'.
+         * Mostra a tabela correspondente e limpa os filtros ativos.
+         * @param {string} mode — 'suporte' ou 'gestao'
+         * @param {HTMLElement} btn — botão clicado no seletor de modo
+         */
+        function setViewMode(mode, btn) {
+            currentMode = mode;
+
+            // Destaca o botão ativo
+            document.querySelectorAll('.view-mode button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Troca a tabela visível
+            document.querySelectorAll('.inv-table').forEach(t => t.classList.remove('ativa'));
+            const el = document.getElementById(`${currentCategory}-${mode}`);
+            if (el) el.classList.add('ativa');
+
+            // Atualiza filtros e carrega dados via backend
+            if (typeof buildFilterPropSelect === 'function') buildFilterPropSelect();
+            if (typeof carregarTabela === 'function')        carregarTabela(currentCategory, mode);
+        }
+
+
+        // ============================================================
+        //  TEMA DARK / LIGHT
+        //  Toggle visual puro — só adiciona/remove classe no botão.
+        // ============================================================
 
         document.getElementById('themeToggle').addEventListener('click', function () {
             this.classList.toggle('light');
         });
+
+
+        // ============================================================
+        //  SIDEBAR — ABRIR / FECHAR
+        // ============================================================
+
         document.getElementById('toggleSidebar').addEventListener('click', () => {
             document.getElementById('sidebar').classList.toggle('closed');
         });
+
+
+        // ============================================================
+        //  DESTAQUE DO ITEM DE MENU ATIVO
+        //  Compara a URL atual com os hrefs dos links do menu lateral.
+        // ============================================================
+
         const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
         document.querySelectorAll('.menu li a').forEach(link => {
-            if (link.getAttribute('href') === currentPage) link.parentElement.classList.add('active');
+            if (link.getAttribute('href') === currentPage) {
+                link.parentElement.classList.add('active');
+            }
         });
+
+
+        // ============================================================
+        //  CAMPO DE BUSCA — BOTÃO LIMPAR
+        // ============================================================
+
         document.querySelector('.clear-btn')?.addEventListener('click', () => {
             document.querySelector('.search-box input').value = '';
         });
+
+
+        // ============================================================
+        //  FILTRO — PRESSIONAR ENTER NO INPUT DE VALOR
+        //  Atalho de teclado para adicionar filtro sem usar o mouse.
+        // ============================================================
+
         document.getElementById('filterValueInput').addEventListener('keydown', e => {
             if (e.key === 'Enter') addFilter();
         });
     </script>
-
-    <script>
-        // ==================== INTEGRAÇÃO COM A API ====================
-
-        // cache dos dados carregados por categoria
-        const cache = {};
-
-        // Normaliza um valor para comparação de filtro
-        function normalizarValor(v) {
-            if (v === null || v === undefined) return '';
-            return String(v).toLowerCase().trim();
-        }
-
-        // Retorna o valor de uma propriedade do item para comparação com o filtro
-        function extrairValorFiltro(item, key) {
-            // mapeamento de chaves do filterDef para propriedades do item
-            const mapa = {
-                tipo: item.tipo,
-                so: item.sistemaOperacional,
-                ativacao_so: item.ativacaoSO,
-                ativacao_office: item.ativacaoOffice,
-                office: item.office,
-                status: item.status,
-                setor: item.setor,
-                ativo: item.ativo === true ? 'Sim' : 'Não',
-                resolucao: item.resolucao,
-                conectividade: item.conectividade,
-                switch: item.switch,
-                operadora: item.operadora,
-                configurado: item.configurado === true ? 'Sim' : 'Não',
-            };
-            return mapa[key] !== undefined ? mapa[key] : item[key];
-        }
-
-        // Aplica activeFilters no cache e re-renderiza sem buscar da API
-        function aplicarFiltrosNaTabela() {
-            if (!cache[currentCategory]) return;
-            const tableId = `${currentCategory}-${currentMode}`;
-            const tbody = document.querySelector(`#${tableId} tbody`);
-            if (!tbody) return;
-
-            let dados = cache[currentCategory];
-
-            // aplica cada filtro ativo
-            if (activeFilters.length > 0) {
-                dados = dados.filter(item => {
-                    return activeFilters.every(f => {
-                        const valorItem = normalizarValor(extrairValorFiltro(item, f.key));
-                        const valorFiltro = normalizarValor(f.value);
-                        return valorItem === valorFiltro;
-                    });
-                });
-            }
-
-            if (dados.length === 0) {
-                tbody.innerHTML = `<tr class="empty-row"><td colspan="20">Nenhum registro encontrado para os filtros aplicados.</td></tr>`;
-                document.getElementById('tableInfo').textContent = '0 registros';
-                document.getElementById('footerInfo').textContent = '0 registros';
-                return;
-            }
-
-            tbody.innerHTML = '';
-            dados.forEach(item => tbody.appendChild(renderRow(currentCategory, item, currentMode)));
-            document.getElementById('tableInfo').textContent = `${dados.length} registro(s)`;
-            document.getElementById('footerInfo').textContent = `${dados.length} registro(s)`;
-        }
-
-        // mapa de categoria → função de busca da api.js
-        const apiFetch = {
-            computadores: () => getComputadores(),
-            monitores:    () => getMonitores(),
-            mouses:       () => getMouses(),
-            teclados:     () => getTeclados(),
-            fones:        () => getFones(),
-            celulares:    () => getCelulares(),
-            ramais:       () => getRamais(),
-            chips:        () => getChips(),
-            extras:       () => getExtras(),
-        };
-
-        const apiCreate = {
-            computadores: (d) => criarComputador(d),
-            monitores:    (d) => criarMonitor(d),
-            mouses:       (d) => criarMouse(d),
-            teclados:     (d) => criarTeclado(d),
-            fones:        (d) => criarFone(d),
-            celulares:    (d) => criarCelular(d),
-            ramais:       (d) => criarRamal(d),
-            chips:        (d) => criarChip(d),
-            extras:       (d) => criarExtra(d),
-        };
-
-        const apiUpdate = {
-            computadores: (id, d) => atualizarComputador(id, d),
-            monitores:    (id, d) => atualizarMonitor(id, d),
-            mouses:       (id, d) => atualizarMouse(id, d),
-            teclados:     (id, d) => atualizarTeclado(id, d),
-            fones:        (id, d) => atualizarFone(id, d),
-            celulares:    (id, d) => atualizarCelular(id, d),
-            ramais:       (id, d) => atualizarRamal(id, d),
-            chips:        (id, d) => atualizarChip(id, d),
-            extras:       (id, d) => atualizarExtra(id, d),
-        };
-
-        // ==================== RENDERIZAÇÃO DAS LINHAS ====================
-
-        function renderRow(categoria, item, modo) {
-            const tr = document.createElement('tr');
-            if (!item.ativo) tr.classList.add('row-inactive');
-
-            const ativoBadge = item.ativo
-                ? '<span class="badge badge-success">Sim</span>'
-                : '<span class="badge badge-gray">Não</span>';
-
-            const acoes = `
-                <div class="row-actions">
-                    <button class="btn-action edit" title="Editar" onclick="abrirEdicao(this)">
-                        <i class="fa-solid fa-pen"></i>
-                    </button>
-                    <button class="btn-action toggle-active ${!item.ativo ? 'is-inactive' : ''}"
-                        title="${item.ativo ? 'Tornar Inativo' : 'Reativar'}"
-                        onclick="openToggleConfirm(this.closest('tr'))">
-                        <i class="fa-solid fa-${item.ativo ? 'power-off' : 'rotate-left'}"></i>
-                    </button>
-                </div>`;
-
-            const data = item.dataAquisicao
-                ? new Date(item.dataAquisicao).toLocaleDateString('pt-BR')
-                : '—';
-
-            const preco = item.precoAquisicao != null
-                ? `R$ ${Number(item.precoAquisicao).toFixed(2).replace('.', ',')}`
-                : '—';
-
-            let cells = '';
-
-            if (categoria === 'computadores') {
-                const proc = item.processador ? item.processador.nome : (item.processadorId ? item.processadorId : '—');
-                const ram = item.memoriaRAMTotal ? `${item.memoriaRAMTotal} GB` : '—';
-                const discos = item.discos?.length ? `${item.discos.reduce((s, d) => s + (d.tamanho || 0), 0)} GB` : '—';
-                const vram = item.placasVideo?.length ? `${item.placasVideo.reduce((s, p) => s + (p.vram || 0), 0)} MB` : '—';
-                if (modo === 'suporte') {
-                    cells = `
-                        <td>${item.codigo || '—'}</td>
-                        <td>${item.modelo || '—'}</td>
-                        <td>${item.tipo || '—'}</td>
-                        <td>${proc}</td>
-                        <td>${ram}</td>
-                        <td>${discos}</td>
-                        <td>${vram}</td>
-                        <td>${item.sistemaOperacional || '—'}</td>
-                        <td>${item.ativacaoSO || '—'}</td>
-                        <td>${item.office || '—'}</td>
-                        <td>${item.ativacaoOffice || '—'}</td>
-                        <td>${item.status || '—'}</td>
-                        <td>${item.setor || '—'}</td>
-                        <td>${item.usuario || '—'}</td>
-                        <td class="cell-ativo">${ativoBadge}</td>
-                        <td class="col-acoes">${acoes}</td>`;
-                } else {
-                    cells = `
-                        <td>${item.codigo || '—'}</td>
-                        <td>${item.modelo || '—'}</td>
-                        <td>${item.tipo || '—'}</td>
-                        <td>${data}</td>
-                        <td>${preco}</td>
-                        <td>${item.ativacaoSO || '—'}</td>
-                        <td>${item.ativacaoOffice || '—'}</td>
-                        <td>${item.status || '—'}</td>
-                        <td>${item.setor || '—'}</td>
-                        <td>${item.usuario || '—'}</td>
-                        <td class="cell-ativo">${ativoBadge}</td>
-                        <td class="col-acoes">${acoes}</td>`;
-                }
-            }
-
-            else if (categoria === 'monitores') {
-                const entradas = [
-                    item.hdmi ? 'HDMI' : null,
-                    item.displayPort ? 'DisplayPort' : null,
-                    item.vga ? 'VGA' : null,
-                    item.dvi ? 'DVI' : null,
-                ].filter(Boolean).join(', ') || '—';
-                if (modo === 'suporte') {
-                    cells = `
-                        <td>${item.codigo || '—'}</td>
-                        <td>${item.modelo || '—'}</td>
-                        <td>${item.tamanho ? item.tamanho + '"' : '—'}</td>
-                        <td>${item.resolucao || '—'}</td>
-                        <td>${item.frequencia ? item.frequencia + 'Hz' : '—'}</td>
-                        <td>${entradas}</td>
-                        <td>${item.status || '—'}</td>
-                        <td>${item.setor || '—'}</td>
-                        <td>${item.usuario || '—'}</td>
-                        <td class="cell-ativo">${ativoBadge}</td>
-                        <td class="col-acoes">${acoes}</td>`;
-                } else {
-                    cells = `
-                        <td>${item.codigo || '—'}</td>
-                        <td>${item.modelo || '—'}</td>
-                        <td>${data}</td>
-                        <td>${preco}</td>
-                        <td>${item.status || '—'}</td>
-                        <td>${item.setor || '—'}</td>
-                        <td>${item.usuario || '—'}</td>
-                        <td class="cell-ativo">${ativoBadge}</td>
-                        <td class="col-acoes">${acoes}</td>`;
-                }
-            }
-
-            else if (categoria === 'mouses') {
-                if (modo === 'suporte') {
-                    cells = `
-                        <td>${item.codigo || '—'}</td>
-                        <td>${item.modelo || '—'}</td>
-                        <td>${item.conectividade || '—'}</td>
-                        <td>${item.tipo || '—'}</td>
-                        <td>${item.status || '—'}</td>
-                        <td>${item.setor || '—'}</td>
-                        <td>${item.usuario || '—'}</td>
-                        <td class="cell-ativo">${ativoBadge}</td>
-                        <td class="col-acoes">${acoes}</td>`;
-                } else {
-                    cells = `
-                        <td>${item.codigo || '—'}</td>
-                        <td>${item.modelo || '—'}</td>
-                        <td>—</td>
-                        <td>${data}</td>
-                        <td>${preco}</td>
-                        <td>${item.status || '—'}</td>
-                        <td>${item.setor || '—'}</td>
-                        <td>${item.usuario || '—'}</td>
-                        <td class="cell-ativo">${ativoBadge}</td>
-                        <td class="col-acoes">${acoes}</td>`;
-                }
-            }
-
-            else if (categoria === 'teclados') {
-                if (modo === 'suporte') {
-                    cells = `
-                        <td>${item.codigo || '—'}</td>
-                        <td>${item.modelo || '—'}</td>
-                        <td>${item.conectividade || '—'}</td>
-                        <td>${item.tipo || '—'}</td>
-                        <td>${item.switch || '—'}</td>
-                        <td>${item.tamanho ? item.tamanho + '%' : '—'}</td>
-                        <td>${item.status || '—'}</td>
-                        <td>${item.setor || '—'}</td>
-                        <td>${item.usuario || '—'}</td>
-                        <td class="cell-ativo">${ativoBadge}</td>
-                        <td class="col-acoes">${acoes}</td>`;
-                } else {
-                    cells = `
-                        <td>${item.codigo || '—'}</td>
-                        <td>${item.modelo || '—'}</td>
-                        <td>${data}</td>
-                        <td>${preco}</td>
-                        <td>${item.status || '—'}</td>
-                        <td>${item.setor || '—'}</td>
-                        <td>${item.usuario || '—'}</td>
-                        <td class="cell-ativo">${ativoBadge}</td>
-                        <td class="col-acoes">${acoes}</td>`;
-                }
-            }
-
-            else if (categoria === 'fones') {
-                if (modo === 'suporte') {
-                    cells = `
-                        <td>${item.codigo || '—'}</td>
-                        <td>${item.modelo || '—'}</td>
-                        <td>${item.tipo || '—'}</td>
-                        <td>${item.conectividade || '—'}</td>
-                        <td>—</td>
-                        <td>${item.status || '—'}</td>
-                        <td>${item.setor || '—'}</td>
-                        <td>${item.usuario || '—'}</td>
-                        <td class="cell-ativo">${ativoBadge}</td>
-                        <td class="col-acoes">${acoes}</td>`;
-                } else {
-                    cells = `
-                        <td>${item.codigo || '—'}</td>
-                        <td>${item.modelo || '—'}</td>
-                        <td>${data}</td>
-                        <td>${preco}</td>
-                        <td>${item.status || '—'}</td>
-                        <td>${item.setor || '—'}</td>
-                        <td>${item.usuario || '—'}</td>
-                        <td class="cell-ativo">${ativoBadge}</td>
-                        <td class="col-acoes">${acoes}</td>`;
-                }
-            }
-
-            else if (categoria === 'celulares') {
-                // chips: prefere o número resolvido, fallback no ID
-                const chipsHtml = (() => {
-                    const lista = item.chips?.length ? item.chips.map(c => c.numero) : (item.chipIds || []);
-                    if (!lista.length) return '—';
-                    return lista.map(n => `<span style="display:block;font-size:12px;white-space:nowrap;">${n}</span>`).join('');
-                })();
-                // whatsapp: mostra numero e dono empilhados
-                const wppHtml = (() => {
-                    const lista = item.contasWhatsapp || [];
-                    if (!lista.length) return '—';
-                    return lista.map(w => {
-                        const num = w.numero || w;
-                        const dono = w.dono ? ` <span style="color:var(--text-muted);font-size:11px;">(${w.dono})</span>` : '';
-                        return `<span style="display:block;font-size:12px;white-space:nowrap;">${num}${dono}</span>`;
-                    }).join('');
-                })();
-                if (modo === 'suporte') {
-                    cells = `
-                        <td>${item.codigo || '—'}</td>
-                        <td>${item.modelo || '—'}</td>
-                        <td>${item.armazenamento ? item.armazenamento + ' GB' : '—'}</td>
-                        <td>${item.memoriaRAM ? item.memoriaRAM + ' GB' : '—'}</td>
-                        <td>${item.conectividade || '—'}</td>
-                        <td>${chipsHtml}</td>
-                        <td>${wppHtml}</td>
-                        <td>${item.status || '—'}</td>
-                        <td>${item.setor || '—'}</td>
-                        <td>${item.usuario || '—'}</td>
-                        <td class="cell-ativo">${ativoBadge}</td>
-                        <td class="col-acoes">${acoes}</td>`;
-                } else {
-                    cells = `
-                        <td>${item.codigo || '—'}</td>
-                        <td>${item.modelo || '—'}</td>
-                        <td>${data}</td>
-                        <td>${preco}</td>
-                        <td>${item.status || '—'}</td>
-                        <td>${item.setor || '—'}</td>
-                        <td>${item.usuario || '—'}</td>
-                        <td class="cell-ativo">${ativoBadge}</td>
-                        <td class="col-acoes">${acoes}</td>`;
-                }
-            }
-
-            else if (categoria === 'ramais') {
-                if (modo === 'suporte') {
-                    cells = `
-                        <td>${item.codigo || '—'}</td>
-                        <td>${item.modelo || '—'}</td>
-                        <td>${item.cor || '—'}</td>
-                        <td>${item.tipo || '—'}</td>
-                        <td>—</td>
-                        <td>—</td>
-                        <td>${item.linha || '—'}</td>
-                        <td>—</td>
-                        <td>${item.configurado ? 'Sim' : 'Não'}</td>
-                        <td>${item.status || '—'}</td>
-                        <td>${item.setor || '—'}</td>
-                        <td>${item.usuario || '—'}</td>
-                        <td class="cell-ativo">${ativoBadge}</td>
-                        <td class="col-acoes">${acoes}</td>`;
-                } else {
-                    cells = `
-                        <td>${item.codigo || '—'}</td>
-                        <td>${item.modelo || '—'}</td>
-                        <td>${item.linha || '—'}</td>
-                        <td>—</td>
-                        <td>${data}</td>
-                        <td>${preco}</td>
-                        <td>${item.status || '—'}</td>
-                        <td>${item.setor || '—'}</td>
-                        <td>${item.usuario || '—'}</td>
-                        <td class="cell-ativo">${ativoBadge}</td>
-                        <td class="col-acoes">${acoes}</td>`;
-                }
-            }
-
-            else if (categoria === 'chips') {
-                if (modo === 'suporte') {
-                    cells = `
-                        <td>${item.codigo || '—'}</td>
-                        <td>${item.numero || '—'}</td>
-                        <td>${item.operadora || '—'}</td>
-                        <td>${item.dono || '—'}</td>
-                        <td>${item.celularId || '—'}</td>
-                        <td>${item.status || '—'}</td>
-                        <td>${item.setor || '—'}</td>
-                        <td>${item.usuario || '—'}</td>
-                        <td class="cell-ativo">${ativoBadge}</td>
-                        <td class="col-acoes">${acoes}</td>`;
-                } else {
-                    cells = `
-                        <td>${item.codigo || '—'}</td>
-                        <td>${item.numero || '—'}</td>
-                        <td>${item.operadora || '—'}</td>
-                        <td>${item.plano || '—'}</td>
-                        <td>${item.status || '—'}</td>
-                        <td>${item.setor || '—'}</td>
-                        <td>${item.usuario || '—'}</td>
-                        <td class="cell-ativo">${ativoBadge}</td>
-                        <td class="col-acoes">${acoes}</td>`;
-                }
-            }
-
-            else if (categoria === 'extras') {
-                cells = `
-                    <td>${item.codigo || '—'}</td>
-                    <td>—</td>
-                    <td>${item.caracteristicas || item.modelo || '—'}</td>
-                    <td>—</td>
-                    <td>${item.status || '—'}</td>
-                    <td>${item.setor || '—'}</td>
-                    <td>${item.usuario || '—'}</td>
-                    <td class="cell-ativo">${ativoBadge}</td>
-                    <td class="col-acoes">${acoes}</td>`;
-            }
-
-            tr.innerHTML = cells;
-            // guarda o ID do item na linha para uso no edit/toggle
-            tr.dataset.id = item.id || '';
-            tr.dataset.item = JSON.stringify(item);
-            return tr;
-        }
-
-        // ==================== CARREGAR TABELA ====================
-
-        async function carregarTabela(categoria, modo) {
-            const tableId = `${categoria}-${modo}`;
-            const tbody = document.querySelector(`#${tableId} tbody`);
-            if (!tbody) return;
-
-            tbody.innerHTML = `<tr class="empty-row"><td colspan="20"><i class="fa-solid fa-spinner fa-spin"></i> Carregando...</td></tr>`;
-
-            try {
-                const dados = await apiFetch[categoria]();
-                cache[categoria] = dados;
-
-                if (!dados || dados.length === 0) {
-                    tbody.innerHTML = `<tr class="empty-row"><td colspan="20">Nenhum registro encontrado.</td></tr>`;
-                    document.getElementById('tableInfo').textContent = '0 registros';
-                    document.getElementById('footerInfo').textContent = '0 registros';
-                    return;
-                }
-
-                // aplica filtros ativos após carregar
-                aplicarFiltrosNaTabela();
-            } catch (e) {
-                tbody.innerHTML = `<tr class="empty-row"><td colspan="20"><i class="fa-solid fa-triangle-exclamation"></i> Erro ao conectar com a API.</td></tr>`;
-                console.error('Erro ao carregar:', e);
-            }
-        }
-
-        // ==================== SUBSTITUIR mostrar() PARA CARREGAR DA API ====================
-
-        const _mostrarOriginal = mostrar;
-        mostrar = function(category, btn) {
-            _mostrarOriginal(category, btn);
-            carregarTabela(category, currentMode);
-        };
-
-        const _setViewModeOriginal = setViewMode;
-        setViewMode = function(mode, btn) {
-            _setViewModeOriginal(mode, btn);
-            carregarTabela(currentCategory, mode);
-        };
-
-        // ==================== EDIT COM DADOS REAIS ====================
-
-        function abrirEdicao(btn) {
-            const tr = btn.closest('tr');
-            const item = JSON.parse(tr.dataset.item || '{}');
-            renderFields('formEditFields', currentCategory, 'all', mapItemToForm(currentCategory, item));
-            document.getElementById('modalEdit').dataset.editId = tr.dataset.id;
-
-            // pré-popula campos dinâmicos do computador
-            if (currentCategory === 'computadores') {
-                // select de quantidade — seta o valor e dispara os campos dinâmicos
-                const slotsRAM = item.memoriaRAM?.length || 0;
-                const qtdDiscos = item.discos?.length || 0;
-                const qtdGPUs = item.placasVideo?.length || 0;
-                const qtdConn = item.conectoresVideo?.length || 0;
-
-                // seta os selects de quantidade
-                const setarSelect = (name, val) => {
-                    const sel = document.querySelector(`#formEditFields select[name="${name}"]`);
-                    if (sel) sel.value = String(val);
-                };
-                setarSelect('quant_slots', slotsRAM);
-                setarSelect('quant_discos', qtdDiscos);
-                setarSelect('quant_gpus', qtdGPUs);
-                setarSelect('quant_conectores', qtdConn);
-
-                // renderiza os campos dinâmicos com os valores existentes
-                const grupoSlots = document.querySelector('#formEditFields select[name="quant_slots"]')?.closest('.form-group');
-                const grupoDiscos = document.querySelector('#formEditFields select[name="quant_discos"]')?.closest('.form-group');
-                const grupoGPUs  = document.querySelector('#formEditFields select[name="quant_gpus"]')?.closest('.form-group');
-                const grupoConn  = document.querySelector('#formEditFields select[name="quant_conectores"]')?.closest('.form-group');
-
-                if (grupoSlots && slotsRAM > 0)
-                    renderSlotsRAM(grupoSlots, slotsRAM, item.memoriaRAM || []);
-                if (grupoDiscos && qtdDiscos > 0)
-                    renderDiscos(grupoDiscos, qtdDiscos, item.discos || []);
-                if (grupoGPUs && qtdGPUs > 0)
-                    renderPlacasVideo(grupoGPUs, qtdGPUs, item.placasVideo || []);
-                if (grupoConn && qtdConn > 0)
-                    renderConectoresVideo(grupoConn, qtdConn, item.conectoresVideo || []);
-            }
-
-            openModal('modalEdit');
-        }
-
-        // mapeia os campos do item da API para os keys do formFields
-        function mapItemToForm(categoria, item) {
-            if (categoria === 'computadores') return {
-                modelo: item.modelo, tipo: item.tipo, ip: item.ip,
-                setor: item.setor, usuario: item.usuario, status: item.status,
-                observacoes: item.observacoes,
-                processadorId: item.processadorId,
-                geracaoRAM: item.geracaoRAM,
-                velocidadeRAM: item.velocidadeRAM,
-                quant_slots: item.memoriaRAM?.length || 0,
-                quant_discos: item.discos?.length || 0,
-                quant_gpus: item.placasVideo?.length || 0,
-                quant_conectores: item.conectoresVideo?.length || 0,
-                so: item.sistemaOperacional,
-                ativacao_so: item.ativacaoSO,
-                office: item.office,
-                ativacao_office: item.ativacaoOffice,
-                data_aquisicao: item.dataAquisicao?.split('T')[0],
-                preco_aquisicao: item.precoAquisicao,
-            };
-            if (categoria === 'monitores') return {
-                modelo: item.modelo, tamanho: item.tamanho, resolucao: item.resolucao,
-                frequencia: item.frequencia,
-                hdmi: item.hdmi, displayPort: item.displayPort, vga: item.vga, dvi: item.dvi,
-                setor: item.setor, usuario: item.usuario, status: item.status,
-                observacoes: item.observacoes,
-                data_aquisicao: item.dataAquisicao?.split('T')[0],
-                preco_aquisicao: item.precoAquisicao,
-            };
-            if (categoria === 'mouses') return {
-                modelo: item.modelo, conectividade: item.conectividade, tipo: item.tipo,
-                setor: item.setor, usuario: item.usuario, status: item.status,
-                observacoes: item.observacoes,
-                data_aquisicao: item.dataAquisicao?.split('T')[0],
-                preco_aquisicao: item.precoAquisicao,
-            };
-            if (categoria === 'teclados') return {
-                modelo: item.modelo, conectividade: item.conectividade, tipo: item.tipo,
-                switch: item.switch, tamanho: item.tamanho,
-                setor: item.setor, usuario: item.usuario, status: item.status,
-                observacoes: item.observacoes,
-                data_aquisicao: item.dataAquisicao?.split('T')[0],
-                preco_aquisicao: item.precoAquisicao,
-            };
-            if (categoria === 'fones') return {
-                modelo: item.modelo, tipo: item.tipo, microfone: item.microfone,
-                conectividade: item.conectividade,
-                setor: item.setor, usuario: item.usuario, status: item.status,
-                observacoes: item.observacoes,
-                data_aquisicao: item.dataAquisicao?.split('T')[0],
-                preco_aquisicao: item.precoAquisicao,
-            };
-            if (categoria === 'celulares') return {
-                modelo: item.modelo, armazenamento: item.armazenamento,
-                ram: item.memoriaRAM, conectividade: item.conectividade,
-                setor: item.setor, usuario: item.usuario, status: item.status,
-                observacoes: item.observacoes,
-                data_aquisicao: item.dataAquisicao?.split('T')[0],
-                preco_aquisicao: item.precoAquisicao,
-                chipIds: item.chipIds || [],
-                contasWhatsapp: item.contasWhatsapp || [],
-            };
-            if (categoria === 'ramais') return {
-                modelo: item.modelo, cor: item.cor, tipo: item.tipo,
-                linha: item.linha, numero: item.numero,
-                ip: item.ip, mac: item.mac,
-                configurado: item.configurado,
-                setor: item.setor, usuario: item.usuario, status: item.status,
-                observacoes: item.observacoes,
-                data_aquisicao: item.dataAquisicao?.split('T')[0],
-                preco_aquisicao: item.precoAquisicao,
-            };
-            if (categoria === 'chips') return {
-                numero: item.numero, operadora: item.operadora, dono: item.dono,
-                celularId: item.celularId, plano: item.plano,
-                setor: item.setor, usuario: item.usuario, status: item.status,
-                observacoes: item.observacoes,
-                data_aquisicao: item.dataAquisicao?.split('T')[0],
-                preco_aquisicao: item.precoAquisicao,
-            };
-            if (categoria === 'extras') return {
-                categoria: item.categoria, descricao: item.descricao,
-                setor: item.setor, usuario: item.usuario, status: item.status,
-                observacoes: item.observacoes,
-                data_aquisicao: item.dataAquisicao?.split('T')[0],
-                preco_aquisicao: item.precoAquisicao,
-            };
-            return item;
-        }
-
-        // mapeia os campos do form para o payload da API
-        function mapFormToApi(categoria, form) {
-            if (categoria === 'computadores') {
-                // coleta slots de RAM
-                const memoriaRAM = [];
-                let i = 0;
-                while (true) {
-                    const v = form[`ram_slot_${i}`];
-                    if (v === undefined) break;
-                    if (v) memoriaRAM.push(v);
-                    i++;
-                }
-                // coleta discos
-                const discos = [];
-                i = 0;
-                while (true) {
-                    const tipo = form[`disco_tipo_${i}`];
-                    if (tipo === undefined) break;
-                    discos.push({ tipo: tipo || 'HDD', tamanho: parseInt(form[`disco_tamanho_${i}`]) || 0 });
-                    i++;
-                }
-                // coleta GPUs
-                const placasVideo = [];
-                i = 0;
-                while (true) {
-                    const tipo = form[`gpu_tipo_${i}`];
-                    if (tipo === undefined) break;
-                    placasVideo.push({ tipo: tipo || 'Integrada', vram: parseInt(form[`gpu_vram_${i}`]) || 0 });
-                    i++;
-                }
-                // coleta conectores de vídeo
-                const conectoresVideo = [];
-                i = 0;
-                while (true) {
-                    const v = form[`conector_video_${i}`];
-                    if (v === undefined) break;
-                    if (v) conectoresVideo.push(v);
-                    i++;
-                }
-                return {
-                    modelo: form.modelo,
-                    tipo: form.tipo,
-                    ip: form.ip || null,
-                    processadorId: form.processadorId || null,
-                    geracaoRAM: form.geracaoRAM || undefined,
-                    velocidadeRAM: parseInt(form.velocidadeRAM) || 0,
-                    quantidadeSlots: Math.max(memoriaRAM.length, parseInt(form.quant_slots) || 0),
-                    memoriaRAM: memoriaRAM,
-                    quantidadeDiscos: Math.max(discos.length, parseInt(form.quant_discos) || 0),
-                    discos: discos,
-                    quantidadePlacasVideo: Math.max(placasVideo.length, parseInt(form.quant_gpus) || 0),
-                    placasVideo: placasVideo,
-                    quantidadeConectoresVideo: Math.max(conectoresVideo.length, parseInt(form.quant_conectores) || 0),
-                    conectoresVideo: conectoresVideo,
-                    sistemaOperacional: form.so || 'Windows11',
-                    ativacaoSO: form.ativacao_so || 'Desativado',
-                    office: form.office || 'Nenhum',
-                    ativacaoOffice: form.ativacao_office || 'Desativado',
-                    setor: form.setor,
-                    usuario: form.usuario,
-                    status: form.status,
-                    observacoes: form.observacoes || null,
-                    dataAquisicao: form.data_aquisicao || new Date().toISOString(),
-                    precoAquisicao: parseFloat(String(form.preco_aquisicao || '0').replace('R$','').replace(',','.').trim()) || 0,
-                };
-            }
-            if (categoria === 'monitores') return {
-                modelo: form.modelo, tamanho: parseFloat(form.tamanho) || 0,
-                resolucao: form.resolucao || undefined, frequencia: parseInt(form.frequencia) || 0,
-                hdmi: form.hdmi === true || form.hdmi === 'true',
-                displayPort: form.displayPort === true || form.displayPort === 'true',
-                vga: form.vga === true || form.vga === 'true',
-                dvi: form.dvi === true || form.dvi === 'true',
-                setor: form.setor, usuario: form.usuario, status: form.status,
-                observacoes: form.observacoes || null,
-                dataAquisicao: form.data_aquisicao || new Date().toISOString(),
-                precoAquisicao: parseFloat(String(form.preco_aquisicao || '0').replace('R$','').replace(',','.').trim()) || 0,
-            };
-            if (categoria === 'mouses') return {
-                modelo: form.modelo, conectividade: form.conectividade || undefined, tipo: form.tipo || undefined,
-                setor: form.setor, usuario: form.usuario, status: form.status,
-                observacoes: form.observacoes || null,
-                dataAquisicao: form.data_aquisicao || new Date().toISOString(),
-                precoAquisicao: parseFloat(String(form.preco_aquisicao || '0').replace('R$','').replace(',','.').trim()) || 0,
-            };
-            if (categoria === 'teclados') return {
-                modelo: form.modelo, conectividade: form.conectividade || undefined, tipo: form.tipo || undefined,
-                switch: form.switch || undefined, tamanho: parseInt(form.tamanho) || 0,
-                setor: form.setor, usuario: form.usuario, status: form.status,
-                observacoes: form.observacoes || null,
-                dataAquisicao: form.data_aquisicao || new Date().toISOString(),
-                precoAquisicao: parseFloat(String(form.preco_aquisicao || '0').replace('R$','').replace(',','.').trim()) || 0,
-            };
-            if (categoria === 'fones') return {
-                modelo: form.modelo, tipo: form.tipo || undefined, microfone: form.microfone === true || form.microfone === 'true',
-                conectividade: form.conectividade || undefined,
-                setor: form.setor, usuario: form.usuario, status: form.status,
-                observacoes: form.observacoes || null,
-                dataAquisicao: form.data_aquisicao || new Date().toISOString(),
-                precoAquisicao: parseFloat(String(form.preco_aquisicao || '0').replace('R$','').replace(',','.').trim()) || 0,
-            };
-            if (categoria === 'celulares') return {
-                modelo: form.modelo, armazenamento: parseInt(form.armazenamento) || 0,
-                memoriaRAM: parseInt(form.ram) || 0, conectividade: form.conectividade || undefined,
-                setor: form.setor, usuario: form.usuario, status: form.status,
-                observacoes: form.observacoes || null,
-                dataAquisicao: form.data_aquisicao || new Date().toISOString(),
-                precoAquisicao: parseFloat(String(form.preco_aquisicao || '0').replace('R$','').replace(',','.').trim()) || 0,
-                chipIds: form.chipIds || [],
-                contasWhatsapp: form.contasWhatsapp || [],
-            };
-            if (categoria === 'ramais') return {
-                modelo: form.modelo, cor: form.cor || null, tipo: form.tipo || null,
-                linha: form.linha || null, numero: form.numero || null,
-                ip: form.ip || null, mac: form.mac || null,
-                configurado: form.configurado === true || form.configurado === 'true',
-                setor: form.setor, usuario: form.usuario, status: form.status,
-                observacoes: form.observacoes || null,
-                dataAquisicao: form.data_aquisicao || new Date().toISOString(),
-                precoAquisicao: parseFloat(String(form.preco_aquisicao || '0').replace('R$','').replace(',','.').trim()) || 0,
-            };
-            if (categoria === 'chips') return {
-                numero: (form.numero || '').replace(/\D/g, '').replace(/^(\d{2})(\d+)$/, '+$1$2') || form.numero,
-                operadora: form.operadora || undefined, dono: form.dono || null,
-                celularId: form.celularId || null,
-                plano: parseFloat(String(form.plano || '0').replace('R$','').replace(',','.').trim()) || 0,
-                setor: form.setor, usuario: form.usuario, status: form.status,
-                observacoes: form.observacoes || null,
-                dataAquisicao: form.data_aquisicao || new Date().toISOString(),
-                precoAquisicao: parseFloat(String(form.preco_aquisicao || '0').replace('R$','').replace(',','.').trim()) || 0,
-            };
-            if (categoria === 'extras') return {
-                categoria: form.categoria,
-                descricao: form.descricao || null,
-                setor: form.setor, usuario: form.usuario, status: form.status,
-                observacoes: form.observacoes || null,
-                dataAquisicao: form.data_aquisicao || new Date().toISOString(),
-                precoAquisicao: parseFloat(String(form.preco_aquisicao || '0').replace('R$','').replace(',','.').trim()) || 0,
-            };
-            return form;
-        }
-
-        // ==================== SUBSTITUIR submitAdd e submitEdit ====================
-
-        // Exibe erro inline no modal
-        function mostrarErroModal(modalErrorId, titulo, detalhe = null) {
-            const el = document.getElementById(modalErrorId);
-            if (!el) return;
-            el.innerHTML = `
-                <i class="fa-solid fa-circle-exclamation"></i>
-                <div>
-                    <div>${titulo}</div>
-                    ${detalhe ? `<div class="error-detail">${detalhe}</div>` : ''}
-                </div>`;
-            el.style.display = 'flex';
-            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-
-        function limparErroModal(modalErrorId) {
-            const el = document.getElementById(modalErrorId);
-            if (el) { el.style.display = 'none'; el.innerHTML = ''; }
-        }
-
-        // Valida campos obrigatórios no container do formulário
-        // Retorna lista de labels dos campos vazios
-        function validarObrigatorios(containerId) {
-            const campos = formFields[currentCategory] || [];
-            const faltando = [];
-
-            campos.forEach(f => {
-                if (!f.required || f.section) return;
-
-                const el = document.querySelector(`#${containerId} [name="${f.key}"]`);
-                if (!el) return;
-
-                const vazio = el.type === 'checkbox'
-                    ? false // checkbox nunca é "vazio"
-                    : !el.value || el.value.trim() === '';
-
-                if (vazio) {
-                    faltando.push(f.label);
-                    el.classList.add('field-error');
-                    el.addEventListener('input', () => el.classList.remove('field-error'), { once: true });
-                    el.addEventListener('change', () => el.classList.remove('field-error'), { once: true });
-                }
-            });
-
-            return faltando;
-        }
-
-        // Formata mensagem de erro da API de forma legível
-        function formatarErroApi(status, corpo) {
-            if (status === 400) {
-                // erro de validação do backend
-                let msg = 'Os dados enviados são inválidos.';
-                if (corpo?.errors) {
-                    const detalhes = Object.entries(corpo.errors)
-                        .map(([campo, erros]) => `${campo}: ${erros.join(', ')}`)
-                        .join(' | ');
-                    return { titulo: msg, detalhe: detalhes };
-                }
-                if (corpo?.title) return { titulo: msg, detalhe: corpo.title };
-                return { titulo: msg, detalhe: JSON.stringify(corpo) };
-            }
-            if (status === 404) return { titulo: 'Registro não encontrado. Ele pode ter sido removido.', detalhe: null };
-            if (status === 409) return { titulo: 'Conflito: já existe um registro com esses dados.', detalhe: null };
-            if (status === 500) return { titulo: 'Erro interno no servidor. Tente novamente ou reporte ao administrador.', detalhe: `Status: 500 — ${corpo?.title || 'Internal Server Error'}` };
-            if (status === 0 || status == null) return { titulo: 'Não foi possível conectar com o servidor. Verifique se a API está rodando.', detalhe: 'Sem resposta da API (ERR_CONNECTION_REFUSED)' };
-            return { titulo: `Erro inesperado ao salvar (código ${status}).`, detalhe: JSON.stringify(corpo) };
-        }
-
-        submitAdd = async function() {
-            limparErroModal('modalAddError');
-
-            // valida obrigatórios
-            const faltando = validarObrigatorios('formAddFields');
-            if (faltando.length > 0) {
-                mostrarErroModal('modalAddError',
-                    `Preencha os campos obrigatórios antes de salvar:`,
-                    faltando.map(l => `• ${l}`).join('\n')
-                );
-                return;
-            }
-
-            const fields = document.querySelectorAll('#formAddFields [name]');
-            const form = {};
-            fields.forEach(f => {
-                if (f.type === 'checkbox') form[f.name] = f.checked;
-                else form[f.name] = f.value;
-            });
-            if (currentCategory === 'celulares') {
-                const { chipIds, contasWhatsapp } = coletarDadosCelular('formAddFields');
-                form['chipIds'] = chipIds;
-                form['contasWhatsapp'] = contasWhatsapp;
-            }
-            try {
-                const payload = mapFormToApi(currentCategory, form);
-                const resultado = await apiCreate[currentCategory](payload);
-                if (resultado) {
-                    closeModal('modalAdd');
-                    await carregarTabela(currentCategory, currentMode);
-                } else {
-                    mostrarErroModal('modalAddError',
-                        'Não foi possível salvar. Verifique os dados e tente novamente.',
-                        'A API retornou uma resposta vazia ou nula.'
-                    );
-                }
-            } catch (e) {
-                const { titulo, detalhe } = formatarErroApi(e.status, e.corpo);
-                mostrarErroModal('modalAddError', titulo, detalhe);
-            }
-        };
-
-        submitEdit = async function() {
-            limparErroModal('modalEditError');
-
-            // valida obrigatórios
-            const faltando = validarObrigatorios('formEditFields');
-            if (faltando.length > 0) {
-                mostrarErroModal('modalEditError',
-                    `Preencha os campos obrigatórios antes de salvar:`,
-                    faltando.map(l => `• ${l}`).join('\n')
-                );
-                return;
-            }
-
-            const id = document.getElementById('modalEdit').dataset.editId;
-            const fields = document.querySelectorAll('#formEditFields [name]');
-            const form = {};
-            fields.forEach(f => {
-                if (f.type === 'checkbox') form[f.name] = f.checked;
-                else form[f.name] = f.value;
-            });
-            if (currentCategory === 'celulares') {
-                const { chipIds, contasWhatsapp } = coletarDadosCelular('formEditFields');
-                form['chipIds'] = chipIds;
-                form['contasWhatsapp'] = contasWhatsapp;
-            }
-
-            try {
-                const payload = mapFormToApi(currentCategory, form);
-                const resultado = await apiUpdate[currentCategory](id, payload);
-                if (resultado !== null) {
-                    closeModal('modalEdit');
-                    await carregarTabela(currentCategory, currentMode);
-                } else {
-                    mostrarErroModal('modalEditError',
-                        'Não foi possível salvar as alterações.',
-                        'A API retornou uma resposta vazia ou nula.'
-                    );
-                }
-            } catch (e) {
-                const { titulo, detalhe } = formatarErroApi(e.status, e.corpo);
-                mostrarErroModal('modalEditError', titulo, detalhe);
-            }
-        };
-
-        // ==================== TOGGLE ATIVO VIA API ====================
-
-        confirmToggleActive = async function() {
-            if (!pendingToggleRow) return;
-            const id = pendingToggleRow.dataset.id;
-            const item = JSON.parse(pendingToggleRow.dataset.item || '{}');
-            item.ativo = !item.ativo;
-            await apiUpdate[currentCategory](id, item);
-            pendingToggleRow = null;
-            closeModal('modalConfirm');
-            await carregarTabela(currentCategory, currentMode);
-        };
-
-        // ==================== CARGA INICIAL ====================
-        // Garante que a tabela correta (gestao) esteja visível e carregada
-        document.querySelectorAll('.inv-table').forEach(t => t.classList.remove('ativa'));
-        const tabelaInicial = document.getElementById('computadores-gestao');
-        if (tabelaInicial) tabelaInicial.classList.add('ativa');
-        carregarTabela('computadores', 'gestao');
-    </script>
+    <script src="js/api.js"></script>
+    <script src="js/estoque.js"></script>
 </body>
 </html>
