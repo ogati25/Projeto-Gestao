@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="style.css">
     <title>Perfil — Tech Logistics</title>
     <style>
-        /* ---- Logout / Avatar (padrão) ---- */
+        /* ---- Logout / Avatar ---- */
         .sidebar-footer {
             display: flex; align-items: center; justify-content: space-between;
             padding-top: 12px; border-top: 1px solid #2d3f55;
@@ -30,15 +30,15 @@
             font-size: 13px; font-weight: 700; color: #fff; cursor: pointer; flex-shrink: 0;
         }
 
-        /* ==================== PERFIL ==================== */
+        /* ==================== LAYOUT ==================== */
         .profile-layout {
             display: grid;
-            grid-template-columns: 300px 1fr;
+            grid-template-columns: 280px 1fr;
             gap: 20px;
             align-items: start;
         }
 
-        /* ---- Card do avatar ---- */
+        /* ---- Card lateral (avatar + stats) ---- */
         .profile-card {
             background: var(--secondary-color);
             border: 1px solid var(--border-color);
@@ -51,97 +51,50 @@
             gap: 14px;
             text-align: center;
         }
-
-        .avatar-wrap {
-            position: relative;
-            width: 90px;
-            height: 90px;
-        }
+        .avatar-wrap { position: relative; width: 90px; height: 90px; }
         .avatar-big {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
+            width: 90px; height: 90px; border-radius: 50%;
             background: var(--quinary-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 36px;
-            font-weight: 700;
-            color: #fff;
-            letter-spacing: -1px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 36px; font-weight: 700; color: #fff; letter-spacing: -1px;
         }
         .avatar-edit-btn {
-            position: absolute;
-            bottom: 0; right: 0;
+            position: absolute; bottom: 0; right: 0;
             width: 26px; height: 26px;
             background: var(--quinary-hover);
             border: 2px solid var(--secondary-color);
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 11px; color: #fff;
-            transition: background 0.2s;
+            cursor: pointer; font-size: 11px; color: #fff; transition: background 0.2s;
         }
         .avatar-edit-btn:hover { background: var(--quinary-color); }
 
-        .profile-name {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-primary);
-            line-height: 1.2;
-        }
-        .profile-role {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: -8px;
-        }
+        .profile-name  { font-size: 18px; font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+        .profile-role  { font-size: 12px; color: var(--text-muted); margin-top: -8px; }
         .profile-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 4px 12px;
-            background: #dbeafe;
-            color: #1e40af;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 700;
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 4px 12px; background: #dbeafe; color: #1e40af;
+            border-radius: 20px; font-size: 11px; font-weight: 700;
         }
         body.dark .profile-badge { background: #1e3a5f; color: #60a5fa; }
-
-        .profile-divider {
-            width: 100%;
-            border: none;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .profile-stat-list {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        .profile-divider { width: 100%; border: none; border-top: 1px solid var(--border-color); }
+        .profile-stat-list { width: 100%; display: flex; flex-direction: column; gap: 10px; }
         .profile-stat-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 12px;
+            display: flex; align-items: center; justify-content: space-between; font-size: 12px;
         }
         .profile-stat-item .psi-label {
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            color: var(--text-muted); display: flex; align-items: center; gap: 6px;
         }
         .profile-stat-item .psi-label i { width: 14px; text-align: center; font-size: 12px; }
         .profile-stat-item .psi-val {
-            font-weight: 700;
-            color: var(--text-primary);
-            max-width: 160px;
-            text-overflow: ellipsis;
-            overflow: hidden;
-            white-space: nowrap;
+            font-weight: 700; color: var(--text-primary);
+            max-width: 150px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;
         }
 
-        /* ---- Formulário de edição ---- */
+        /* ---- Coluna direita: empilha os dois cards ---- */
+        .profile-forms { display: flex; flex-direction: column; gap: 20px; }
+
+        /* ---- Card de formulário genérico ---- */
         .profile-form-card {
             background: var(--secondary-color);
             border: 1px solid var(--border-color);
@@ -152,111 +105,79 @@
         .pfc-header {
             padding: 16px 24px;
             border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            display: flex; align-items: center; justify-content: space-between;
         }
         .pfc-header h3 { font-size: 14px; font-weight: 700; color: var(--text-primary); }
         .pfc-header p  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+        .pfc-header-icon {
+            width: 36px; height: 36px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .pfc-header-icon i { font-size: 16px; color: #fff; }
+        .pfc-header-icon.blue   { background: #3b82f6; }
+        .pfc-header-icon.orange { background: #f59e0b; }
 
-        .pfc-body { padding: 24px; }
+        .pfc-body   { padding: 24px; }
+        .pfc-footer {
+            padding: 14px 24px;
+            border-top: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 10px; flex-wrap: wrap;
+        }
+        .pfc-footer-left  { font-size: 12px; color: var(--text-muted); }
+        .pfc-footer-right { display: flex; gap: 8px; }
 
+        /* ---- Grid de campos ---- */
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 16px 20px;
         }
-        .form-grid .fg-full { grid-column: 1 / -1; }
-
-        .fg {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
+        .fg { display: flex; flex-direction: column; gap: 5px; }
         .fg label {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            color: var(--text-muted);
+            font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted);
         }
         .fg input, .fg select {
             padding: 9px 12px;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 13px;
-            background: var(--background-color);
-            color: var(--text-primary);
-            outline: none;
-            transition: border 0.2s, box-shadow 0.2s;
-            font-family: inherit;
+            border-radius: 8px; font-size: 13px;
+            background: var(--background-color); color: var(--text-primary);
+            outline: none; transition: border 0.2s, box-shadow 0.2s; font-family: inherit;
         }
         .fg input:focus, .fg select:focus {
             border-color: var(--quinary-color);
             box-shadow: 0 0 0 3px rgba(62,96,143,0.12);
             background: var(--secondary-color);
         }
-        .fg input:read-only {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
 
-        /* Seção de senha */
-        .section-divider {
-            grid-column: 1 / -1;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 4px 0;
-        }
-        .section-divider span {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-muted);
-            white-space: nowrap;
-        }
-        .section-divider::before, .section-divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: var(--border-color);
-        }
-
+        /* Campos de senha com ícone de olho */
         .fg-pass { position: relative; }
         .fg-pass input { padding-right: 38px; }
         .fg-pass .eye-btn {
-            position: absolute;
-            right: 10px; bottom: 9px;
-            background: none; border: none;
-            cursor: pointer; color: var(--text-muted);
-            font-size: 13px; transition: color 0.2s;
+            position: absolute; right: 10px; bottom: 9px;
+            background: none; border: none; cursor: pointer;
+            color: var(--text-muted); font-size: 13px; transition: color 0.2s;
         }
         .fg-pass .eye-btn:hover { color: var(--text-primary); }
 
-        /* Ações */
-        .pfc-footer {
-            padding: 16px 24px;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            flex-wrap: wrap;
+        /* Barra de força de senha */
+        .strength-bar {
+            height: 4px; background: var(--border-color);
+            border-radius: 2px; margin-top: 5px; overflow: hidden;
         }
-        .pfc-footer-left { font-size: 12px; color: var(--text-muted); }
-        .pfc-footer-right { display: flex; gap: 8px; }
+        .strength-fill {
+            height: 100%; border-radius: 2px;
+            transition: width 0.3s, background 0.3s; width: 0%;
+        }
+        .strength-label { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
 
-        /* Alerta */
+        /* Alertas por formulário */
         .alert-strip {
-            display: none;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            margin-bottom: 16px;
+            display: none; align-items: center; gap: 8px;
+            padding: 10px 14px; border-radius: 8px;
+            font-size: 13px; margin-bottom: 16px;
         }
         .alert-strip.show { display: flex; }
         .alert-success { background: #d1fae5; border: 1px solid #a7f3d0; color: #065f46; }
@@ -285,11 +206,15 @@
             <li><a href="estoque.html"><i class="fa-solid fa-box-archive"></i><span>Inventário</span></a></li>
             <li><a href="pedidos.html"><i class="fa-solid fa-clipboard-list"></i><span>Pedidos</span></a></li>
             <li><a href="funcionarios.html"><i class="fa-solid fa-users"></i><span>Funcionários</span></a></li>
+            <li><a href="relatorios.html"><i class="fa-solid fa-chart-bar"></i><span>Relatórios</span></a></li>
+            <li><a href="perfil.html"><i class="fa-solid fa-circle-user"></i><span>Perfil</span></a></li>
             <li><a href="configuracoes.html"><i class="fa-solid fa-gear"></i><span>Configurações</span></a></li>
         </ul>
         <div class="sidebar-footer">
             <span>v1.0</span>
-            <a href="login.html" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
+            <a href="#" class="btn-logout" id="btnLogout">
+                <i class="fa-solid fa-right-from-bracket"></i> Sair
+            </a>
         </div>
     </div>
 
@@ -303,35 +228,38 @@
                         <i class="fa-solid fa-sun icon-sun"></i>
                         <i class="fa-solid fa-moon icon-moon"></i>
                     </button>
-                    <div class="user-avatar" title="Meu Perfil" onclick="window.location.href='perfil.html'" style="cursor:pointer">U</div>
+                    <div class="user-avatar" id="headerAvatar"
+                         title="Meu Perfil"
+                         onclick="window.location.href='perfil.html'"
+                         style="cursor:pointer">?</div>
                 </div>
             </div>
         </header>
 
         <div class="main">
-
             <div class="profile-layout">
 
-                <!-- Card lateral -->
+                <!-- ══════════════════ CARD LATERAL ══════════════════ -->
                 <div class="profile-card">
                     <div class="avatar-wrap">
-                        <div class="avatar-big" id="avatarBig">U</div>
-                        <div class="avatar-edit-btn" title="Alterar foto"><i class="fa-solid fa-camera"></i></div>
+                        <div class="avatar-big" id="avatarBig">?</div>
+                        <div class="avatar-edit-btn" title="Alterar foto">
+                            <i class="fa-solid fa-camera"></i>
+                        </div>
                     </div>
                     <div>
                         <div class="profile-name" id="sidebarName">Carregando...</div>
                         <div class="profile-role" id="sidebarRole">—</div>
                     </div>
-                    <span class="profile-badge"><i class="fa-solid fa-shield-halved"></i> <span id="sidebarNivel">Usuário</span></span>
+                    <span class="profile-badge">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span id="sidebarNivel">Usuário</span>
+                    </span>
                     <hr class="profile-divider">
                     <div class="profile-stat-list">
                         <div class="profile-stat-item">
                             <span class="psi-label"><i class="fa-solid fa-envelope"></i> E-mail</span>
                             <span class="psi-val" id="sidebarEmail">—</span>
-                        </div>
-                        <div class="profile-stat-item">
-                            <span class="psi-label"><i class="fa-solid fa-briefcase"></i> Cargo</span>
-                            <span class="psi-val" id="sidebarCargo">—</span>
                         </div>
                         <div class="profile-stat-item">
                             <span class="psi-label"><i class="fa-solid fa-building"></i> Setor</span>
@@ -344,22 +272,29 @@
                     </div>
                 </div>
 
-                <!-- Formulário -->
-                <div>
+                <!-- ══════════════════ COLUNA DIREITA ══════════════════ -->
+                <div class="profile-forms">
+
+                    <!-- ────────────── FORMULÁRIO 1: DADOS PESSOAIS ────────────── -->
                     <div class="profile-form-card">
                         <div class="pfc-header">
                             <div>
                                 <h3>Informações pessoais</h3>
-                                <p>Atualize seus dados de perfil e senha</p>
+                                <p>Nome, e-mail e setor vinculados à sua conta</p>
+                            </div>
+                            <div class="pfc-header-icon blue">
+                                <i class="fa-solid fa-user"></i>
                             </div>
                         </div>
                         <div class="pfc-body">
 
-                            <div class="alert-strip alert-success" id="alertOk">
-                                <i class="fa-solid fa-circle-check"></i> Perfil atualizado com sucesso!
+                            <!-- Alertas do form de dados pessoais -->
+                            <div class="alert-strip alert-success" id="alertDadosOk">
+                                <i class="fa-solid fa-circle-check"></i> Dados atualizados com sucesso!
                             </div>
-                            <div class="alert-strip alert-error" id="alertErr">
-                                <i class="fa-solid fa-circle-exclamation"></i> <span id="alertErrMsg">Erro ao salvar.</span>
+                            <div class="alert-strip alert-error" id="alertDadosErr">
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                                <span id="alertDadosErrMsg">Erro ao salvar.</span>
                             </div>
 
                             <div class="form-grid">
@@ -376,65 +311,106 @@
                                     <input type="email" id="fEmail" placeholder="joao@empresa.com">
                                 </div>
                                 <div class="fg">
-                                    <label>Telefone</label>
-                                    <input type="tel" id="fTelefone" placeholder="(11) 99999-9999">
-                                </div>
-                                <div class="fg">
-                                    <label>Cargo</label>
-                                    <select id="fCargo">
-                                        <option>Administrador de TI</option>
-                                        <option>Analista de TI</option>
-                                        <option>Gerente de TI</option>
-                                        <option>Técnico de Suporte</option>
-                                        <option>Outro</option>
+                                    <label>Setor</label>
+                                    <select id="fSetor">
+                                        <!-- Populado via perfil.js -->
                                     </select>
-                                </div>
-                                <div class="fg">
-                                    <label>Setor / Departamento</label>
-                                    <input type="text" id="fSetor" placeholder="Tecnologia da Informação">
-                                </div>
-
-                                <!-- Separador senha -->
-                                <div class="section-divider"><span>Alterar Senha</span></div>
-
-                                <div class="fg fg-pass">
-                                    <label>Senha atual</label>
-                                    <input type="password" id="fSenhaAtual" placeholder="••••••••">
-                                    <button type="button" class="eye-btn" onclick="togglePwd('fSenhaAtual',this)"><i class="fa-solid fa-eye"></i></button>
-                                </div>
-                                <div class="fg"></div>
-                                <div class="fg fg-pass">
-                                    <label>Nova senha</label>
-                                    <input type="password" id="fNovaSenha" placeholder="Mínimo 8 caracteres">
-                                    <button type="button" class="eye-btn" onclick="togglePwd('fNovaSenha',this)"><i class="fa-solid fa-eye"></i></button>
-                                </div>
-                                <div class="fg fg-pass">
-                                    <label>Confirmar nova senha</label>
-                                    <input type="password" id="fConfirmarSenha" placeholder="Repita a nova senha">
-                                    <button type="button" class="eye-btn" onclick="togglePwd('fConfirmarSenha',this)"><i class="fa-solid fa-eye"></i></button>
                                 </div>
                             </div>
                         </div>
                         <div class="pfc-footer">
-                            <span class="pfc-footer-left">Última atualização: <span id="ultimaAtualizacao">—</span></span>
+                            <span class="pfc-footer-left">
+                                Última atualização: <span id="ultimaAtualizacao">—</span>
+                            </span>
                             <div class="pfc-footer-right">
-                                <button class="btn btn-outline" onclick="carregarDados()">
+                                <button class="btn btn-outline" id="btnCancelarDados">
                                     <i class="fa-solid fa-rotate-left"></i> Cancelar
                                 </button>
-                                <button class="btn btn-primary" onclick="salvarPerfil()">
-                                    <i class="fa-solid fa-floppy-disk"></i> Salvar alterações
+                                <button class="btn btn-primary" id="btnSalvarDados">
+                                    <i class="fa-solid fa-floppy-disk"></i> Salvar dados
                                 </button>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
-        </div>
+                    <!-- ────────────── FORMULÁRIO 2: ALTERAR SENHA ────────────── -->
+                    <div class="profile-form-card">
+                        <div class="pfc-header">
+                            <div>
+                                <h3>Alterar senha</h3>
+                                <p>Escolha uma senha forte com pelo menos 8 caracteres</p>
+                            </div>
+                            <div class="pfc-header-icon orange">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                        </div>
+                        <div class="pfc-body">
+
+                            <!-- Alertas do form de senha -->
+                            <div class="alert-strip alert-success" id="alertSenhaOk">
+                                <i class="fa-solid fa-circle-check"></i> Senha alterada com sucesso!
+                            </div>
+                            <div class="alert-strip alert-error" id="alertSenhaErr">
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                                <span id="alertSenhaErrMsg">Erro ao salvar.</span>
+                            </div>
+
+                            <div class="form-grid">
+                                <div class="fg fg-pass">
+                                    <label>Nova senha</label>
+                                    <input type="password" id="fNovaSenha"
+                                           placeholder="Mínimo 8 caracteres"
+                                           autocomplete="new-password">
+                                    <button type="button" class="eye-btn" id="btnEyeNova">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                    <div class="strength-bar">
+                                        <div class="strength-fill" id="strengthFill"></div>
+                                    </div>
+                                    <span class="strength-label" id="strengthLabel"></span>
+                                </div>
+                                <div class="fg fg-pass">
+                                    <label>Confirmar nova senha</label>
+                                    <input type="password" id="fConfirmarSenha"
+                                           placeholder="Repita a nova senha"
+                                           autocomplete="new-password">
+                                    <button type="button" class="eye-btn" id="btnEyeConfirmar">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pfc-footer">
+                            <span class="pfc-footer-left">
+                                A senha anterior será invalidada imediatamente.
+                            </span>
+                            <div class="pfc-footer-right">
+                                <button class="btn btn-outline" id="btnCancelarSenha">
+                                    <i class="fa-solid fa-rotate-left"></i> Limpar
+                                </button>
+                                <button class="btn btn-primary" id="btnSalvarSenha">
+                                    <i class="fa-solid fa-floppy-disk"></i> Salvar senha
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div><!-- /profile-forms -->
+            </div><!-- /profile-layout -->
+        </div><!-- /main -->
     </main>
 
+    <!-- ══════════════════ SCRIPTS ══════════════════ -->
+    <!-- Ordem obrigatória: api.js → perfil.js → inline -->
+    <script src="api.js"></script>
+    <script src="perfil.js"></script>
     <script>
-        // ── TEMA persistente ─────────────────────────────────
+        // ════════════════════════════════════════════════════════
+        //  FRONT-END PURO — sem chamadas de API aqui
+        //  Toda comunicação com o servidor fica em perfil.js
+        // ════════════════════════════════════════════════════════
+
+        // ── Tema persistente ──────────────────────────────────
         (function () {
             const saved = localStorage.getItem('tl_theme') || 'light';
             if (saved === 'dark') document.body.classList.add('dark');
@@ -447,113 +423,138 @@
             });
         })();
 
-        // ── SIDEBAR ──────────────────────────────────────────
+        // ── Sidebar ───────────────────────────────────────────
         document.getElementById('toggleSidebar').addEventListener('click', () => {
             document.getElementById('sidebar').classList.toggle('closed');
         });
         const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
         document.querySelectorAll('.menu li a').forEach(link => {
-            if (link.getAttribute('href') === currentPage) link.parentElement.classList.add('active');
+            if (link.getAttribute('href') === currentPage)
+                link.parentElement.classList.add('active');
         });
         document.querySelector('.clear-btn')?.addEventListener('click', () => {
             document.querySelector('.search-box input').value = '';
         });
 
-        // ── TOGGLE SENHA ─────────────────────────────────────
-        function togglePwd(id, btn) {
-            const inp = document.getElementById(id);
-            const icon = btn.querySelector('i');
-            if (inp.type === 'password') {
-                inp.type = 'text'; icon.className = 'fa-solid fa-eye-slash';
-            } else {
-                inp.type = 'password'; icon.className = 'fa-solid fa-eye';
-            }
+        // ── Toggle visibilidade de senha ─────────────────────
+        function setupEye(btnId, inputId) {
+            document.getElementById(btnId).addEventListener('click', function () {
+                const inp  = document.getElementById(inputId);
+                const icon = this.querySelector('i');
+                const hide = inp.type === 'password';
+                inp.type        = hide ? 'text' : 'password';
+                icon.className  = hide ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+            });
+        }
+        setupEye('btnEyeNova',      'fNovaSenha');
+        setupEye('btnEyeConfirmar', 'fConfirmarSenha');
+
+        // ── Barra de força de senha ───────────────────────────
+        document.getElementById('fNovaSenha').addEventListener('input', function () {
+            const v     = this.value;
+            const fill  = document.getElementById('strengthFill');
+            const label = document.getElementById('strengthLabel');
+            let score = 0;
+            if (v.length >= 8)          score++;
+            if (/[A-Z]/.test(v))        score++;
+            if (/[0-9]/.test(v))        score++;
+            if (/[^A-Za-z0-9]/.test(v)) score++;
+
+            const levels = [
+                { w: '0%',   bg: '',        txt: '' },
+                { w: '25%',  bg: '#ef4444', txt: 'Muito fraca' },
+                { w: '50%',  bg: '#f59e0b', txt: 'Fraca' },
+                { w: '75%',  bg: '#3b82f6', txt: 'Boa' },
+                { w: '100%', bg: '#10b981', txt: 'Forte' },
+            ];
+            const lvl = v.length === 0 ? levels[0] : (levels[score] || levels[1]);
+            fill.style.width      = lvl.w;
+            fill.style.background = lvl.bg;
+            label.textContent     = lvl.txt;
+            label.style.color     = lvl.bg || 'var(--text-muted)';
+        });
+
+        // ── Funções de UI — Formulário de dados pessoais ─────
+        function mostrarSucessoDados() {
+            document.getElementById('alertDadosOk').classList.add('show');
+            document.getElementById('alertDadosErr').classList.remove('show');
+            setTimeout(() => document.getElementById('alertDadosOk').classList.remove('show'), 4000);
+        }
+        function mostrarErroDados(msg) {
+            document.getElementById('alertDadosErrMsg').textContent = msg;
+            document.getElementById('alertDadosErr').classList.add('show');
+            document.getElementById('alertDadosOk').classList.remove('show');
+            setTimeout(() => document.getElementById('alertDadosErr').classList.remove('show'), 6000);
+        }
+        function setLoadingDados(on) {
+            const btn = document.getElementById('btnSalvarDados');
+            btn.disabled  = on;
+            btn.innerHTML = on
+                ? '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...'
+                : '<i class="fa-solid fa-floppy-disk"></i> Salvar dados';
         }
 
-        // ── CARREGAR DADOS ────────────────────────────────────
-        function carregarDados() {
-            const u = JSON.parse(localStorage.getItem('tl_user') || '{}');
-
-            // Sidebar card
-            const nomeCompleto = [u.nome, u.sobrenome].filter(Boolean).join(' ') || 'Usuário';
-            document.getElementById('avatarBig').textContent   = nomeCompleto.charAt(0).toUpperCase();
-            document.getElementById('sidebarName').textContent = nomeCompleto;
-            document.getElementById('sidebarRole').textContent = u.cargo || 'Sem cargo';
-            document.getElementById('sidebarEmail').textContent = u.email || '—';
-            document.getElementById('sidebarCargo').textContent = u.cargo || '—';
-            document.getElementById('sidebarSetor').textContent = u.setor || '—';
-            document.getElementById('sidebarMembro').textContent = u.membroDesde || '—';
-            document.getElementById('sidebarNivel').textContent  = u.nivel || 'Usuário';
-
-            // Avatar no header
-            const av = document.querySelector('.user-avatar');
-            if (av) av.textContent = nomeCompleto.charAt(0).toUpperCase();
-
-            // Formulário
-            document.getElementById('fNome').value      = u.nome || '';
-            document.getElementById('fSobrenome').value = u.sobrenome || '';
-            document.getElementById('fEmail').value     = u.email || '';
-            document.getElementById('fTelefone').value  = u.telefone || '';
-            document.getElementById('fSetor').value     = u.setor || '';
-
-            const cargoSel = document.getElementById('fCargo');
-            if (u.cargo) {
-                for (let i = 0; i < cargoSel.options.length; i++) {
-                    if (cargoSel.options[i].text === u.cargo) { cargoSel.selectedIndex = i; break; }
-                }
-            }
-
-            document.getElementById('ultimaAtualizacao').textContent = u.ultimaAtualizacao || 'Nunca';
+        // ── Funções de UI — Formulário de senha ──────────────
+        function mostrarSucessoSenha() {
+            document.getElementById('alertSenhaOk').classList.add('show');
+            document.getElementById('alertSenhaErr').classList.remove('show');
+            setTimeout(() => document.getElementById('alertSenhaOk').classList.remove('show'), 4000);
+        }
+        function mostrarErroSenha(msg) {
+            document.getElementById('alertSenhaErrMsg').textContent = msg;
+            document.getElementById('alertSenhaErr').classList.add('show');
+            document.getElementById('alertSenhaOk').classList.remove('show');
+            setTimeout(() => document.getElementById('alertSenhaErr').classList.remove('show'), 6000);
+        }
+        function setLoadingSenha(on) {
+            const btn = document.getElementById('btnSalvarSenha');
+            btn.disabled  = on;
+            btn.innerHTML = on
+                ? '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...'
+                : '<i class="fa-solid fa-floppy-disk"></i> Salvar senha';
         }
 
-        // ── SALVAR PERFIL ─────────────────────────────────────
-        function salvarPerfil() {
-            const alertOk  = document.getElementById('alertOk');
-            const alertErr = document.getElementById('alertErr');
-            const errMsg   = document.getElementById('alertErrMsg');
-            alertOk.classList.remove('show');
-            alertErr.classList.remove('show');
+        // ── Event listeners dos botões ────────────────────────
+        // Form 1: dados pessoais
+        document.getElementById('btnSalvarDados').addEventListener('click', () => salvarDadosPessoais());
+        document.getElementById('btnCancelarDados').addEventListener('click', () => carregarDados());
 
-            const nome      = document.getElementById('fNome').value.trim();
-            const sobrenome = document.getElementById('fSobrenome').value.trim();
-            const email     = document.getElementById('fEmail').value.trim();
-            const novaSenha = document.getElementById('fNovaSenha').value;
-            const confirmar = document.getElementById('fConfirmarSenha').value;
+        // Form 2: senha
+        document.getElementById('btnSalvarSenha').addEventListener('click', () => salvarSenha());
+        document.getElementById('btnCancelarSenha').addEventListener('click', () => {
+            document.getElementById('fNovaSenha').value      = '';
+            document.getElementById('fConfirmarSenha').value = '';
+            // Zera a barra de força
+            const fill  = document.getElementById('strengthFill');
+            const label = document.getElementById('strengthLabel');
+            fill.style.width = '0%'; fill.style.background = '';
+            label.textContent = '';
+            document.getElementById('alertSenhaOk').classList.remove('show');
+            document.getElementById('alertSenhaErr').classList.remove('show');
+        });
 
-            if (!nome || !email) {
-                errMsg.textContent = 'Nome e e-mail são obrigatórios.';
-                alertErr.classList.add('show'); return;
-            }
-            if (novaSenha && novaSenha !== confirmar) {
-                errMsg.textContent = 'As novas senhas não coincidem.';
-                alertErr.classList.add('show'); return;
-            }
-            if (novaSenha && novaSenha.length < 8) {
-                errMsg.textContent = 'A nova senha deve ter pelo menos 8 caracteres.';
-                alertErr.classList.add('show'); return;
-            }
+        // Logout
+        document.getElementById('btnLogout').addEventListener('click', e => {
+            e.preventDefault();
+            encerrarSessao();
+        });
 
-            // Salvar no localStorage (integrar com API real aqui)
-            const u = JSON.parse(localStorage.getItem('tl_user') || '{}');
-            u.nome      = nome;
-            u.sobrenome = sobrenome;
-            u.email     = email;
-            u.telefone  = document.getElementById('fTelefone').value;
-            u.cargo     = document.getElementById('fCargo').value;
-            u.setor     = document.getElementById('fSetor').value;
-            u.ultimaAtualizacao = new Date().toLocaleDateString('pt-BR');
-            localStorage.setItem('tl_user', JSON.stringify(u));
+        // Enter nos campos do form de dados pessoais
+        ['fNome', 'fSobrenome', 'fEmail'].forEach(id => {
+            document.getElementById(id)?.addEventListener('keydown', e => {
+                if (e.key === 'Enter') salvarDadosPessoais();
+            });
+        });
 
-            // Limpar campos de senha
-            ['fSenhaAtual','fNovaSenha','fConfirmarSenha'].forEach(id => document.getElementById(id).value = '');
+        // Enter nos campos de senha
+        ['fNovaSenha', 'fConfirmarSenha'].forEach(id => {
+            document.getElementById(id)?.addEventListener('keydown', e => {
+                if (e.key === 'Enter') salvarSenha();
+            });
+        });
 
-            carregarDados();
-            alertOk.classList.add('show');
-            setTimeout(() => alertOk.classList.remove('show'), 3500);
-        }
-
-        // ── INIT ─────────────────────────────────────────────
-        carregarDados();
+        // ── Inicializa (verifica sessão + carrega dados) ──────
+        document.addEventListener('DOMContentLoaded', () => inicializarPerfil());
     </script>
 </body>
 </html>

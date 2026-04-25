@@ -25,4 +25,7 @@ public class Usuario
 
     [Required]
     public string Senha { get; set; } = null!;
+
+    [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
+    public DateTime CriadoEm { get; set; }
 }

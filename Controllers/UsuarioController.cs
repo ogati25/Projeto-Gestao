@@ -127,7 +127,8 @@ public class UsuariosController : ControllerBase
             Nome = usuario.Nome,
             Sobrenome = usuario.Sobrenome,
             Email = usuario.Email,
-            Setor = usuario.Setor
+            Setor = usuario.Setor,
+            CriadoEm = usuario.CriadoEm
         };
     }
 }

@@ -43,7 +43,7 @@ public class UsuarioService
 
         // Aplica hash na senha ANTES de salvar
         usuario.Senha = _passwordHasher.HashPassword(usuario, usuario.Senha);
-
+        usuario.CriadoEm = DateTime.UtcNow;
         await _usuarios.InsertOneAsync(usuario);
     }
     
