@@ -15,8 +15,7 @@
             font-size: 11px; color: #475569;
         }
         .btn-logout {
-            display: flex; align-items: center; gap: 6px;
-            padding: 5px 10px;
+            display: flex; align-items: center; gap: 6px; padding: 5px 10px;
             background: rgba(239,68,68,0.12); color: #f87171;
             border: 1px solid rgba(239,68,68,0.2); border-radius: 6px;
             font-size: 11px; font-weight: 700; cursor: pointer;
@@ -38,18 +37,12 @@
             align-items: start;
         }
 
-        /* ---- Card lateral (avatar + stats) ---- */
+        /* ---- Card lateral ---- */
         .profile-card {
-            background: var(--secondary-color);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: var(--card-shadow);
-            padding: 28px 24px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 14px;
-            text-align: center;
+            background: var(--secondary-color); border: 1px solid var(--border-color);
+            border-radius: 12px; box-shadow: var(--card-shadow);
+            padding: 28px 24px; display: flex; flex-direction: column;
+            align-items: center; gap: 14px; text-align: center;
         }
         .avatar-wrap { position: relative; width: 90px; height: 90px; }
         .avatar-big {
@@ -60,15 +53,12 @@
         }
         .avatar-edit-btn {
             position: absolute; bottom: 0; right: 0;
-            width: 26px; height: 26px;
-            background: var(--quinary-hover);
-            border: 2px solid var(--secondary-color);
-            border-radius: 50%;
+            width: 26px; height: 26px; background: var(--quinary-hover);
+            border: 2px solid var(--secondary-color); border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; font-size: 11px; color: #fff; transition: background 0.2s;
         }
         .avatar-edit-btn:hover { background: var(--quinary-color); }
-
         .profile-name  { font-size: 18px; font-weight: 700; color: var(--text-primary); line-height: 1.2; }
         .profile-role  { font-size: 12px; color: var(--text-muted); margin-top: -8px; }
         .profile-badge {
@@ -79,49 +69,38 @@
         body.dark .profile-badge { background: #1e3a5f; color: #60a5fa; }
         .profile-divider { width: 100%; border: none; border-top: 1px solid var(--border-color); }
         .profile-stat-list { width: 100%; display: flex; flex-direction: column; gap: 10px; }
-        .profile-stat-item {
-            display: flex; align-items: center; justify-content: space-between; font-size: 12px;
-        }
-        .profile-stat-item .psi-label {
-            color: var(--text-muted); display: flex; align-items: center; gap: 6px;
-        }
+        .profile-stat-item { display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
+        .profile-stat-item .psi-label { color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
         .profile-stat-item .psi-label i { width: 14px; text-align: center; font-size: 12px; }
         .profile-stat-item .psi-val {
             font-weight: 700; color: var(--text-primary);
             max-width: 150px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;
         }
 
-        /* ---- Coluna direita: empilha os dois cards ---- */
+        /* ---- Coluna direita ---- */
         .profile-forms { display: flex; flex-direction: column; gap: 20px; }
 
-        /* ---- Card de formulário genérico ---- */
+        /* ---- Card de formulário ---- */
         .profile-form-card {
-            background: var(--secondary-color);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: var(--card-shadow);
-            overflow: hidden;
+            background: var(--secondary-color); border: 1px solid var(--border-color);
+            border-radius: 12px; box-shadow: var(--card-shadow); overflow: hidden;
         }
         .pfc-header {
-            padding: 16px 24px;
-            border-bottom: 1px solid var(--border-color);
+            padding: 16px 24px; border-bottom: 1px solid var(--border-color);
             display: flex; align-items: center; justify-content: space-between;
         }
         .pfc-header h3 { font-size: 14px; font-weight: 700; color: var(--text-primary); }
         .pfc-header p  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
         .pfc-header-icon {
             width: 36px; height: 36px; border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
         .pfc-header-icon i { font-size: 16px; color: #fff; }
         .pfc-header-icon.blue   { background: #3b82f6; }
         .pfc-header-icon.orange { background: #f59e0b; }
-
-        .pfc-body   { padding: 24px; }
+        .pfc-body { padding: 24px; }
         .pfc-footer {
-            padding: 14px 24px;
-            border-top: 1px solid var(--border-color);
+            padding: 14px 24px; border-top: 1px solid var(--border-color);
             display: flex; align-items: center; justify-content: space-between;
             gap: 10px; flex-wrap: wrap;
         }
@@ -129,20 +108,15 @@
         .pfc-footer-right { display: flex; gap: 8px; }
 
         /* ---- Grid de campos ---- */
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px 20px;
-        }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 20px; }
         .fg { display: flex; flex-direction: column; gap: 5px; }
         .fg label {
             font-size: 11px; font-weight: 700;
             text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted);
         }
         .fg input, .fg select {
-            padding: 9px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px; font-size: 13px;
+            padding: 9px 12px; border: 1px solid var(--border-color);
+            border-radius: 8px; font-size: 13px; width: 100%;
             background: var(--background-color); color: var(--text-primary);
             outline: none; transition: border 0.2s, box-shadow 0.2s; font-family: inherit;
         }
@@ -152,32 +126,37 @@
             background: var(--secondary-color);
         }
 
-        /* Campos de senha com ícone de olho */
-        .fg-pass { position: relative; }
-        .fg-pass input { padding-right: 38px; }
-        .fg-pass .eye-btn {
-            position: absolute; right: 10px; bottom: 9px;
-            background: none; border: none; cursor: pointer;
-            color: var(--text-muted); font-size: 13px; transition: color 0.2s;
+        /*
+         * CORREÇÃO dos campos de senha:
+         * .input-wrap envolve APENAS o <input>, com position:relative.
+         * O botão de olho fica absolute dentro desse wrapper, sempre
+         * alinhado ao input — independente da barra de força abaixo.
+         */
+        .input-wrap {
+            position: relative;
         }
-        .fg-pass .eye-btn:hover { color: var(--text-primary); }
+        .input-wrap input {
+            padding-right: 38px;
+        }
+        .input-wrap .eye-btn {
+            position: absolute;
+            top: 50%; right: 10px;
+            transform: translateY(-50%);
+            background: none; border: none; cursor: pointer; padding: 0;
+            color: var(--text-muted); font-size: 14px; line-height: 1;
+            transition: color 0.2s;
+        }
+        .input-wrap .eye-btn:hover { color: var(--text-primary); }
 
-        /* Barra de força de senha */
-        .strength-bar {
-            height: 4px; background: var(--border-color);
-            border-radius: 2px; margin-top: 5px; overflow: hidden;
-        }
-        .strength-fill {
-            height: 100%; border-radius: 2px;
-            transition: width 0.3s, background 0.3s; width: 0%;
-        }
-        .strength-label { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+        /* Barra de força */
+        .strength-bar { height: 4px; background: var(--border-color); border-radius: 2px; overflow: hidden; }
+        .strength-fill { height: 100%; border-radius: 2px; width: 0%; transition: width 0.3s, background 0.3s; }
+        .strength-label { font-size: 11px; color: var(--text-muted); min-height: 16px; }
 
-        /* Alertas por formulário */
+        /* Alertas */
         .alert-strip {
             display: none; align-items: center; gap: 8px;
-            padding: 10px 14px; border-radius: 8px;
-            font-size: 13px; margin-bottom: 16px;
+            padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px;
         }
         .alert-strip.show { display: flex; }
         .alert-success { background: #d1fae5; border: 1px solid #a7f3d0; color: #065f46; }
@@ -188,7 +167,7 @@
 
     <!-- SIDEBAR -->
     <div class="sidebar" id="sidebar">
-        <button id="toggleSidebar" class="toggle-btn">
+        <button class="toggle-btn" onclick="document.getElementById('sidebar').classList.toggle('closed')">
             <i class="fa-solid fa-angles-left icon-close"></i>
             <i class="fa-solid fa-angles-right icon-open"></i>
         </button>
@@ -198,8 +177,10 @@
         </div>
         <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" placeholder="Buscar...">
-            <i class="fa-solid fa-xmark clear-btn"></i>
+            <input type="text" placeholder="Buscar..."
+                   oninput="this.nextElementSibling.style.opacity = this.value ? '1' : '0'">
+            <i class="fa-solid fa-xmark clear-btn"
+               onclick="this.previousElementSibling.value=''; this.style.opacity=0"></i>
         </div>
         <ul class="menu">
             <li><a href="dashboard.html"><i class="material-icons" style="font-size:18px">dashboard</i><span>Dashboard</span></a></li>
@@ -207,12 +188,12 @@
             <li><a href="pedidos.html"><i class="fa-solid fa-clipboard-list"></i><span>Pedidos</span></a></li>
             <li><a href="funcionarios.html"><i class="fa-solid fa-users"></i><span>Funcionários</span></a></li>
             <li><a href="relatorios.html"><i class="fa-solid fa-chart-bar"></i><span>Relatórios</span></a></li>
-            <li><a href="perfil.html"><i class="fa-solid fa-circle-user"></i><span>Perfil</span></a></li>
+            <li><a href="perfil.html" class="active-link"><i class="fa-solid fa-circle-user"></i><span>Perfil</span></a></li>
             <li><a href="configuracoes.html"><i class="fa-solid fa-gear"></i><span>Configurações</span></a></li>
         </ul>
         <div class="sidebar-footer">
             <span>v1.0</span>
-            <a href="#" class="btn-logout" id="btnLogout">
+            <a href="#" class="btn-logout" onclick="event.preventDefault(); encerrarSessao()">
                 <i class="fa-solid fa-right-from-bracket"></i> Sair
             </a>
         </div>
@@ -229,9 +210,7 @@
                         <i class="fa-solid fa-moon icon-moon"></i>
                     </button>
                     <div class="user-avatar" id="headerAvatar"
-                         title="Meu Perfil"
-                         onclick="window.location.href='perfil.html'"
-                         style="cursor:pointer">?</div>
+                         title="Meu Perfil" onclick="window.location.href='perfil.html'">?</div>
                 </div>
             </div>
         </header>
@@ -239,7 +218,7 @@
         <div class="main">
             <div class="profile-layout">
 
-                <!-- ══════════════════ CARD LATERAL ══════════════════ -->
+                <!-- ══════════ CARD LATERAL ══════════ -->
                 <div class="profile-card">
                     <div class="avatar-wrap">
                         <div class="avatar-big" id="avatarBig">?</div>
@@ -272,23 +251,19 @@
                     </div>
                 </div>
 
-                <!-- ══════════════════ COLUNA DIREITA ══════════════════ -->
+                <!-- ══════════ COLUNA DIREITA ══════════ -->
                 <div class="profile-forms">
 
-                    <!-- ────────────── FORMULÁRIO 1: DADOS PESSOAIS ────────────── -->
+                    <!-- ── FORM 1: DADOS PESSOAIS ── -->
                     <div class="profile-form-card">
                         <div class="pfc-header">
                             <div>
                                 <h3>Informações pessoais</h3>
                                 <p>Nome, e-mail e setor vinculados à sua conta</p>
                             </div>
-                            <div class="pfc-header-icon blue">
-                                <i class="fa-solid fa-user"></i>
-                            </div>
+                            <div class="pfc-header-icon blue"><i class="fa-solid fa-user"></i></div>
                         </div>
                         <div class="pfc-body">
-
-                            <!-- Alertas do form de dados pessoais -->
                             <div class="alert-strip alert-success" id="alertDadosOk">
                                 <i class="fa-solid fa-circle-check"></i> Dados atualizados com sucesso!
                             </div>
@@ -296,25 +271,25 @@
                                 <i class="fa-solid fa-circle-exclamation"></i>
                                 <span id="alertDadosErrMsg">Erro ao salvar.</span>
                             </div>
-
                             <div class="form-grid">
                                 <div class="fg">
                                     <label>Nome</label>
-                                    <input type="text" id="fNome" placeholder="João">
+                                    <input type="text" id="fNome" placeholder="João"
+                                           onkeydown="if(event.key==='Enter') salvarDadosPessoais()">
                                 </div>
                                 <div class="fg">
                                     <label>Sobrenome</label>
-                                    <input type="text" id="fSobrenome" placeholder="Silva">
+                                    <input type="text" id="fSobrenome" placeholder="Silva"
+                                           onkeydown="if(event.key==='Enter') salvarDadosPessoais()">
                                 </div>
                                 <div class="fg">
                                     <label>E-mail</label>
-                                    <input type="email" id="fEmail" placeholder="joao@empresa.com">
+                                    <input type="email" id="fEmail" placeholder="joao@empresa.com"
+                                           onkeydown="if(event.key==='Enter') salvarDadosPessoais()">
                                 </div>
                                 <div class="fg">
                                     <label>Setor</label>
-                                    <select id="fSetor">
-                                        <!-- Populado via perfil.js -->
-                                    </select>
+                                    <select id="fSetor"><!-- populado por perfil.js --></select>
                                 </div>
                             </div>
                         </div>
@@ -323,30 +298,27 @@
                                 Última atualização: <span id="ultimaAtualizacao">—</span>
                             </span>
                             <div class="pfc-footer-right">
-                                <button class="btn btn-outline" id="btnCancelarDados">
+                                <button class="btn btn-outline" onclick="carregarDados()">
                                     <i class="fa-solid fa-rotate-left"></i> Cancelar
                                 </button>
-                                <button class="btn btn-primary" id="btnSalvarDados">
+                                <button class="btn btn-primary" id="btnSalvarDados"
+                                        onclick="salvarDadosPessoais()">
                                     <i class="fa-solid fa-floppy-disk"></i> Salvar dados
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- ────────────── FORMULÁRIO 2: ALTERAR SENHA ────────────── -->
+                    <!-- ── FORM 2: ALTERAR SENHA ── -->
                     <div class="profile-form-card">
                         <div class="pfc-header">
                             <div>
                                 <h3>Alterar senha</h3>
                                 <p>Escolha uma senha forte com pelo menos 8 caracteres</p>
                             </div>
-                            <div class="pfc-header-icon orange">
-                                <i class="fa-solid fa-lock"></i>
-                            </div>
+                            <div class="pfc-header-icon orange"><i class="fa-solid fa-lock"></i></div>
                         </div>
                         <div class="pfc-body">
-
-                            <!-- Alertas do form de senha -->
                             <div class="alert-strip alert-success" id="alertSenhaOk">
                                 <i class="fa-solid fa-circle-check"></i> Senha alterada com sucesso!
                             </div>
@@ -354,41 +326,53 @@
                                 <i class="fa-solid fa-circle-exclamation"></i>
                                 <span id="alertSenhaErrMsg">Erro ao salvar.</span>
                             </div>
-
                             <div class="form-grid">
-                                <div class="fg fg-pass">
+
+                                <!-- Nova senha -->
+                                <div class="fg">
                                     <label>Nova senha</label>
-                                    <input type="password" id="fNovaSenha"
-                                           placeholder="Mínimo 8 caracteres"
-                                           autocomplete="new-password">
-                                    <button type="button" class="eye-btn" id="btnEyeNova">
-                                        <i class="fa-solid fa-eye"></i>
-                                    </button>
+                                    <div class="input-wrap">
+                                        <input type="password" id="fNovaSenha"
+                                               placeholder="Mínimo 8 caracteres"
+                                               autocomplete="new-password"
+                                               oninput="atualizarForca(this.value)"
+                                               onkeydown="if(event.key==='Enter') salvarSenha()">
+                                        <button type="button" class="eye-btn" tabindex="-1"
+                                                onclick="toggleEye('fNovaSenha', this)">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </button>
+                                    </div>
                                     <div class="strength-bar">
                                         <div class="strength-fill" id="strengthFill"></div>
                                     </div>
                                     <span class="strength-label" id="strengthLabel"></span>
                                 </div>
-                                <div class="fg fg-pass">
+
+                                <!-- Confirmar senha -->
+                                <div class="fg">
                                     <label>Confirmar nova senha</label>
-                                    <input type="password" id="fConfirmarSenha"
-                                           placeholder="Repita a nova senha"
-                                           autocomplete="new-password">
-                                    <button type="button" class="eye-btn" id="btnEyeConfirmar">
-                                        <i class="fa-solid fa-eye"></i>
-                                    </button>
+                                    <div class="input-wrap">
+                                        <input type="password" id="fConfirmarSenha"
+                                               placeholder="Repita a nova senha"
+                                               autocomplete="new-password"
+                                               onkeydown="if(event.key==='Enter') salvarSenha()">
+                                        <button type="button" class="eye-btn" tabindex="-1"
+                                                onclick="toggleEye('fConfirmarSenha', this)">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </button>
+                                    </div>
                                 </div>
+
                             </div>
                         </div>
                         <div class="pfc-footer">
-                            <span class="pfc-footer-left">
-                                A senha anterior será invalidada imediatamente.
-                            </span>
+                            <span class="pfc-footer-left">A senha anterior será invalidada imediatamente.</span>
                             <div class="pfc-footer-right">
-                                <button class="btn btn-outline" id="btnCancelarSenha">
+                                <button class="btn btn-outline" onclick="limparSenha()">
                                     <i class="fa-solid fa-rotate-left"></i> Limpar
                                 </button>
-                                <button class="btn btn-primary" id="btnSalvarSenha">
+                                <button class="btn btn-primary" id="btnSalvarSenha"
+                                        onclick="salvarSenha()">
                                     <i class="fa-solid fa-floppy-disk"></i> Salvar senha
                                 </button>
                             </div>
@@ -400,17 +384,15 @@
         </div><!-- /main -->
     </main>
 
-    <!-- ══════════════════ SCRIPTS ══════════════════ -->
     <!-- Ordem obrigatória: api.js → perfil.js → inline -->
-    <script src="api.js"></script>
-    <script src="perfil.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/perfil.js"></script>
     <script>
-        // ════════════════════════════════════════════════════════
+        // ════════════════════════════════════════════════════
         //  FRONT-END PURO — sem chamadas de API aqui
-        //  Toda comunicação com o servidor fica em perfil.js
-        // ════════════════════════════════════════════════════════
+        // ════════════════════════════════════════════════════
 
-        // ── Tema persistente ──────────────────────────────────
+        // ── Tema ─────────────────────────────────────────────
         (function () {
             const saved = localStorage.getItem('tl_theme') || 'light';
             if (saved === 'dark') document.body.classList.add('dark');
@@ -423,58 +405,58 @@
             });
         })();
 
-        // ── Sidebar ───────────────────────────────────────────
-        document.getElementById('toggleSidebar').addEventListener('click', () => {
-            document.getElementById('sidebar').classList.toggle('closed');
-        });
-        const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
-        document.querySelectorAll('.menu li a').forEach(link => {
-            if (link.getAttribute('href') === currentPage)
-                link.parentElement.classList.add('active');
-        });
-        document.querySelector('.clear-btn')?.addEventListener('click', () => {
-            document.querySelector('.search-box input').value = '';
+        // Marca item ativo no menu
+        document.querySelectorAll('.menu li a').forEach(a => {
+            a.parentElement.classList.toggle(
+                'active',
+                a.getAttribute('href') === (window.location.pathname.split('/').pop() || 'dashboard.html')
+            );
         });
 
-        // ── Toggle visibilidade de senha ─────────────────────
-        function setupEye(btnId, inputId) {
-            document.getElementById(btnId).addEventListener('click', function () {
-                const inp  = document.getElementById(inputId);
-                const icon = this.querySelector('i');
-                const hide = inp.type === 'password';
-                inp.type        = hide ? 'text' : 'password';
-                icon.className  = hide ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
-            });
+        // ── Toggle olho (chamado via onclick no HTML) ────────
+        function toggleEye(inputId, btn) {
+            const inp  = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            const hide = inp.type === 'password';
+            inp.type       = hide ? 'text' : 'password';
+            icon.className = hide ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
         }
-        setupEye('btnEyeNova',      'fNovaSenha');
-        setupEye('btnEyeConfirmar', 'fConfirmarSenha');
 
-        // ── Barra de força de senha ───────────────────────────
-        document.getElementById('fNovaSenha').addEventListener('input', function () {
-            const v     = this.value;
+        // ── Barra de força (chamada via oninput no HTML) ─────
+        function atualizarForca(v) {
             const fill  = document.getElementById('strengthFill');
             const label = document.getElementById('strengthLabel');
-            let score = 0;
-            if (v.length >= 8)          score++;
-            if (/[A-Z]/.test(v))        score++;
-            if (/[0-9]/.test(v))        score++;
-            if (/[^A-Za-z0-9]/.test(v)) score++;
-
-            const levels = [
-                { w: '0%',   bg: '',        txt: '' },
-                { w: '25%',  bg: '#ef4444', txt: 'Muito fraca' },
-                { w: '50%',  bg: '#f59e0b', txt: 'Fraca' },
-                { w: '75%',  bg: '#3b82f6', txt: 'Boa' },
-                { w: '100%', bg: '#10b981', txt: 'Forte' },
-            ];
-            const lvl = v.length === 0 ? levels[0] : (levels[score] || levels[1]);
+            if (!v) {
+                fill.style.cssText = 'width:0%'; label.textContent = ''; label.style.color = ''; return;
+            }
+            let s = 0;
+            if (v.length >= 8)          s++;
+            if (/[A-Z]/.test(v))        s++;
+            if (/[0-9]/.test(v))        s++;
+            if (/[^A-Za-z0-9]/.test(v)) s++;
+            const lvl = [
+                { w:'25%',  bg:'#ef4444', txt:'Muito fraca' },
+                { w:'25%',  bg:'#ef4444', txt:'Muito fraca' },
+                { w:'50%',  bg:'#f59e0b', txt:'Fraca'       },
+                { w:'75%',  bg:'#3b82f6', txt:'Boa'         },
+                { w:'100%', bg:'#10b981', txt:'Forte'       },
+            ][s];
             fill.style.width      = lvl.w;
             fill.style.background = lvl.bg;
             label.textContent     = lvl.txt;
-            label.style.color     = lvl.bg || 'var(--text-muted)';
-        });
+            label.style.color     = lvl.bg;
+        }
 
-        // ── Funções de UI — Formulário de dados pessoais ─────
+        // ── Limpar form de senha ──────────────────────────────
+        function limparSenha() {
+            document.getElementById('fNovaSenha').value      = '';
+            document.getElementById('fConfirmarSenha').value = '';
+            atualizarForca('');
+            document.getElementById('alertSenhaOk').classList.remove('show');
+            document.getElementById('alertSenhaErr').classList.remove('show');
+        }
+
+        // ── Funções de UI — Form dados pessoais ──────────────
         function mostrarSucessoDados() {
             document.getElementById('alertDadosOk').classList.add('show');
             document.getElementById('alertDadosErr').classList.remove('show');
@@ -494,7 +476,7 @@
                 : '<i class="fa-solid fa-floppy-disk"></i> Salvar dados';
         }
 
-        // ── Funções de UI — Formulário de senha ──────────────
+        // ── Funções de UI — Form senha ────────────────────────
         function mostrarSucessoSenha() {
             document.getElementById('alertSenhaOk').classList.add('show');
             document.getElementById('alertSenhaErr').classList.remove('show');
@@ -514,46 +496,9 @@
                 : '<i class="fa-solid fa-floppy-disk"></i> Salvar senha';
         }
 
-        // ── Event listeners dos botões ────────────────────────
-        // Form 1: dados pessoais
-        document.getElementById('btnSalvarDados').addEventListener('click', () => salvarDadosPessoais());
-        document.getElementById('btnCancelarDados').addEventListener('click', () => carregarDados());
-
-        // Form 2: senha
-        document.getElementById('btnSalvarSenha').addEventListener('click', () => salvarSenha());
-        document.getElementById('btnCancelarSenha').addEventListener('click', () => {
-            document.getElementById('fNovaSenha').value      = '';
-            document.getElementById('fConfirmarSenha').value = '';
-            // Zera a barra de força
-            const fill  = document.getElementById('strengthFill');
-            const label = document.getElementById('strengthLabel');
-            fill.style.width = '0%'; fill.style.background = '';
-            label.textContent = '';
-            document.getElementById('alertSenhaOk').classList.remove('show');
-            document.getElementById('alertSenhaErr').classList.remove('show');
-        });
-
-        // Logout
-        document.getElementById('btnLogout').addEventListener('click', e => {
-            e.preventDefault();
-            encerrarSessao();
-        });
-
-        // Enter nos campos do form de dados pessoais
-        ['fNome', 'fSobrenome', 'fEmail'].forEach(id => {
-            document.getElementById(id)?.addEventListener('keydown', e => {
-                if (e.key === 'Enter') salvarDadosPessoais();
-            });
-        });
-
-        // Enter nos campos de senha
-        ['fNovaSenha', 'fConfirmarSenha'].forEach(id => {
-            document.getElementById(id)?.addEventListener('keydown', e => {
-                if (e.key === 'Enter') salvarSenha();
-            });
-        });
-
-        // ── Inicializa (verifica sessão + carrega dados) ──────
+        // ── Inicializa ao carregar a página ──────────────────
+        // inicializarPerfil() lê o sessionStorage['usuarioLogado']
+        // salvo pelo login.js e redireciona se não houver sessão.
         document.addEventListener('DOMContentLoaded', () => inicializarPerfil());
     </script>
 </body>

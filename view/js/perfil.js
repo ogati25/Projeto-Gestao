@@ -1,32 +1,21 @@
 // =============================================================================
 // perfil.js — Backend da tela de perfil
-// Responsabilidade: sessão, comunicação com a API e lógica de domínio.
 //
-// O que está aqui:
-//   - Enum SETORES (espelha Setor.cs)
-//   - Gestão de sessão (obterSessao, atualizarSessao, encerrarSessao)
-//   - inicializarPerfil()     — ponto de entrada, verifica sessão
-//   - carregarDados()         — GET /api/usuarios/{id} → preenche UI
-//   - salvarDadosPessoais()   — PUT /dados-pessoais + PUT /email
-//   - salvarSenha()           — PUT /senha
-//   - popularSelectSetores()  — injeta <option> no #fSetor
-//
-// O que NÃO está aqui (fica no <script> inline do HTML):
-//   - Toggle de visibilidade de senha / barra de força
-//   - Tema, sidebar, busca
-//   - mostrarErroDados, mostrarSucessoDados, setLoadingDados
-//   - mostrarErroSenha, mostrarSucessoSenha, setLoadingSenha
+// SESSÃO:
+//   O login.js usa sessionStorage com chave 'usuarioLogado'.
+//   O objeto salvo vem direto da API, que sem JsonNamingPolicy.CamelCase
+//   no Program.cs serializa em PascalCase: { Id, Nome, Sobrenome, Email, Setor }.
+//   _norm() converte para camelCase internamente para uso seguro aqui.
 //
 // Dependências:
-//   - api.js (getUsuario, atualizarDadosPessoais, atualizarEmail, atualizarSenha)
-//   - Funções de UI definidas no <script> inline do HTML
+//   - api.js  (getUsuario, atualizarDadosPessoais, atualizarEmail, atualizarSenha)
+//   - Funções de UI definidas no inline do HTML:
+//       mostrarErroDados / mostrarSucessoDados / setLoadingDados
+//       mostrarErroSenha / mostrarSucessoSenha / setLoadingSenha
 // =============================================================================
 
 
-// =============================================================================
-// SEÇÃO 1 — ENUM DE DOMÍNIO: SETOR  (espelha Setor.cs)
-// =============================================================================
-
+// ── Enum Setor (espelha Setor.cs) ────────────────────────────────────────────
 const SETORES = [
     { value: 'RH',         label: 'RH'         },
     { value: 'Suporte',    label: 'Suporte'     },
@@ -39,97 +28,94 @@ const SETORES = [
     { value: 'Servidor',   label: 'Servidor'    },
 ];
 
+// ── Chave idêntica à usada em login.js ───────────────────────────────────────
+const _SESS_KEY = 'usuarioLogado';
+// Persiste a data/hora da última alteração salva com sucesso (localStorage)
+const _ULT_KEY  = 'tl_perfil_ultima_atualizacao';
+
+// ── Estado local ─────────────────────────────────────────────────────────────
+let usuarioAtual = null;
+
 
 // =============================================================================
-// SEÇÃO 2 — GESTÃO DE SESSÃO
-// Usa a mesma chave do login.js ('usuarioLogado' no sessionStorage).
+// SESSÃO
 // =============================================================================
-
-const SESSION_KEY = 'usuarioLogado';
-
-/** Retorna o objeto de sessão ou null. */
-function obterSessao() {
-    try {
-        const raw = sessionStorage.getItem(SESSION_KEY);
-        return raw ? JSON.parse(raw) : null;
-    } catch {
-        return null;
-    }
-}
-
-/** Atualiza campos do usuário na sessão sem sobrescrever outros. */
-function atualizarSessao(dadosNovos) {
-    const atual = obterSessao() ?? {};
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ ...atual, ...dadosNovos }));
-}
 
 /**
- * Encerra a sessão e redireciona para o login.
- * Chamado pelo botão de logout no HTML.
+ * Normaliza PascalCase (.NET) → camelCase para uso interno.
+ * Aceita qualquer combinação dos dois formatos.
  */
+function _norm(u) {
+    if (!u) return null;
+    return {
+        id:        u.id        ?? u.Id        ?? null,
+        nome:      u.nome      ?? u.Nome      ?? '',
+        sobrenome: u.sobrenome ?? u.Sobrenome ?? '',
+        email:     u.email     ?? u.Email     ?? '',
+        setor:     u.setor     ?? u.Setor     ?? '',
+        criadoEm:  u.criadoEm  ?? u.CriadoEm  ?? null,
+    };
+}
+
+/** Lê a sessão salva pelo login.js e normaliza para camelCase. */
+function _lerSessao() {
+    try {
+        const raw = sessionStorage.getItem(_SESS_KEY);
+        return raw ? _norm(JSON.parse(raw)) : null;
+    } catch { return null; }
+}
+
+/** Atualiza a sessão mesclando os dados novos (mantém o que o login.js salvou). */
+function _gravarSessao(dados) {
+    try {
+        const atual = JSON.parse(sessionStorage.getItem(_SESS_KEY) ?? '{}');
+        sessionStorage.setItem(_SESS_KEY, JSON.stringify({ ...atual, ...dados }));
+    } catch {}
+}
+
+/** Encerra a sessão e redireciona — compatível com logout() do login.js. */
 function encerrarSessao() {
-    sessionStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(_SESS_KEY);
     window.location.href = 'login.html';
 }
 
 
 // =============================================================================
-// SEÇÃO 3 — ESTADO LOCAL
-// =============================================================================
-
-/** Snapshot dos dados vindos da API — atualizado a cada carregarDados(). */
-let usuarioAtual = null;
-
-
-// =============================================================================
-// SEÇÃO 4 — INICIALIZAÇÃO
-// Chamado pelo DOMContentLoaded do HTML.
-// Redireciona para login se não houver sessão válida.
+// INICIALIZAÇÃO — chamada pelo DOMContentLoaded do HTML
 // =============================================================================
 
 async function inicializarPerfil() {
-    const sessao = obterSessao();
+    const sessao = _lerSessao();
 
+    // Sem sessão → redireciona imediatamente (mesma lógica de verificarSessao() do login.js)
     if (!sessao?.id) {
         window.location.href = 'login.html';
         return;
     }
 
-    popularSelectSetores();
+    _popularSetores();
     await carregarDados();
 }
 
 
 // =============================================================================
-// SEÇÃO 5 — POPULATE DO SELECT DE SETOR
-// =============================================================================
-
-function popularSelectSetores() {
-    const select = document.getElementById('fSetor');
-    if (!select) return;
-    select.innerHTML = SETORES
-        .map(s => `<option value="${s.value}">${s.label}</option>`)
-        .join('');
-}
-
-
-// =============================================================================
-// SEÇÃO 6 — CARREGAR DADOS
-// GET /api/usuarios/{id}
-// Chamado na inicialização e pelo botão "Cancelar" do form de dados pessoais.
+// CARREGAR DADOS  —  GET /api/usuarios/{id}
+// Chamado também pelo botão "Cancelar" do form de dados pessoais.
 // =============================================================================
 
 async function carregarDados() {
-    const sessao = obterSessao();
+    const sessao = _lerSessao();
     if (!sessao?.id) { window.location.href = 'login.html'; return; }
 
     try {
-        const usuario = await getUsuario(sessao.id);
-        usuarioAtual  = usuario;
-        atualizarSessao(usuario);
+        const raw     = await getUsuario(sessao.id);   // api.js
+        const usuario = _norm(raw);
 
-        preencherFormulario(usuario);
-        preencherCardLateral(usuario);
+        usuarioAtual = usuario;
+        _gravarSessao(usuario);                        // mantém sessão atualizada
+
+        _preencherFormulario(usuario);
+        _preencherCard(usuario);
 
     } catch (err) {
         if (err.status === 404 || err.status === 401) {
@@ -142,46 +128,43 @@ async function carregarDados() {
 
 
 // =============================================================================
-// SEÇÃO 7 — PREENCHER UI
+// PREENCHER UI
 // =============================================================================
 
-function preencherFormulario(usuario) {
-    _setVal('fNome',      usuario.nome      ?? '');
-    _setVal('fSobrenome', usuario.sobrenome ?? '');
-    _setVal('fEmail',     usuario.email     ?? '');
+function _preencherFormulario(u) {
+    _v('fNome',      u.nome);
+    _v('fSobrenome', u.sobrenome);
+    _v('fEmail',     u.email);
 
     const sel = document.getElementById('fSetor');
-    if (sel) sel.value = usuario.setor ?? SETORES[0].value;
+    if (sel) sel.value = u.setor || SETORES[0].value;
 
-    _setText('ultimaAtualizacao', _fmtDataHora(new Date()));
+    // Lê a data salva no localStorage; exibe '—' se nunca houve alteração
+    const salvo = localStorage.getItem(_ULT_KEY);
+    _t('ultimaAtualizacao', salvo ?? '—');
 }
 
-function preencherCardLateral(usuario) {
-    const nomeCompleto = `${usuario.nome ?? ''} ${usuario.sobrenome ?? ''}`.trim();
-    const iniciais     = _iniciais(usuario.nome, usuario.sobrenome);
+function _preencherCard(u) {
+    const nome = `${u.nome} ${u.sobrenome}`.trim();
+    const ini  = ((u.nome[0] ?? '') + (u.sobrenome[0] ?? '')).toUpperCase() || '?';
 
-    _setText('sidebarName',  nomeCompleto || '—');
-    _setText('sidebarRole',  usuario.setor ?? '—');
-    _setText('sidebarEmail', usuario.email ?? '—');
-    _setText('sidebarSetor', usuario.setor ?? '—');
-    _setText('sidebarNivel', 'Usuário');
-    _setText('avatarBig',    iniciais);
-    _setText('headerAvatar', iniciais);
+    _t('sidebarName',  nome  || '—');
+    _t('sidebarRole',  u.setor || '—');
+    _t('sidebarEmail', u.email  || '—');
+    _t('sidebarSetor', u.setor  || '—');
+    _t('sidebarNivel', 'Usuário');
+    _t('avatarBig',    ini);
+    _t('headerAvatar', ini);
 
-    const elMembro = document.getElementById('sidebarMembro');
-    if (elMembro) {
-        elMembro.textContent = usuario.criadoEm
-            ? _fmtData(new Date(usuario.criadoEm))
-            : '—';
-    }
+    const elM = document.getElementById('sidebarMembro');
+    if (elM) elM.textContent = u.criadoEm ? _dt(new Date(u.criadoEm)) : '—';
 }
 
 
 // =============================================================================
-// SEÇÃO 8 — FORMULÁRIO 1: DADOS PESSOAIS
-// Endpoints:
-//   PUT /api/usuarios/{id}/dados-pessoais  → { nome, sobrenome, setor }
-//   PUT /api/usuarios/{id}/email           → { novoEmail }
+// FORMULÁRIO 1 — DADOS PESSOAIS
+// PUT /api/usuarios/{id}/dados-pessoais  →  { nome, sobrenome, setor }
+// PUT /api/usuarios/{id}/email           →  { novoEmail }
 // =============================================================================
 
 async function salvarDadosPessoais() {
@@ -192,40 +175,32 @@ async function salvarDadosPessoais() {
     const email     = (document.getElementById('fEmail')?.value      ?? '').trim();
     const setor     =  document.getElementById('fSetor')?.value      ?? '';
 
-    // Validações
     if (!nome || !sobrenome) { mostrarErroDados('Nome e sobrenome são obrigatórios.'); return; }
-    if (!_validarEmail(email)) { mostrarErroDados('Informe um e-mail válido.'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { mostrarErroDados('Informe um e-mail válido.'); return; }
 
     setLoadingDados(true);
-
-    const id    = usuarioAtual.id;
     const erros = [];
 
-    // 1) Dados pessoais (nome, sobrenome, setor)
     if (nome !== usuarioAtual.nome || sobrenome !== usuarioAtual.sobrenome || setor !== usuarioAtual.setor) {
-        try {
-            await atualizarDadosPessoais(id, { nome, sobrenome, setor });
-        } catch {
-            erros.push('Erro ao atualizar dados pessoais.');
-        }
+        try { await atualizarDadosPessoais(usuarioAtual.id, { nome, sobrenome, setor }); }
+        catch { erros.push('Erro ao atualizar dados pessoais.'); }
     }
 
-    // 2) E-mail (endpoint dedicado)
     if (email !== usuarioAtual.email) {
-        try {
-            await atualizarEmail(id, email);
-        } catch (err) {
-            erros.push(
-                err.status === 400
-                    ? 'Este e-mail já está em uso por outro usuário.'
-                    : 'Erro ao atualizar e-mail.'
-            );
+        try { await atualizarEmail(usuarioAtual.id, email); }
+        catch (err) {
+            erros.push(err.status === 400
+                ? 'Este e-mail já está em uso por outro usuário.'
+                : 'Erro ao atualizar e-mail.');
         }
     }
 
     setLoadingDados(false);
 
-    if (erros.length > 0) { mostrarErroDados(erros.join(' | ')); return; }
+    if (erros.length) { mostrarErroDados(erros.join(' | ')); return; }
+
+    // Grava data/hora do salvamento para exibir em "Última atualização"
+    localStorage.setItem(_ULT_KEY, _dtHora(new Date()));
 
     await carregarDados();
     mostrarSucessoDados();
@@ -233,27 +208,27 @@ async function salvarDadosPessoais() {
 
 
 // =============================================================================
-// SEÇÃO 9 — FORMULÁRIO 2: ALTERAR SENHA
-// Endpoint:
-//   PUT /api/usuarios/{id}/senha  → { novaSenha }
-// Hash aplicado pelo backend — nunca enviar senha já hasheada.
+// FORMULÁRIO 2 — ALTERAR SENHA
+// PUT /api/usuarios/{id}/senha  →  { novaSenha }
 // =============================================================================
 
 async function salvarSenha() {
     if (!usuarioAtual) return;
 
-    const novaSenha = document.getElementById('fNovaSenha')?.value     ?? '';
-    const confirmar = document.getElementById('fConfirmarSenha')?.value ?? '';
+    const nova      = document.getElementById('fNovaSenha')?.value      ?? '';
+    const confirmar = document.getElementById('fConfirmarSenha')?.value  ?? '';
 
-    // Validações
-    if (novaSenha.length < 8) { mostrarErroSenha('A nova senha deve ter no mínimo 8 caracteres.'); return; }
-    if (novaSenha !== confirmar) { mostrarErroSenha('A nova senha e a confirmação não coincidem.'); return; }
+    if (nova.length < 8)    { mostrarErroSenha('A nova senha deve ter no mínimo 8 caracteres.'); return; }
+    if (nova !== confirmar) { mostrarErroSenha('A nova senha e a confirmação não coincidem.');    return; }
 
     setLoadingSenha(true);
-
     try {
-        await atualizarSenha(usuarioAtual.id, novaSenha);
-        _limparCamposSenha();
+        await atualizarSenha(usuarioAtual.id, nova);   // api.js
+        document.getElementById('fNovaSenha').value      = '';
+        document.getElementById('fConfirmarSenha').value = '';
+        // Grava data/hora para "Última atualização"
+        localStorage.setItem(_ULT_KEY, _dtHora(new Date()));
+        _t('ultimaAtualizacao', localStorage.getItem(_ULT_KEY));
         mostrarSucessoSenha();
     } catch {
         mostrarErroSenha('Erro ao atualizar a senha. Tente novamente.');
@@ -264,28 +239,17 @@ async function salvarSenha() {
 
 
 // =============================================================================
-// SEÇÃO 10 — HELPERS PRIVADOS
+// HELPERS PRIVADOS
 // =============================================================================
 
-function _setVal(id, val)  { const el = document.getElementById(id); if (el) el.value       = val; }
-function _setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+function _popularSetores() {
+    const sel = document.getElementById('fSetor');
+    if (!sel) return;
+    sel.innerHTML = SETORES.map(s => `<option value="${s.value}">${s.label}</option>`).join('');
+}
 
-function _iniciais(nome, sobrenome) {
-    return (((nome ?? '')[0] ?? '') + ((sobrenome ?? '')[0] ?? '')).toUpperCase() || '?';
-}
-function _validarEmail(email) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-function _fmtData(date) {
-    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
-}
-function _fmtDataHora(date) {
-    return date.toLocaleString('pt-BR', {
-        day: '2-digit', month: '2-digit', year: 'numeric',
-        hour: '2-digit', minute: '2-digit'
-    });
-}
-function _limparCamposSenha() {
-    _setVal('fNovaSenha',      '');
-    _setVal('fConfirmarSenha', '');
-}
+function _v(id, val) { const el = document.getElementById(id); if (el) el.value       = val ?? ''; }
+function _t(id, val) { const el = document.getElementById(id); if (el) el.textContent = val ?? ''; }
+
+function _dt(d)     { return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' }); }
+function _dtHora(d) { return d.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
