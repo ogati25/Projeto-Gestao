@@ -1,6 +1,7 @@
 using Projeto_Gestao.Settings;
 using Projeto_Gestao.Services;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // configurações do MongoDB

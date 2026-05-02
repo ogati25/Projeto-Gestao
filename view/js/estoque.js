@@ -39,6 +39,12 @@
 //  refletida aqui.
 // ============================================================
 
+// Garantia de segurança: se o script inline do HTML falhou antes de
+// declarar essas variáveis globais, inicializa aqui como fallback.
+if (typeof currentCategory === 'undefined') var currentCategory = 'computadores';
+if (typeof currentMode     === 'undefined') var currentMode     = 'gestao';
+if (typeof activeFilters   === 'undefined') var activeFilters   = [];
+
 const SETOR = [
     {value:'RH',         label:'RH'},
     {value:'Suporte',    label:'Suporte'},
@@ -172,6 +178,11 @@ const TIPO_MEMORIA_RAM = [
 const QUANT_SLOTS  = ['0','1','2','3','4','5','6','7','8'];
 const QUANT_DISCOS = ['0','1','2','3','4','5','6'];
 const QUANT_GPUS   = ['0','1','2','3','4'];
+
+// Valores válidos para TipoDisco e TipoPlacaVideo (espelham os enums C#)
+// Com JsonStringEnumConverter o backend serializa/deserializa como string
+const TIPO_DISCO_LABELS = { 'HDD': 'HDD', 'SSD': 'SSD', 'SSD_NVMe': 'SSD NVMe' };
+const TIPO_GPU_LABELS   = { 'Integrada': 'Integrada', 'Dedicada': 'Dedicada' };
 const QUANT_CON    = ['0','1','2','3','4','5','6'];
 
 /** Mapa de slug → nome legível de cada categoria */
@@ -714,10 +725,25 @@ function renderSlotsRAM(afterGroup, quantidade, valores = []) {
     if (antigo) antigo.remove();
     if (!quantidade || quantidade < 1) return;
 
+    // Calcula colunas: máximo 4 por linha, redistribui para evitar linhas desequilibradas
+    // Ex: 5 → 3+2 | 6 → 3+3 | 7 → 4+3 | 8 → 4+4 | 9 → 3+3+3
+    function calcularColunas(n) {
+        if (n <= 4) return n;
+        // Divide em grupos de até 4, tentando equilibrar
+        const linhas = Math.ceil(n / 4);
+        const base   = Math.floor(n / linhas);
+        const resto  = n % linhas;
+        // Se resto > 0, primeira linha tem base+1, restantes têm base
+        // Mas queremos a linha com mais itens — a maior entre base e base+1
+        return resto > 0 ? base + 1 : base;
+    }
+
+    const cols = calcularColunas(quantidade);
+
     const div = document.createElement('div');
     div.id        = 'slots-ram-wrapper';
     div.className = 'span-2';
-    div.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:10px;';
+    div.style.cssText = `display:grid;grid-template-columns:repeat(${cols}, 1fr);gap:10px;`;
 
     for (let i = 0; i < quantidade; i++) {
         const group = document.createElement('div');
@@ -757,12 +783,12 @@ function renderDiscos(afterGroup, quantidade, valores = []) {
         const g1 = document.createElement('div'); g1.className = 'form-group';
         const l1 = document.createElement('label'); l1.textContent = `Disco ${i+1} — Tipo`;
         g1.appendChild(l1);
-        g1.appendChild(criarSelect(`disco_tipo_${i}`, TIPO_DISCO, valores[i]?.tipo || ''));
+        g1.appendChild(criarSelect(`disco_tipo_${i}`, TIPO_DISCO, valores[i]?.Tipo || ''));
 
         const g2 = document.createElement('div'); g2.className = 'form-group';
         const l2 = document.createElement('label'); l2.textContent = `Disco ${i+1} — Tamanho (GB)`;
         g2.appendChild(l2);
-        g2.appendChild(criarInput(`disco_tamanho_${i}`, valores[i]?.tamanho || '', 'Ex: 512', 'number'));
+        g2.appendChild(criarInput(`disco_tamanho_${i}`, valores[i]?.Tamanho ?? '', 'Ex: 512', 'number'));
 
         row.appendChild(g1); row.appendChild(g2);
         div.appendChild(row);
@@ -795,12 +821,12 @@ function renderPlacasVideo(afterGroup, quantidade, valores = []) {
         const g1 = document.createElement('div'); g1.className = 'form-group';
         const l1 = document.createElement('label'); l1.textContent = `GPU ${i+1} — Tipo`;
         g1.appendChild(l1);
-        g1.appendChild(criarSelect(`gpu_tipo_${i}`, TIPO_GPU, valores[i]?.tipo || ''));
+        g1.appendChild(criarSelect(`gpu_tipo_${i}`, TIPO_GPU, valores[i]?.Tipo || ''));
 
         const g2 = document.createElement('div'); g2.className = 'form-group';
         const l2 = document.createElement('label'); l2.textContent = `GPU ${i+1} — VRAM (MB)`;
         g2.appendChild(l2);
-        g2.appendChild(criarInput(`gpu_vram_${i}`, valores[i]?.vram || '', 'Ex: 2048', 'number'));
+        g2.appendChild(criarInput(`gpu_vram_${i}`, valores[i]?.VRAM ?? '', 'Ex: 2048', 'number'));
 
         row.appendChild(g1); row.appendChild(g2);
         div.appendChild(row);
@@ -837,6 +863,35 @@ function renderConectoresVideo(afterGroup, quantidade, selecionados = []) {
     }
 
     inserirApos(afterGroup, div);
+}
+
+/**
+ * Quando o select de Office muda para "Nenhum", força a ativação para
+ * "NaoPossui" e desabilita o select de ativação. Se o usuário escolher
+ * qualquer outro office, reabilita as opções normais.
+ *
+ * @param {HTMLElement} scope — elemento ancestral que contém ambos os selects
+ */
+function sincronizarAtivacaoOffice(scope) {
+    // Busca os selects dentro do scope (modal add ou edit)
+    const officeSelect   = scope.querySelector('select[name="office"]');
+    const ativacaoSelect = scope.querySelector('select[name="ativacao_office"]');
+    if (!officeSelect || !ativacaoSelect) return;
+
+    if (officeSelect.value === 'Nenhum') {
+        ativacaoSelect.value    = 'NaoPossui';
+        ativacaoSelect.disabled = true;
+        ativacaoSelect.style.opacity = '0.5';
+        ativacaoSelect.title  = 'Office selecionado como "Nenhum" — ativação não aplicável';
+    } else {
+        ativacaoSelect.disabled = false;
+        ativacaoSelect.style.opacity = '';
+        ativacaoSelect.title  = '';
+        // Se ainda estiver em NaoPossui e o office mudou, reset para Desativado
+        if (ativacaoSelect.value === 'NaoPossui') {
+            ativacaoSelect.value = 'Desativado';
+        }
+    }
 }
 
 // ============================================================
@@ -899,6 +954,11 @@ function renderFields(containerId, category, mode, prefillData = {}) {
             if (f.key === 'quant_discos')    input.addEventListener('change', () => renderDiscos(group, parseInt(input.value) || 0));
             if (f.key === 'quant_gpus')      input.addEventListener('change', () => renderPlacasVideo(group, parseInt(input.value) || 0));
             if (f.key === 'quant_conectores')input.addEventListener('change', () => renderConectoresVideo(group, parseInt(input.value) || 0));
+
+            // Office Nenhum → força "Não Possui" na ativação e desabilita o select
+            if (f.key === 'office') {
+                input.addEventListener('change', () => sincronizarAtivacaoOffice(input.closest('form, .modal-body, .form-grid') || document));
+            }
 
         } else if (f.type === 'processador_select') {
             // Select populado via API de processadores — conteúdo varia com o banco de dados
@@ -1015,8 +1075,13 @@ function renderFields(containerId, category, mode, prefillData = {}) {
                     inp1.name        = `wpp_numero_${i}`;
                     inp1.placeholder = '+55 (11) 99999-9999';
                     inp1.value       = wpp.numero || '';
+                    inp1.maxLength   = 20;
                     inp1.style.cssText = 'padding:7px 10px;border:1px solid var(--border-color);border-radius:7px;font-size:13px;background:var(--background-color);color:var(--text-primary);outline:none;';
                     g1.appendChild(l1); g1.appendChild(inp1);
+                    // Aplica máscara de telefone (função definida no script inline do estoque.html)
+                    if (typeof aplicarMascaraTelefone === 'function') {
+                        aplicarMascaraTelefone(inp1, wpp.numero || '');
+                    }
 
                     // Campo de dono
                     const g2 = document.createElement('div'); g2.className = 'form-group'; g2.style.margin = '0';
@@ -1060,6 +1125,13 @@ function renderFields(containerId, category, mode, prefillData = {}) {
         group.appendChild(input);
         container.appendChild(group);
     });
+
+    // Sincroniza o estado inicial do select de ativação de office
+    // (necessário quando o formulário é aberto em modo edição com Office=Nenhum já preenchido)
+    if (category === 'computadores') {
+        const scope = document.getElementById(containerId) || document;
+        sincronizarAtivacaoOffice(scope);
+    }
 }
 
 // ============================================================
@@ -1110,28 +1182,208 @@ function renderRow(categoria, item, modo) {
 
     // ── Computadores ──────────────────────────────────────────────────
     if (categoria === 'computadores') {
-        const proc  = item.processador ? item.processador.nome : (item.processadorId || '—');
-        const ram   = item.memoriaRAMTotal ? `${item.memoriaRAMTotal} GB` : '—';
-        const disco = item.discos?.length  ? `${item.discos.reduce((s, d) => s + (d.tamanho || 0), 0)} GB` : '—';
-        const vram  = item.placasVideo?.length ? `${item.placasVideo.reduce((s, p) => s + (p.vram || 0), 0)} MB` : '—';
+        const proc      = item.processador ? item.processador.nome : (item.processadorId || '—');
+        const ram       = item.memoriaRAMTotal ? `${item.memoriaRAMTotal} GB` : '—';
+        const ramTipo   = item.geracaoRAM || '';
+        const ramVel    = item.velocidadeRAM ? `${item.velocidadeRAM} MHz` : '';
+
+        // Armazenamento: soma de todos os discos
+        const discoTotal = item.discos?.length
+            ? item.discos.reduce((s, d) => s + (d.Tamanho ?? 0), 0)
+            : 0;
+        const disco = discoTotal ? `${discoTotal} GB` : '—';
+
+        // VRAM: apenas a placa com maior VRAM (não soma)
+        const melhorGpu = item.placasVideo?.length
+            ? item.placasVideo.reduce((best, p) => (p.VRAM ?? 0) > (best.VRAM ?? 0) ? p : best, {})
+            : null;
+        const vramVal = melhorGpu?.VRAM ?? 0;
+        const vram     = vramVal ? `${vramVal} MB` : '—';
+
+        // Conectores de vídeo — lidos do array ConectoresVideo do backend
+        const conectores = Array.isArray(item.conectoresVideo) && item.conectoresVideo.length
+            ? item.conectoresVideo
+            : [];
+
+        const subtitle = `${item.codigo || ''} · ${item.usuario || ''}`;
+
+        // ── Payloads de modal ──────────────────────────────────────────
+
+        const cpuDetail = {
+            type: 'cpu',
+            icon: 'fa-microchip',
+            title: 'Processador',
+            subtitle,
+            data: {
+                nome:       item.processador?.nome || proc,
+                velocidade: item.processador?.velocidade ? `${item.processador.velocidade} GHz` : '—',
+                nucleos:    item.processador?.nucleosThreads
+                    ? `${item.processador.nucleosThreads.nucleos} núcleos / ${item.processador.nucleosThreads.threads} threads`
+                    : '—',
+            }
+        };
+
+        const slotsArray = (item.memoriaRAM || []).map((v, i) => ({
+            slot:  i + 1,
+            valor: v ? `${String(v).replace('GB','').trim()} GB` : '0 GB',
+        }));
+        const ramDetail = {
+            type: 'ram',
+            icon: 'fa-memory',
+            title: 'Memória RAM',
+            subtitle,
+            data: {
+                total:      ram,
+                tipo:       ramTipo || '—',
+                velocidade: ramVel  || '—',
+                slots:      item.quantidadeSlots ?? '—',
+                por_slot:   slotsArray,
+            }
+        };
+
+        const discoDetail = {
+            type: 'disco',
+            icon: 'fa-hard-drive',
+            title: 'Armazenamento',
+            subtitle,
+            data: {
+                total:  disco,
+                discos: (item.discos || []).map((d, i) => ({
+                    num:    i + 1,
+                    tipo:    d.Tipo    || '—',
+                    tamanho: d.Tamanho ? `${d.Tamanho} GB` : '—',
+                    modelo:  '—',
+                }))
+            }
+        };
+
+        const vramDetail = {
+            type: 'vram',
+            icon: 'fa-display',
+            title: 'Placa de Vídeo',
+            subtitle,
+            data: (item.placasVideo || []).map((p, i) => ({
+                num:    i + 1,
+                nome:   p.Tipo || '—',
+                vram:   p.VRAM ? `${p.VRAM} MB` : '—',
+                tipo:   p.Tipo || '—',
+            }))
+        };
+
+        const soDetail = {
+            type: 'so',
+            icon: 'fa-laptop-code',
+            title: 'Sistema Operacional',
+            subtitle,
+            data: {
+                so:       item.sistemaOperacional || '—',
+                ativacao: item.ativacaoSO        || '—',
+            }
+        };
+
+        const officeDetail = {
+            type: 'office',
+            icon: 'fa-file-word',
+            title: 'Microsoft Office',
+            subtitle,
+            data: {
+                versao:   item.office      || '—',
+                ativacao: item.ativacaoOffice || '—',
+            }
+        };
+
+        // Modal "info geral" — agrega tudo
+        const infoDetail = {
+            type: 'info_pc',
+            icon: 'fa-circle-info',
+            title: 'Detalhes Completos',
+            subtitle,
+            data: {
+                cpu:        cpuDetail.data,
+                ram:        ramDetail.data,
+                disco:      discoDetail.data,
+                vram:       vramDetail.data,
+                so:         soDetail.data,
+                office:     officeDetail.data,
+                conectores: conectores.length ? conectores.join(', ') : '—',
+                ip:         item.ip || '—',
+            }
+        };
+
+        // Botão de info geral nas ações
+        const btnInfo = `
+            <button class="btn-action info"
+                data-detail='${JSON.stringify(infoDetail)}'
+                title="Ver todos os detalhes">
+                <span class="material-symbols-outlined" style="font-size:17px;font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 20;">info</span>
+            </button>`;
+        const acoesComInfo = acoes.replace('</div>', `${btnInfo}</div>`);
 
         if (modo === 'suporte') {
             cells = `
                 <td>${item.codigo || '—'}</td>
                 <td>${item.modelo || '—'}</td>
-                <td>${item.tipo || '—'}</td>
-                <td>${proc}</td>
-                <td>${ram}</td>
-                <td>${disco}</td>
-                <td>${vram}</td>
-                <td>${item.sistemaOperacional || '—'}</td>
-                <td>${item.office || '—'}</td>
+                <td>${item.tipo   || '—'}</td>
+
+                <td>
+                    <div class="cell-preview">
+                        <span class="cell-preview-value">${proc}</span>
+                        <button class="expand-btn" data-detail='${JSON.stringify(cpuDetail)}' title="Ver detalhes do processador">
+                            <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+                        </button>
+                    </div>
+                </td>
+
+                <td>
+                    <div class="cell-preview">
+                        <span class="cell-preview-value">${ram}</span>
+                        <button class="expand-btn" data-detail='${JSON.stringify(ramDetail)}' title="Ver detalhes da RAM">
+                            <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+                        </button>
+                    </div>
+                </td>
+
+                <td>
+                    <div class="cell-preview">
+                        <span class="cell-preview-value">${disco}</span>
+                        ${discoTotal ? `<button class="expand-btn" data-detail='${JSON.stringify(discoDetail)}' title="Ver detalhes do armazenamento">
+                            <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+                        </button>` : ''}
+                    </div>
+                </td>
+
+                <td>
+                    <div class="cell-preview">
+                        <span class="cell-preview-value">${vram}</span>
+                        ${melhorGpu ? `<button class="expand-btn" data-detail='${JSON.stringify(vramDetail)}' title="Ver detalhes da GPU">
+                            <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+                        </button>` : ''}
+                    </div>
+                </td>
+
+                <td>
+                    <div class="cell-preview">
+                        <span class="cell-preview-value">${item.sistemaOperacional || '—'}</span>
+                        <button class="expand-btn" data-detail='${JSON.stringify(soDetail)}' title="Ver ativação do SO">
+                            <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+                        </button>
+                    </div>
+                </td>
+
+                <td>
+                    <div class="cell-preview">
+                        <span class="cell-preview-value">${item.office || '—'}</span>
+                        <button class="expand-btn" data-detail='${JSON.stringify(officeDetail)}' title="Ver ativação do Office">
+                            <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+                        </button>
+                    </div>
+                </td>
+
                 <td>${item.status || '—'}</td>
-                <td>${item.setor || '—'}</td>
-                <td>${item.ip || '—'}</td>
+                <td>${item.setor  || '—'}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
-                <td class="col-acoes">${acoes}</td>`;
+                <td class="col-acoes">${acoesComInfo}</td>`;
         } else {
             cells = `
                 <td>${item.codigo || '—'}</td>
@@ -1273,22 +1525,54 @@ function renderRow(categoria, item, modo) {
     // ── Celulares ─────────────────────────────────────────────────────
     else if (categoria === 'celulares') {
         // Chips: prefere o número resolvido; fallback nos IDs brutos
-        const chipsHtml = (() => {
-            const lista = item.chips?.length ? item.chips.map(c => c.numero) : (item.chipIds || []);
-            if (!lista.length) return '—';
-            return lista.map(n => `<span style="display:block;font-size:12px;white-space:nowrap;">${n}</span>`).join('');
-        })();
+        const chipsLista = item.chips?.length
+            ? item.chips
+            : (item.chipIds || []).map(id => ({ id, numero: id, operadora: '—', dono: '—' }));
+
+        const chipsPreview = chipsLista.length
+            ? (chipsLista[0].numero || chipsLista[0])
+            : '—';
+        const chipsCount = chipsLista.length;
 
         // WhatsApp: número + dono empilhados
-        const wppHtml = (() => {
-            const lista = item.contasWhatsapp || [];
-            if (!lista.length) return '—';
-            return lista.map(w => {
-                const num  = w.numero || w;
-                const dono = w.dono ? ` <span style="color:var(--text-muted);font-size:11px;">(${w.dono})</span>` : '';
-                return `<span style="display:block;font-size:12px;white-space:nowrap;">${num}${dono}</span>`;
-            }).join('');
-        })();
+        const wppLista = item.contasWhatsapp || [];
+        const wppPreview = wppLista.length
+            ? (wppLista[0].numero || wppLista[0])
+            : '—';
+        const wppCount = wppLista.length;
+
+        // Payload do modal de chips
+        const chipsDetail = {
+            type: 'chips',
+            icon: 'fa-sim-card',
+            title: 'Chips / SIM Cards',
+            subtitle: `${item.codigo || ''} · ${item.modelo || ''}`,
+            data: chipsLista.map((c, i) => ({
+                num:      i + 1,
+                operadora: c.operadora || '—',
+                numero:    c.numero || c,
+                dono:      c.dono || '—',
+                status:    c.status || 'ativo',
+            }))
+        };
+
+        // Payload do modal de WhatsApp
+        const wppDetail = {
+            type: 'whatsapp',
+            icon: 'fa-brands fa-whatsapp',
+            title: 'Contas WhatsApp',
+            subtitle: `${item.codigo || ''} · ${item.modelo || ''}`,
+            data: wppLista.map(w => ({
+                nome:   w.dono || w.nome || '—',
+                numero: w.numero || w,
+                status: w.status || 'ativo',
+            }))
+        };
+
+        const chipCounterHtml = chipsCount > 1
+            ? `<span class="chip-counter">+${chipsCount}</span>` : '';
+        const wppCounterHtml = wppCount > 1
+            ? `<span class="chip-counter">+${wppCount}</span>` : '';
 
         if (modo === 'suporte') {
             cells = `
@@ -1297,8 +1581,27 @@ function renderRow(categoria, item, modo) {
                 <td>${item.armazenamento ? item.armazenamento + ' GB' : '—'}</td>
                 <td>${item.memoriaRAM ? item.memoriaRAM + ' GB' : '—'}</td>
                 <td>${item.conectividade || '—'}</td>
-                <td>${chipsHtml}</td>
-                <td>${wppHtml}</td>
+
+                <td>
+                    <div class="cell-preview">
+                        <span class="cell-preview-value">${chipsPreview}</span>
+                        ${chipCounterHtml}
+                        ${chipsCount > 0 ? `<button class="expand-btn" data-detail='${JSON.stringify(chipsDetail)}' title="Ver chips">
+                            <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+                        </button>` : ''}
+                    </div>
+                </td>
+
+                <td>
+                    <div class="cell-preview">
+                        <span class="cell-preview-value">${wppPreview}</span>
+                        ${wppCounterHtml}
+                        ${wppCount > 0 ? `<button class="expand-btn" data-detail='${JSON.stringify(wppDetail)}' title="Ver contas WhatsApp">
+                            <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+                        </button>` : ''}
+                    </div>
+                </td>
+
                 <td>${item.status || '—'}</td>
                 <td>${item.setor || '—'}</td>
                 <td>${item.usuario || '—'}</td>
@@ -1840,24 +2143,24 @@ function mapFormToApi(categoria, form) {
         // Coleta slots de RAM (apenas os preenchidos)
         const memoriaRAM = extrairIndexados(form, 'ram_slot_').filter(Boolean);
 
-        // Coleta discos: par tipo+tamanho por índice
+        // Coleta discos — envia { Tipo: "HDD", Tamanho: 512 } (DiscoInfo no backend)
         const discos = [];
-        let i = 0;
+        i = 0;
         while (form[`disco_tipo_${i}`] !== undefined) {
             discos.push({
-                tipo:    form[`disco_tipo_${i}`]   || 'HDD',
-                tamanho: parseInt(form[`disco_tamanho_${i}`]) || 0,
+                Tipo:    form[`disco_tipo_${i}`] || 'HDD',
+                Tamanho: parseInt(form[`disco_tamanho_${i}`]) || 0,
             });
             i++;
         }
 
-        // Coleta GPUs: par tipo+VRAM por índice
+        // Coleta GPUs — envia { Tipo: "Integrada", VRAM: 4096 } (PlacaVideoInfo no backend)
         const placasVideo = [];
         i = 0;
         while (form[`gpu_tipo_${i}`] !== undefined) {
             placasVideo.push({
-                tipo: form[`gpu_tipo_${i}`] || 'Integrada',
-                vram: parseInt(form[`gpu_vram_${i}`]) || 0,
+                Tipo: form[`gpu_tipo_${i}`] || 'Integrada',
+                VRAM: parseInt(form[`gpu_vram_${i}`]) || 0,
             });
             i++;
         }
@@ -2594,3 +2897,4 @@ carregarTabela('computadores', 'gestao');
 
 // Popula o select de filtros para a categoria/modo iniciais
 buildFilterPropSelect();
+

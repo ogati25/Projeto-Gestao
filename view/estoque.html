@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <title>Inventário — Tech Logistics</title>
     <style>
@@ -325,6 +326,9 @@
         .btn-action.toggle-active:hover { background: #fef3c7; }
         .btn-action.toggle-active.is-inactive { color: #10b981; }
         .btn-action.toggle-active.is-inactive:hover { background: #d1fae5; }
+        .btn-action.info { color: var(--primary-color); }
+        .btn-action.info:hover { background: #dbeafe; }
+        .btn-action.info .material-symbols-outlined { line-height: 1; }
         .row-inactive td { opacity: 0.45; }
         .row-inactive .row-actions { opacity: 1; }
 
@@ -541,6 +545,269 @@
             transition: 0.2s;
         }
         .btn-success:hover { background: #059669; }
+
+        /* ==================== MODAL DE DETALHES (cell-preview) ==================== */
+
+        /* Variáveis extras usadas pelo modal de detalhes */
+        :root {
+            --overlay-bg: rgba(15, 23, 42, 0.72);
+            --modal-detail-width: 520px;
+            --shadow-xl: 0 20px 60px rgba(0,0,0,.18);
+            --radius: 10px;
+            --radius-sm: 7px;
+            --text-inv: #cbd5e1;
+        }
+
+        /* Cell preview: valor resumido + botão expandir */
+        .cell-preview {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            max-width: 220px;
+        }
+        .cell-preview-value {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+
+        /* Botão de expandir — discreto */
+        .expand-btn {
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+            border: 1px solid var(--border-color);
+            background: var(--background-color);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: .15s;
+            color: var(--text-muted);
+        }
+        .expand-btn:hover {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: #fff;
+            transform: scale(1.08);
+        }
+        .expand-btn i { font-size: 9px; pointer-events: none; }
+
+        /* Contador de chips na célula */
+        .chip-counter {
+            font-size: 10px;
+            font-weight: 700;
+            background: var(--primary-color);
+            color: #fff;
+            border-radius: 10px;
+            padding: 1px 6px;
+            margin-left: 2px;
+            flex-shrink: 0;
+        }
+
+        /* ── Overlay do modal de detalhes ── */
+        .modal-overlay-detail {
+            position: fixed;
+            inset: 0;
+            background: var(--overlay-bg);
+            backdrop-filter: blur(3px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .22s ease;
+        }
+        .modal-overlay-detail.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* ── Box do modal de detalhes ── */
+        .modal-detail {
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            box-shadow: var(--shadow-xl);
+            width: var(--modal-detail-width);
+            max-width: calc(100vw - 32px);
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(18px) scale(.97);
+            transition: transform .25s cubic-bezier(.34,1.36,.64,1), opacity .22s;
+            opacity: 0;
+        }
+        .modal-overlay-detail.open .modal-detail {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+
+        /* ── Header do modal de detalhes ── */
+        .modal-detail-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 20px 14px;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        .modal-detail-title-wrap { display: flex; align-items: center; gap: 10px; }
+        .modal-detail-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .modal-detail-icon i { color: #fff; font-size: 16px; }
+        .modal-detail-title { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+        .modal-detail-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+
+        .modal-detail-close {
+            width: 30px;
+            height: 30px;
+            border: 1px solid var(--border-color);
+            background: var(--background-color);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: .15s;
+        }
+        .modal-detail-close:hover { background: #fee2e2; border-color: #fecaca; color: #ef4444; }
+        .modal-detail-close i { font-size: 13px; }
+
+        /* ── Body do modal de detalhes ── */
+        .modal-detail-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .modal-detail-body::-webkit-scrollbar { width: 5px; }
+        .modal-detail-body::-webkit-scrollbar-track { background: transparent; }
+        .modal-detail-body::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+
+        /* ── Seção dentro do modal de detalhes ── */
+        .modal-detail-section { margin-bottom: 18px; }
+        .modal-detail-section:last-child { margin-bottom: 0; }
+        .modal-detail-section-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .modal-detail-section-label::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        /* ── Grid de campos do modal de detalhes ── */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+        }
+        .detail-field {
+            background: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 12px;
+            transition: background .2s;
+        }
+        .detail-field:hover { background: var(--border-color); }
+        .detail-field-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        .detail-field-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .detail-field-value.accent { color: var(--primary-color); }
+        .detail-field.full { grid-column: 1 / -1; }
+
+        /* ── Lista de chips/itens no modal de detalhes ── */
+        .detail-chip-list { display: flex; flex-direction: column; gap: 8px; }
+        .detail-chip-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+        .detail-chip-num {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .detail-chip-info { flex: 1; }
+        .detail-chip-title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+        .detail-chip-sub   { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+        .detail-chip-badge { flex-shrink: 0; }
+
+        /* ── Loader do modal de detalhes ── */
+        .modal-detail-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            gap: 12px;
+            color: var(--text-muted);
+        }
+        .modal-detail-loading .spinner {
+            width: 28px;
+            height: 28px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: detailSpin .7s linear infinite;
+        }
+        @keyframes detailSpin { to { transform: rotate(360deg); } }
+
+        /* ── Footer do modal de detalhes ── */
+        .modal-detail-footer {
+            padding: 12px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body>
@@ -710,12 +977,11 @@
                             <th>Office</th>
                             <th>Status</th>
                             <th>Setor</th>
-                            <th>IP</th>
                             <th>Usuário</th>
                             <th>Ativo</th>
                             <th class="col-acoes">Ações</th>
                         </tr></thead>
-                        <tbody><tr class="empty-row"><td colspan="16">
+                        <tbody><tr class="empty-row"><td colspan="15">
                             <i class="fa-solid fa-laptop"></i>Aguardando dados da API...
                         </td></tr></tbody>
                     </table>
@@ -1102,6 +1368,39 @@
                 <button class="btn btn-outline" onclick="closeModal('modalConfirm')">Cancelar</button>
                 <button id="confirmActionBtn" class="btn-danger" onclick="confirmToggleActive()">
                     <i class="fa-solid fa-power-off"></i> Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: DETALHES DE CÉLULA ==================== -->
+    <div class="modal-overlay-detail" id="modalDetail" role="dialog" aria-modal="true" aria-labelledby="modalDetailTitle">
+        <div class="modal-detail">
+            <div class="modal-detail-header">
+                <div class="modal-detail-title-wrap">
+                    <div class="modal-detail-icon" id="modalDetailIcon">
+                        <i class="fa-solid fa-info" id="modalDetailIconI"></i>
+                    </div>
+                    <div>
+                        <div class="modal-detail-title" id="modalDetailTitle">Detalhes</div>
+                        <div class="modal-detail-subtitle" id="modalDetailSubtitle"></div>
+                    </div>
+                </div>
+                <button class="modal-detail-close" id="modalDetailClose" title="Fechar">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="modal-detail-body" id="modalDetailBody">
+                <div class="modal-detail-loading" id="modalDetailLoader">
+                    <div class="spinner"></div>
+                    <span>Carregando detalhes...</span>
+                </div>
+            </div>
+
+            <div class="modal-detail-footer">
+                <button class="btn btn-outline" id="modalDetailClose2" style="font-size:13px;">
+                    <i class="fa-solid fa-xmark"></i> Fechar
                 </button>
             </div>
         </div>
@@ -1717,9 +2016,397 @@
         //  Atalho de teclado para adicionar filtro sem usar o mouse.
         // ============================================================
 
-        document.getElementById('filterValueInput').addEventListener('keydown', e => {
+        document.getElementById('filterValueInput')?.addEventListener('keydown', e => {
             if (e.key === 'Enter') addFilter();
         });
+
+
+        // ============================================================
+        //  MODAL DE DETALHES — FRONTEND (abrir / fechar)
+        //  O conteúdo é montado pelo backend (estoque.js) via
+        //  buildDetailModalContent(). O frontend só controla a animação.
+        // ============================================================
+
+        const detailOverlay = document.getElementById('modalDetail');
+
+        /**
+         * Abre o modal de detalhes e exibe o loader enquanto o backend
+         * monta o conteúdo. Chamado pelo backend ao clicar em .expand-btn.
+         * @param {Object} detail — { type, icon, title, subtitle, data }
+         */
+        function openDetailModal(detail) {
+            document.getElementById('modalDetailIconI').className = `fa-solid ${detail.icon}`;
+            document.getElementById('modalDetailTitle').textContent   = detail.title;
+            document.getElementById('modalDetailSubtitle').textContent = detail.subtitle || '';
+
+            const body = document.getElementById('modalDetailBody');
+            body.innerHTML = `
+                <div class="modal-detail-loading">
+                    <div class="spinner"></div>
+                    <span>Carregando detalhes...</span>
+                </div>`;
+
+            detailOverlay.classList.add('open');
+
+            // Pequeno delay para simular latência e mostrar a animação de entrada
+            setTimeout(() => {
+                if (typeof buildDetailModalContent === 'function') {
+                    body.innerHTML = buildDetailModalContent(detail);
+                }
+            }, 280);
+        }
+
+        function closeDetailModal() {
+            detailOverlay.classList.remove('open');
+        }
+
+        document.getElementById('modalDetailClose').addEventListener('click', closeDetailModal);
+        document.getElementById('modalDetailClose2').addEventListener('click', closeDetailModal);
+        detailOverlay.addEventListener('click', e => {
+            if (e.target === detailOverlay) closeDetailModal();
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && detailOverlay.classList.contains('open')) closeDetailModal();
+        });
+
+        // Delegação de eventos para todos os botões .expand-btn da página
+        document.addEventListener('click', e => {
+            const btn = e.target.closest('.expand-btn, .btn-action.info');
+            if (!btn) return;
+            const detail = JSON.parse(btn.dataset.detail);
+            openDetailModal(detail);
+        });
+
+
+        // ============================================================
+        //  MODAL DE DETALHES — FRONTEND
+        //  Helpers e buildDetailModalContent vivem aqui.
+        //  O backend (estoque.js) apenas monta o objeto `detail` com
+        //  os dados crus e o serializa em data-detail. O frontend
+        //  decide como renderizar o HTML.
+        // ============================================================
+
+        /**
+         * Gera um campo do detail-grid.
+         * @param {string} label
+         * @param {*}      value
+         * @param {boolean} full       — ocupa linha inteira
+         * @param {string}  valueClass — classe extra no valor (ex: 'accent')
+         */
+        function detailField(label, value, full = false, valueClass = '') {
+            return `
+                <div class="detail-field${full ? ' full' : ''}">
+                    <div class="detail-field-label">${label}</div>
+                    <div class="detail-field-value ${valueClass}">${value ?? '—'}</div>
+                </div>`;
+        }
+
+        /**
+         * Badge de status reutilizando as classes de badge do estoque.html.
+         */
+        function detailStatusBadge(status) {
+            const map = {
+                ativo:      { cls: 'badge-success', label: 'Ativo'      },
+                inativo:    { cls: 'badge-danger',  label: 'Inativo'    },
+                manutencao: { cls: 'badge-warning', label: 'Manutenção' },
+                estoque:    { cls: 'badge-info',    label: 'Estoque'    },
+            };
+            const m = map[(status || '').toLowerCase()] || { cls: 'badge-gray', label: status || '—' };
+            return `<span class="badge ${m.cls}">${m.label}</span>`;
+        }
+
+        /**
+         * Monta o HTML do corpo do modal de detalhes.
+         * Recebe o objeto `detail` { type, icon, title, subtitle, data }
+         * que foi serializado pelo backend em data-detail.
+         */
+        function buildDetailModalContent(detail) {
+            switch (detail.type) {
+
+                /* ── CPU / Processador ── */
+                case 'cpu': {
+                    const d = detail.data;
+                    return `
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label">
+                                <i class="fa-solid fa-microchip"></i> Especificações do Processador
+                            </div>
+                            <div class="detail-grid">
+                                ${detailField('Nome',              d.nome,      true)}
+                                ${detailField('Velocidade',        d.velocidade)}
+                                ${detailField('Núcleos / Threads', d.nucleos)}
+                            </div>
+                        </div>`;
+                }
+
+                /* ── Memória RAM ── */
+                case 'ram': {
+                    const d = detail.data;
+
+                    // Grid inteligente: máximo 4 colunas, redistribui para equilibrar linhas
+                    function slotCols(n) {
+                        if (!n || n <= 4) return n || 1;
+                        const linhas = Math.ceil(n / 4);
+                        const base   = Math.floor(n / linhas);
+                        return (n % linhas) > 0 ? base + 1 : base;
+                    }
+
+                    const slots = Array.isArray(d.por_slot) ? d.por_slot : [];
+                    const cols  = slotCols(slots.length);
+
+                    const slotFields = slots.length
+                        ? `<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:10px;margin-top:10px;">
+                            ${slots.map(s => detailField(`Slot ${s.slot}`, s.valor)).join('')}
+                           </div>`
+                        : detailField('Por Slot', '—', true);
+
+                    return `
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label">
+                                <i class="fa-solid fa-memory"></i> Especificações da Memória RAM
+                            </div>
+                            <div class="detail-grid">
+                                ${detailField('Total',      d.total,     false, 'accent')}
+                                ${detailField('Tipo',       d.tipo)}
+                                ${detailField('Velocidade', d.velocidade)}
+                                ${detailField('Slots Totais', d.slots)}
+                            </div>
+                            ${slotFields}
+                        </div>`;
+                }
+
+                /* ── Chips / SIM Cards ── */
+                case 'chips': {
+                    if (!detail.data || !detail.data.length) {
+                        return `<div class="modal-detail-loading" style="padding:30px">
+                            <i class="fa-solid fa-sim-card" style="font-size:28px;opacity:.3;"></i>
+                            <span>Nenhum chip cadastrado.</span>
+                        </div>`;
+                    }
+                    const items = detail.data.map(c => `
+                        <div class="detail-chip-item">
+                            <div class="detail-chip-num">${c.num}</div>
+                            <div class="detail-chip-info">
+                                <div class="detail-chip-title">${c.operadora} — ${c.numero}</div>
+                                <div class="detail-chip-sub">Dono: ${c.dono}</div>
+                            </div>
+                            <div class="detail-chip-badge">${detailStatusBadge(c.status)}</div>
+                        </div>`).join('');
+                    return `
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label">
+                                <i class="fa-solid fa-sim-card"></i> Chips cadastrados (${detail.data.length})
+                            </div>
+                            <div class="detail-chip-list">${items}</div>
+                        </div>`;
+                }
+
+                /* ── Contas WhatsApp ── */
+                case 'whatsapp': {
+                    if (!detail.data || !detail.data.length) {
+                        return `<div class="modal-detail-loading" style="padding:30px">
+                            <i class="fa-brands fa-whatsapp" style="font-size:28px;opacity:.3;"></i>
+                            <span>Nenhuma conta WhatsApp cadastrada.</span>
+                        </div>`;
+                    }
+                    const items = detail.data.map(w => `
+                        <div class="detail-chip-item">
+                            <div class="detail-chip-num" style="background:#25d366">
+                                <i class="fa-brands fa-whatsapp" style="color:#fff;font-size:12px"></i>
+                            </div>
+                            <div class="detail-chip-info">
+                                <div class="detail-chip-title">${w.nome}</div>
+                                <div class="detail-chip-sub">${w.numero}</div>
+                            </div>
+                            <div class="detail-chip-badge">${detailStatusBadge(w.status)}</div>
+                        </div>`).join('');
+                    return `
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label">
+                                <i class="fa-brands fa-whatsapp"></i> Contas WhatsApp (${detail.data.length})
+                            </div>
+                            <div class="detail-chip-list">${items}</div>
+                        </div>`;
+                }
+
+                /* ── Armazenamento ── */
+                case 'disco': {
+                    const d = detail.data;
+                    const listaDiscos = (d.discos || []).map(dk => `
+                        <div class="detail-chip-item">
+                            <div class="detail-chip-num">${dk.num}</div>
+                            <div class="detail-chip-info">
+                                <div class="detail-chip-title">${dk.tipo} — ${dk.tamanho}</div>
+                                <div class="detail-chip-sub">${dk.modelo !== '—' ? dk.modelo : 'Modelo não informado'}</div>
+                            </div>
+                        </div>`).join('');
+                    return `
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label">
+                                <i class="fa-solid fa-hard-drive"></i> Resumo
+                            </div>
+                            <div class="detail-grid">
+                                ${detailField('Total', d.total, false, 'accent')}
+                                ${detailField('Quantidade de Discos', d.discos?.length ?? '—')}
+                            </div>
+                        </div>
+                        ${d.discos?.length ? `
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label">
+                                <i class="fa-solid fa-hard-drive"></i> Discos individuais
+                            </div>
+                            <div class="detail-chip-list">${listaDiscos}</div>
+                        </div>` : ''}`;
+                }
+
+                /* ── VRAM / Placas de Vídeo ── */
+                case 'vram': {
+                    if (!detail.data || !detail.data.length) {
+                        return `<div class="modal-detail-loading" style="padding:30px">
+                            <i class="fa-solid fa-display" style="font-size:28px;opacity:.3;"></i>
+                            <span>Nenhuma placa de vídeo cadastrada.</span>
+                        </div>`;
+                    }
+                    const items = detail.data.map(p => `
+                        <div class="detail-chip-item">
+                            <div class="detail-chip-num">${p.num}</div>
+                            <div class="detail-chip-info">
+                                <div class="detail-chip-title">${p.nome}</div>
+                                <div class="detail-chip-sub">VRAM: ${p.vram} · Tipo: ${p.tipo}</div>
+                            </div>
+                        </div>`).join('');
+                    return `
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label">
+                                <i class="fa-solid fa-display"></i> Placas de Vídeo (${detail.data.length})
+                            </div>
+                            <div class="detail-chip-list">${items}</div>
+                        </div>`;
+                }
+
+                /* ── Sistema Operacional ── */
+                case 'so': {
+                    const d = detail.data;
+                    return `
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label">
+                                <i class="fa-solid fa-laptop-code"></i> Sistema Operacional
+                            </div>
+                            <div class="detail-grid">
+                                ${detailField('Sistema',  d.so,       true)}
+                                ${detailField('Ativação', d.ativacao, true, d.ativacao !== '—' ? 'accent' : '')}
+                            </div>
+                        </div>`;
+                }
+
+                /* ── Office ── */
+                case 'office': {
+                    const d = detail.data;
+                    return `
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label">
+                                <i class="fa-solid fa-file-word"></i> Microsoft Office
+                            </div>
+                            <div class="detail-grid">
+                                ${detailField('Versão',   d.versao,   true)}
+                                ${detailField('Ativação', d.ativacao, true, d.ativacao !== '—' ? 'accent' : '')}
+                            </div>
+                        </div>`;
+                }
+
+                /* ── Info Geral do PC ── */
+                case 'info_pc': {
+                    const d = detail.data;
+                    return `
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label">
+                                <i class="fa-solid fa-microchip"></i> Processador
+                            </div>
+                            <div class="detail-grid">
+                                ${detailField('Nome',              d.cpu.nome,      true)}
+                                ${detailField('Velocidade',        d.cpu.velocidade)}
+                                ${detailField('Núcleos / Threads', d.cpu.nucleos)}
+                            </div>
+                        </div>
+
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label">
+                                <i class="fa-solid fa-memory"></i> Memória RAM
+                            </div>
+                            <div class="detail-grid">
+                                ${detailField('Total',      d.ram.total,      false, 'accent')}
+                                ${detailField('Tipo',       d.ram.tipo)}
+                                ${detailField('Velocidade', d.ram.velocidade)}
+                                ${detailField('Slots',      d.ram.slots)}
+                            </div>
+                            ${Array.isArray(d.ram.por_slot) && d.ram.por_slot.length ? (() => {
+                                const n = d.ram.por_slot.length;
+                                const linhas = Math.ceil(n / 4);
+                                const base = Math.floor(n / linhas);
+                                const cols = (n % linhas) > 0 ? base + 1 : base;
+                                return `
+                                <div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:10px;margin-top:10px;">
+                                    ${d.ram.por_slot.map(s => detailField(`Slot ${s.slot}`, s.valor)).join('')}
+                                </div>`;
+                            })() : ''}
+                        </div>
+
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label">
+                                <i class="fa-solid fa-hard-drive"></i> Armazenamento
+                            </div>
+                            <div class="detail-grid">
+                                ${detailField('Total',  d.disco.total,                false, 'accent')}
+                                ${detailField('Discos', d.disco.discos?.length ?? '—')}
+                            </div>
+                        </div>
+
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label">
+                                <i class="fa-solid fa-display"></i> Placa de Vídeo
+                            </div>
+                            <div class="detail-grid">
+                                ${d.vram && d.vram.length
+                                    ? d.vram.map(p =>
+                                        detailField('GPU',  p.nome, false) +
+                                        detailField('VRAM', p.vram, false, 'accent') +
+                                        detailField('Tipo', p.tipo, false)).join('')
+                                    : detailField('GPU', '—', true)}
+                            </div>
+                        </div>
+
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label">
+                                <i class="fa-solid fa-laptop-code"></i> SO &amp; Office
+                            </div>
+                            <div class="detail-grid">
+                                ${detailField('Sistema',         d.so.so)}
+                                ${detailField('Ativação SO',     d.so.ativacao,     false, d.so.ativacao     !== '—' ? 'accent' : '')}
+                                ${detailField('Office',          d.office.versao)}
+                                ${detailField('Ativação Office', d.office.ativacao, false, d.office.ativacao !== '—' ? 'accent' : '')}
+                            </div>
+                        </div>
+
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label">
+                                <i class="fa-solid fa-plug"></i> Conectividade
+                            </div>
+                            <div class="detail-grid">
+                                ${Array.isArray(d.conectores) && d.conectores.length
+                                    ? d.conectores.map((c, i) => detailField(`Conector ${i + 1}`, c)).join('')
+                                    : detailField('Conectores de Vídeo', '—', true)}
+                                ${detailField('IP', d.ip, !Array.isArray(d.conectores) || !d.conectores.length)}
+                            </div>
+                        </div>`;
+                }
+
+                default:
+                    return `<div class="modal-detail-loading" style="padding:30px">
+                        <i class="fa-solid fa-circle-question" style="font-size:28px;opacity:.3;"></i>
+                        <span>Sem dados para exibir.</span>
+                    </div>`;
+            }
+        }
     </script>
     <script src="js/api.js"></script>
     <script src="js/estoque.js"></script>
