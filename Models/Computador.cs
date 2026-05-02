@@ -33,13 +33,13 @@ public class Computador : Equipamento
     public int QuantidadeDiscos { get; set; }
 
     [ListaSize(nameof(QuantidadeDiscos))]
-    public List<DiscoInfo> Discos { get; set; } = new();
+    public List<(TipoDisco Tipo, int Tamanho)>   Discos      { get; set; } = new();
 
     [Range(0, 5)]
     public int QuantidadePlacasVideo { get; set; }
 
     [ListaSize(nameof(QuantidadePlacasVideo))]
-    public List<PlacaVideoInfo> PlacasVideo { get; set; } = new();
+    public List<(TipoPlacaVideo Tipo, int VRAM)> PlacasVideo { get; set; } = new();
 
     [Range(0, 15)]
     public int QuantidadeConectoresVideo { get; set; }
