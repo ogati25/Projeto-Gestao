@@ -1,6 +1,6 @@
 namespace Projeto_Gestao.Enums;
 
-public enum TipoPlacaVideo
+public enum TipoPlacaVideo 
 {
     Integrada,
     Dedicada

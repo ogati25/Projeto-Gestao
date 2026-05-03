@@ -18,8 +18,42 @@ public class ComputadorService
         _processadorService = processadorService;
     }
 
-    public async Task<List<Computador>> GetAllAsync() =>
-        await _computadores.Find(_ => true).ToListAsync();
+    public async Task<List<object>> GetAllAsync()
+    {
+        var lista = await _computadores.Find(_ => true).ToListAsync();
+        return lista.Select(c => (object)MapearComputador(c)).ToList();
+    }
+
+    private static object MapearComputador(Computador c) => new
+    {
+        c.Id,
+        c.Codigo,
+        c.Usuario,
+        c.DataAquisicao,
+        c.PrecoAquisicao,
+        c.Ativo,
+        c.Setor,
+        c.Observacoes,
+        c.Status,
+        c.Modelo,
+        c.Tipo,
+        c.GeracaoRAM,
+        c.QuantidadeSlots,
+        c.MemoriaRAM,
+        c.MemoriaRAMTotal,
+        c.VelocidadeRAM,
+        c.QuantidadeDiscos,
+        Discos = c.Discos.Select(d => new { Tipo = d.Tipo.ToString(), d.Tamanho }),
+        c.QuantidadePlacasVideo,
+        PlacasVideo = c.PlacasVideo.Select(p => new { Tipo = p.Tipo.ToString(), p.VRAM }),
+        c.QuantidadeConectoresVideo,
+        c.ConectoresVideo,
+        c.SistemaOperacional,
+        c.AtivacaoSO,
+        c.Office,
+        c.AtivacaoOffice,
+        c.IP
+    };
 
     public async Task<Computador?> GetByIdAsync(string id) =>
         await _computadores.Find(c => c.Id == id).FirstOrDefaultAsync();
@@ -73,9 +107,9 @@ public class ComputadorService
             computador.MemoriaRAMTotal,
             computador.VelocidadeRAM,
             computador.QuantidadeDiscos,
-            computador.Discos,
+            Discos = computador.Discos.Select(d => new { Tipo = d.Tipo.ToString(), d.Tamanho }),
             computador.QuantidadePlacasVideo,
-            computador.PlacasVideo,
+            PlacasVideo = computador.PlacasVideo.Select(p => new { Tipo = p.Tipo.ToString(), p.VRAM }),
             computador.QuantidadeConectoresVideo,
             computador.ConectoresVideo,
             computador.SistemaOperacional,

@@ -183,6 +183,15 @@ const QUANT_GPUS   = ['0','1','2','3','4'];
 // Com JsonStringEnumConverter o backend serializa/deserializa como string
 const TIPO_DISCO_LABELS = { 'HDD': 'HDD', 'SSD': 'SSD', 'SSD_NVMe': 'SSD NVMe' };
 const TIPO_GPU_LABELS   = { 'Integrada': 'Integrada', 'Dedicada': 'Dedicada' };
+
+// MongoDB Driver serializa enums como índice numérico — mapas para converter
+const DISCO_TIPO_MAP = { 0: 'HDD', 1: 'SSD', 2: 'SSD_NVMe' };
+const GPU_TIPO_MAP   = { 0: 'Integrada', 1: 'Dedicada' };
+
+/** Resolve o Tipo de DiscoInfo — pode vir como número (índice do enum) ou string */
+function resolverTipoDisco(tipo)     { return DISCO_TIPO_MAP[tipo] ?? tipo ?? '—'; }
+/** Resolve o Tipo de PlacaVideoInfo — pode vir como número (índice do enum) ou string */
+function resolverTipoGpu(tipo)       { return GPU_TIPO_MAP[tipo]   ?? tipo ?? '—'; }
 const QUANT_CON    = ['0','1','2','3','4','5','6'];
 
 /** Mapa de slug → nome legível de cada categoria */
@@ -783,12 +792,12 @@ function renderDiscos(afterGroup, quantidade, valores = []) {
         const g1 = document.createElement('div'); g1.className = 'form-group';
         const l1 = document.createElement('label'); l1.textContent = `Disco ${i+1} — Tipo`;
         g1.appendChild(l1);
-        g1.appendChild(criarSelect(`disco_tipo_${i}`, TIPO_DISCO, valores[i]?.Tipo || ''));
+        g1.appendChild(criarSelect(`disco_tipo_${i}`, TIPO_DISCO, resolverTipoDisco(valores[i]?.tipo)));
 
         const g2 = document.createElement('div'); g2.className = 'form-group';
         const l2 = document.createElement('label'); l2.textContent = `Disco ${i+1} — Tamanho (GB)`;
         g2.appendChild(l2);
-        g2.appendChild(criarInput(`disco_tamanho_${i}`, valores[i]?.Tamanho ?? '', 'Ex: 512', 'number'));
+        g2.appendChild(criarInput(`disco_tamanho_${i}`, valores[i]?.tamanho ?? '', 'Ex: 512', 'number'));
 
         row.appendChild(g1); row.appendChild(g2);
         div.appendChild(row);
@@ -821,12 +830,12 @@ function renderPlacasVideo(afterGroup, quantidade, valores = []) {
         const g1 = document.createElement('div'); g1.className = 'form-group';
         const l1 = document.createElement('label'); l1.textContent = `GPU ${i+1} — Tipo`;
         g1.appendChild(l1);
-        g1.appendChild(criarSelect(`gpu_tipo_${i}`, TIPO_GPU, valores[i]?.Tipo || ''));
+        g1.appendChild(criarSelect(`gpu_tipo_${i}`, TIPO_GPU, resolverTipoGpu(valores[i]?.tipo)));
 
         const g2 = document.createElement('div'); g2.className = 'form-group';
         const l2 = document.createElement('label'); l2.textContent = `GPU ${i+1} — VRAM (MB)`;
         g2.appendChild(l2);
-        g2.appendChild(criarInput(`gpu_vram_${i}`, valores[i]?.VRAM ?? '', 'Ex: 2048', 'number'));
+        g2.appendChild(criarInput(`gpu_vram_${i}`, valores[i]?.vRAM ?? '', 'Ex: 2048', 'number'));
 
         row.appendChild(g1); row.appendChild(g2);
         div.appendChild(row);
@@ -1189,15 +1198,15 @@ function renderRow(categoria, item, modo) {
 
         // Armazenamento: soma de todos os discos
         const discoTotal = item.discos?.length
-            ? item.discos.reduce((s, d) => s + (d.Tamanho ?? 0), 0)
+            ? item.discos.reduce((s, d) => s + (d.tamanho ?? 0), 0)
             : 0;
         const disco = discoTotal ? `${discoTotal} GB` : '—';
 
         // VRAM: apenas a placa com maior VRAM (não soma)
         const melhorGpu = item.placasVideo?.length
-            ? item.placasVideo.reduce((best, p) => (p.VRAM ?? 0) > (best.VRAM ?? 0) ? p : best, {})
+            ? item.placasVideo.reduce((best, p) => (p.vRAM ?? 0) > (best.vRAM ?? 0) ? p : best, {})
             : null;
-        const vramVal = melhorGpu?.VRAM ?? 0;
+        const vramVal = melhorGpu?.vRAM ?? 0;
         const vram     = vramVal ? `${vramVal} MB` : '—';
 
         // Conectores de vídeo — lidos do array ConectoresVideo do backend
@@ -1250,8 +1259,8 @@ function renderRow(categoria, item, modo) {
                 total:  disco,
                 discos: (item.discos || []).map((d, i) => ({
                     num:    i + 1,
-                    tipo:    d.Tipo    || '—',
-                    tamanho: d.Tamanho ? `${d.Tamanho} GB` : '—',
+                    tipo:    resolverTipoDisco(d.tipo),
+                    tamanho: d.tamanho ? `${d.tamanho} GB` : '—',
                     modelo:  '—',
                 }))
             }
@@ -1264,9 +1273,9 @@ function renderRow(categoria, item, modo) {
             subtitle,
             data: (item.placasVideo || []).map((p, i) => ({
                 num:    i + 1,
-                nome:   p.Tipo || '—',
-                vram:   p.VRAM ? `${p.VRAM} MB` : '—',
-                tipo:   p.Tipo || '—',
+                nome:   resolverTipoGpu(p.tipo),
+                vram:   p.vRAM ? `${p.vRAM} MB` : '—',
+                tipo:   resolverTipoGpu(p.tipo),
             }))
         };
 
@@ -1346,18 +1355,18 @@ function renderRow(categoria, item, modo) {
                 <td>
                     <div class="cell-preview">
                         <span class="cell-preview-value">${disco}</span>
-                        ${discoTotal ? `<button class="expand-btn" data-detail='${JSON.stringify(discoDetail)}' title="Ver detalhes do armazenamento">
+                        <button class="expand-btn" data-detail='${JSON.stringify(discoDetail)}' title="Ver detalhes do armazenamento">
                             <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
-                        </button>` : ''}
+                        </button>
                     </div>
                 </td>
 
                 <td>
                     <div class="cell-preview">
                         <span class="cell-preview-value">${vram}</span>
-                        ${melhorGpu ? `<button class="expand-btn" data-detail='${JSON.stringify(vramDetail)}' title="Ver detalhes da GPU">
+                        <button class="expand-btn" data-detail='${JSON.stringify(vramDetail)}' title="Ver detalhes da GPU">
                             <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
-                        </button>` : ''}
+                        </button>
                     </div>
                 </td>
 
