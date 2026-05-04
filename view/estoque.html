@@ -2268,11 +2268,13 @@
                         </div>`;
                     }
                     const items = detail.data.map(p => `
-                        <div class="detail-chip-item">
-                            <div class="detail-chip-num">${p.num}</div>
-                            <div class="detail-chip-info">
-                                <div class="detail-chip-title">${p.nome}</div>
-                                <div class="detail-chip-sub">VRAM: ${p.vram} · Tipo: ${p.tipo}</div>
+                        <div class="modal-detail-section" style="margin-bottom:12px;">
+                            <div class="modal-detail-section-label">
+                                <i class="fa-solid fa-display"></i> GPU ${p.num}
+                            </div>
+                            <div class="detail-grid">
+                                ${detailField('Tipo', p.tipo, false)}
+                                ${detailField('VRAM', p.vram, false, 'accent')}
                             </div>
                         </div>`).join('');
                     return `
@@ -2280,9 +2282,8 @@
                             <div class="modal-detail-section-label">
                                 <i class="fa-solid fa-display"></i> Placas de Vídeo (${detail.data.length})
                             </div>
-                            <div class="detail-chip-list">${items}</div>
-                        </div>`;
-                }
+                        </div>
+                        ${items}`;                }
 
                 /* ── Sistema Operacional ── */
                 case 'so': {
@@ -2356,23 +2357,27 @@
                                 <i class="fa-solid fa-hard-drive"></i> Armazenamento
                             </div>
                             <div class="detail-grid">
-                                ${detailField('Total',  d.disco.total,                false, 'accent')}
+                                ${detailField('Total',  d.disco.total, false, 'accent')}
                                 ${detailField('Discos', d.disco.discos?.length ?? '—')}
                             </div>
+                            ${d.disco.discos?.length ? d.disco.discos.map(dk => `
+                                <div class="detail-grid" style="margin-top:8px;">
+                                    ${detailField(`Disco ${dk.num} — Tipo`, dk.tipo, false)}
+                                    ${detailField(`Disco ${dk.num} — Tamanho`, dk.tamanho, false, 'accent')}
+                                </div>`).join('') : ''}
                         </div>
 
                         <div class="modal-detail-section">
                             <div class="modal-detail-section-label">
-                                <i class="fa-solid fa-display"></i> Placa de Vídeo
+                                <i class="fa-solid fa-display"></i> Placas de Vídeo
                             </div>
-                            <div class="detail-grid">
-                                ${d.vram && d.vram.length
-                                    ? d.vram.map(p =>
-                                        detailField('GPU',  p.nome, false) +
-                                        detailField('VRAM', p.vram, false, 'accent') +
-                                        detailField('Tipo', p.tipo, false)).join('')
-                                    : detailField('GPU', '—', true)}
-                            </div>
+                            ${d.vram && d.vram.length
+                                ? d.vram.map(p => `
+                                    <div class="detail-grid" style="margin-bottom:8px;">
+                                        ${detailField('Tipo', p.tipo, false)}
+                                        ${detailField('VRAM', p.vram, false, 'accent')}
+                                    </div>`).join('')
+                                : `<div class="detail-grid">${detailField('GPU', '—', true)}</div>`}
                         </div>
 
                         <div class="modal-detail-section">
