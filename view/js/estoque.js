@@ -792,12 +792,12 @@ function renderDiscos(afterGroup, quantidade, valores = []) {
         const g1 = document.createElement('div'); g1.className = 'form-group';
         const l1 = document.createElement('label'); l1.textContent = `Disco ${i+1} — Tipo`;
         g1.appendChild(l1);
-        g1.appendChild(criarSelect(`disco_tipo_${i}`, TIPO_DISCO, resolverTipoDisco(valores[i]?.Tipo)));
+        g1.appendChild(criarSelect(`disco_tipo_${i}`, TIPO_DISCO, resolverTipoDisco(valores[i]?.tipo ?? valores[i]?.Tipo)));
 
         const g2 = document.createElement('div'); g2.className = 'form-group';
         const l2 = document.createElement('label'); l2.textContent = `Disco ${i+1} — Tamanho (GB)`;
         g2.appendChild(l2);
-        g2.appendChild(criarInput(`disco_tamanho_${i}`, valores[i]?.Tamanho ?? '', 'Ex: 512', 'number'));
+        g2.appendChild(criarInput(`disco_tamanho_${i}`, valores[i]?.tamanho ?? valores[i]?.Tamanho ?? '', 'Ex: 512', 'number'));
 
         row.appendChild(g1); row.appendChild(g2);
         div.appendChild(row);
@@ -830,12 +830,12 @@ function renderPlacasVideo(afterGroup, quantidade, valores = []) {
         const g1 = document.createElement('div'); g1.className = 'form-group';
         const l1 = document.createElement('label'); l1.textContent = `GPU ${i+1} — Tipo`;
         g1.appendChild(l1);
-        g1.appendChild(criarSelect(`gpu_tipo_${i}`, TIPO_GPU, resolverTipoGpu(valores[i]?.Tipo)));
+        g1.appendChild(criarSelect(`gpu_tipo_${i}`, TIPO_GPU, resolverTipoGpu(valores[i]?.tipo ?? valores[i]?.Tipo)));
 
         const g2 = document.createElement('div'); g2.className = 'form-group';
         const l2 = document.createElement('label'); l2.textContent = `GPU ${i+1} — VRAM (MB)`;
         g2.appendChild(l2);
-        g2.appendChild(criarInput(`gpu_vram_${i}`, valores[i]?.VRAM ?? '', 'Ex: 2048', 'number'));
+        g2.appendChild(criarInput(`gpu_vram_${i}`, valores[i]?.vram ?? valores[i]?.VRAM ?? '', 'Ex: 2048', 'number'));
 
         row.appendChild(g1); row.appendChild(g2);
         div.appendChild(row);
