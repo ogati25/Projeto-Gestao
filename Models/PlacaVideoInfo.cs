@@ -4,6 +4,6 @@ namespace Projeto_Gestao.Models;
 
 public class PlacaVideoInfo
 {
-    public TipoPlacaVideo Tipo { get; set; }
+    public TipoPlacaVideo? Tipo { get; set; }
     public int            VRAM { get; set; }
 }

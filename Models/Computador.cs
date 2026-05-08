@@ -47,10 +47,10 @@ public class Computador : Equipamento
     [ListaSize(nameof(QuantidadeConectoresVideo))]
     public List<TipoConectorVideo> ConectoresVideo { get; set; } = new();
 
-    public SistemaOperacional SistemaOperacional { get; set; }
-    public AtivacaoSO AtivacaoSO { get; set; }
-    public TipoOffice Office { get; set; }
-    public AtivacaoOffice AtivacaoOffice { get; set; }
+    public SistemaOperacional? SistemaOperacional { get; set; }
+    public AtivacaoSO? AtivacaoSO { get; set; }
+    public TipoOffice? Office { get; set; }
+    public AtivacaoOffice? AtivacaoOffice { get; set; }
 
     public string? IP { get; set; }
 }
