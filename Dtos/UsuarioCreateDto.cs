@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Projeto_Gestao.Enums;
 
 namespace Projeto_Gestao.Dtos;
 
@@ -16,7 +15,7 @@ public class UsuarioCreateDto
     public string Email { get; set; } = null!;
 
     [Required(ErrorMessage = "O setor é obrigatório.")]
-    public Setor Setor { get; set; }
+    public string Setor { get; set; } = null!;  // dinâmico → string
 
     [Required(ErrorMessage = "A senha é obrigatória.")]
     [MinLength(6, ErrorMessage = "A senha deve ter no mínimo 6 caracteres.")]

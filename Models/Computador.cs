@@ -13,10 +13,9 @@ public class Computador : Equipamento
     [Required]
     public TipoComputador Tipo { get; set; }
 
-    // referência ao ID do processador
     public string? ProcessadorId { get; set; }
 
-    public GeracaoRAM? GeracaoRAM { get; set; }
+    public string? GeracaoRAM { get; set; }  // dinâmico → string?
 
     [Range(0, 16)]
     public int QuantidadeSlots { get; set; }
@@ -24,7 +23,6 @@ public class Computador : Equipamento
     [ListaSize(nameof(QuantidadeSlots))]
     public List<TipoMemoriaRAM> MemoriaRAM { get; set; } = new();
 
-    // calculado automaticamente pelo service, não vem do frontend
     public int MemoriaRAMTotal { get; set; }
 
     public int VelocidadeRAM { get; set; }
@@ -33,7 +31,7 @@ public class Computador : Equipamento
     public int QuantidadeDiscos { get; set; }
 
     [ListaSize(nameof(QuantidadeDiscos))]
-    public List<DiscoInfo>      Discos      { get; set; } = new();
+    public List<DiscoInfo> Discos { get; set; } = new();
 
     [Range(0, 5)]
     public int QuantidadePlacasVideo { get; set; }
@@ -47,10 +45,10 @@ public class Computador : Equipamento
     [ListaSize(nameof(QuantidadeConectoresVideo))]
     public List<TipoConectorVideo> ConectoresVideo { get; set; } = new();
 
-    public SistemaOperacional? SistemaOperacional { get; set; }
-    public AtivacaoSO? AtivacaoSO { get; set; }
-    public TipoOffice? Office { get; set; }
-    public AtivacaoOffice? AtivacaoOffice { get; set; }
+    public string? SistemaOperacional { get; set; }  // dinâmico → string?
+    public string? AtivacaoSO         { get; set; }  // dinâmico → string?
+    public string? Office             { get; set; }  // dinâmico → string?
+    public string? AtivacaoOffice     { get; set; }  // dinâmico → string?
 
     public string? IP { get; set; }
 }

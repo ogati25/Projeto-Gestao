@@ -16,13 +16,13 @@ public class Celular : Equipamento
     [Range(0, int.MaxValue, ErrorMessage = "Armazenamento inválido.")]
     public int Armazenamento { get; set; }
 
-    public TipoConectorCarregador Conectividade { get; set; }
+    public TipoConectorCarregador? Conectividade { get; set; }  // estático → enum
 
-    // lista de IDs dos chips que estão no celular, máximo 2
+    public string? Operadora { get; set; }  // dinâmico → string?
+
     [MaximoElementos(2)]
     public List<string> ChipIds { get; set; } = new();
 
-    // lista de IDs dos chips usados como whatsapp, máximo 6
     [MaximoElementos(6)]
     public List<string> ContasWhatsapp { get; set; } = new();
 }

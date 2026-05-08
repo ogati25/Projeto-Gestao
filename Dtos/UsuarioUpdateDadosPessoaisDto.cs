@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Projeto_Gestao.Enums;
 
 namespace Projeto_Gestao.Dtos;
 
@@ -12,5 +11,5 @@ public class UsuarioUpdateDadosPessoaisDto
     public string Sobrenome { get; set; } = null!;
 
     [Required(ErrorMessage = "O setor é obrigatório.")]
-    public Setor Setor { get; set; }
+    public string Setor { get; set; } = null!;  // dinâmico → string
 }

@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Projeto_Gestao.Enums;
 using Projeto_Gestao.Models.Base;
 using Projeto_Gestao.Validations;
 
@@ -8,7 +7,7 @@ namespace Projeto_Gestao.Models;
 public class Chip : Equipamento
 {
     [Required]
-    public Operadora Operadora { get; set; }
+    public string Operadora { get; set; } = null!;  // dinâmico → string
 
     [Required]
     [TelefoneInternacional]
@@ -18,7 +17,5 @@ public class Chip : Equipamento
 
     public float Plano { get; set; }
 
-    // referência ao ID do celular onde o chip está
-    // pode ser nulo se o chip não estiver em nenhum celular
     public string? CelularId { get; set; }
 }

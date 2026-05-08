@@ -17,25 +17,22 @@ public abstract class Equipamento
     [Required]
     public string Usuario { get; set; } = null!;
 
-    
     public DateTime DataAquisicao { get; set; }
 
-    
     [Range(0, double.MaxValue, ErrorMessage = "Preço não pode ser negativo.")]
     public decimal PrecoAquisicao { get; set; }
 
     [Required]
     public bool Ativo { get; set; } = true;
 
-    [Required] 
-    public Setor Setor { get; set; }
+    [Required]
+    public string Setor { get; set; } = null!;  // dinâmico → string
 
     [Required]
     public Status Status { get; set; }
 
     public string? Observacoes { get; set; }
 
-    // gera um código aleatório, ajuste para o seu formato depois
     private static string GerarCodigo()
     {
         return Guid.NewGuid().ToString("N")[..10].ToUpper();

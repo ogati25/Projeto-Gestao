@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Projeto_Gestao.Enums;
 
 namespace Projeto_Gestao.Models;
 
@@ -21,7 +20,7 @@ public class Usuario
     public string Email { get; set; } = null!;
 
     [Required]
-    public Setor Setor { get; set; }
+    public string Setor { get; set; } = null!;  // dinâmico → string
 
     [Required]
     public string Senha { get; set; } = null!;
