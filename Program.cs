@@ -11,6 +11,7 @@ builder.Services.Configure<MongoDbSettings>(
 // registro dos services
 // ProcessadorService primeiro pois ComputadorService depende dele
 // ChipService primeiro pois CelularService depende dele
+builder.Services.AddSingleton<OpcaoEnumService>();
 builder.Services.AddSingleton<ProcessadorService>();
 builder.Services.AddSingleton<ChipService>();
 builder.Services.AddSingleton<ComputadorService>();

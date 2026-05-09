@@ -24,6 +24,7 @@ public class ComputadorService
         return lista.Select(c => (object)MapearComputador(c)).ToList();
     }
 
+    // Discos e PlacasVideo agora têm Tipo como string? — sem .ToString() necessário
     private static object MapearComputador(Computador c) => new
     {
         c.Id,
@@ -43,9 +44,9 @@ public class ComputadorService
         c.MemoriaRAMTotal,
         c.VelocidadeRAM,
         c.QuantidadeDiscos,
-        Discos = c.Discos.Select(d => new { Tipo = d.Tipo.HasValue ? d.Tipo.ToString() : (string?)null, d.Tamanho }),
+        c.Discos,
         c.QuantidadePlacasVideo,
-        PlacasVideo = c.PlacasVideo.Select(p => new { Tipo = p.Tipo.HasValue ? p.Tipo.ToString() : (string?)null, p.VRAM }),
+        c.PlacasVideo,
         c.QuantidadeConectoresVideo,
         c.ConectoresVideo,
         c.SistemaOperacional,
@@ -60,23 +61,20 @@ public class ComputadorService
 
     public async Task CreateAsync(Computador computador)
     {
-        // calcula a memória RAM total somando os valores do enum
         computador.MemoriaRAMTotal = computador.MemoriaRAM.Sum(m => (int)m);
         await _computadores.InsertOneAsync(computador);
     }
 
     public async Task UpdateAsync(string id, Computador computador)
     {
-        // recalcula a memória RAM total na atualização também
         computador.MemoriaRAMTotal = computador.MemoriaRAM?.Sum(m => (int)m) ?? 0;
         computador.Id = id;
-        await _computadores.ReplaceOneAsync(c => c.Id == id, computador); 
+        await _computadores.ReplaceOneAsync(c => c.Id == id, computador);
     }
 
     public async Task DeleteAsync(string id) =>
         await _computadores.DeleteOneAsync(c => c.Id == id);
 
-    // busca o computador com as informações do processador resolvidas
     public async Task<object?> GetByIdComProcessadorAsync(string id)
     {
         var computador = await GetByIdAsync(id);
@@ -86,7 +84,6 @@ public class ComputadorService
         if (computador.ProcessadorId != null)
             processador = await _processadorService.GetByIdAsync(computador.ProcessadorId);
 
-        // retorna um objeto anônimo com os dados do computador e o processador resolvido
         return new
         {
             computador.Id,
@@ -107,9 +104,9 @@ public class ComputadorService
             computador.MemoriaRAMTotal,
             computador.VelocidadeRAM,
             computador.QuantidadeDiscos,
-            Discos = computador.Discos.Select(d => new { Tipo = d.Tipo.HasValue ? d.Tipo.ToString() : (string?)null, d.Tamanho }),
+            computador.Discos,
             computador.QuantidadePlacasVideo,
-            PlacasVideo = computador.PlacasVideo.Select(p => new { Tipo = p.Tipo.HasValue ? p.Tipo.ToString() : (string?)null, p.VRAM }),
+            computador.PlacasVideo,
             computador.QuantidadeConectoresVideo,
             computador.ConectoresVideo,
             computador.SistemaOperacional,
