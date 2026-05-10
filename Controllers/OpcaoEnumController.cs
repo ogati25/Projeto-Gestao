@@ -13,9 +13,23 @@ public class OpcoesEnumController : ControllerBase
 
     // GET /api/opcoes
     // retorna todos os tipos agrupados: { "SistemaOperacional": ["Windows10", ...], ... }
+    // Usa JsonResult com opções customizadas para preservar as chaves em PascalCase
     [HttpGet]
-    public async Task<IActionResult> GetAll() =>
-        Ok(await _service.GetAllAgrupadosAsync());
+    public async Task<IActionResult> GetAll()
+    {
+        var dados = await _service.GetAllAgrupadosAsync();
+
+        // Por padrão o ASP.NET converte chaves de Dictionary para camelCase.
+        // Usamos JsonResult com DictionaryKeyPolicy = null para preservar o case original.
+        var opcoes = new System.Text.Json.JsonSerializerOptions
+        {
+            DictionaryKeyPolicy = null, // mantém as chaves exatamente como estão no banco
+            PropertyNamingPolicy = null,
+        };
+        opcoes.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+
+        return new JsonResult(dados, opcoes);
+    }
 
     // GET /api/opcoes/{tipo}
     // retorna os valores de um tipo: ["Windows10", "Windows11", ...]

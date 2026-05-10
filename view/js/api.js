@@ -289,6 +289,30 @@ async function deletarRamal(id) {
     return await request(`ramais/${id}`, 'DELETE');
 }
 
+// ==================== OPÇÕES DINÂMICAS ====================
+// Espelha o OpcoesEnumController (/api/opcoes)
+
+// GET /api/opcoes → { SistemaOperacional: [...], Setor: [...], ... }
+async function getOpcoes() {
+    return await request('opcoes');
+}
+
+// GET /api/opcoes/{tipo} → ["Windows10", "Windows11", ...]
+async function getOpcoesPorTipo(tipo) {
+    return await request(`opcoes/${tipo}`);
+}
+
+// POST /api/opcoes → 201 Created
+// Body: { tipo, valor }
+async function criarOpcao(tipo, valor) {
+    return await request('opcoes', 'POST', { tipo, valor });
+}
+
+// DELETE /api/opcoes/{tipo}/{valor} → 204 No Content
+async function deletarOpcao(tipo, valor) {
+    return await request(`opcoes/${encodeURIComponent(tipo)}/${encodeURIComponent(valor)}`, 'DELETE');
+}
+
 // ==================== EXTRAS ====================
 
 async function getExtras() {

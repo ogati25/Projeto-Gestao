@@ -45,17 +45,63 @@ if (typeof currentCategory === 'undefined') var currentCategory = 'computadores'
 if (typeof currentMode     === 'undefined') var currentMode     = 'gestao';
 if (typeof activeFilters   === 'undefined') var activeFilters   = [];
 
-const SETOR = [
-    {value:'RH',         label:'RH'},
-    {value:'Suporte',    label:'Suporte'},
-    {value:'Produtos',   label:'Produtos'},
-    {value:'Auditoria',  label:'Auditoria'},
-    {value:'Diretoria',  label:'Diretoria'},
-    {value:'CallCenter', label:'Call Center'},
-    {value:'Dev',        label:'Dev'},
-    {value:'Cofre',      label:'Cofre'},
-    {value:'Servidor',   label:'Servidor'},
-];
+// ── Enums DINÂMICOS ─────────────────────────────────────────────────────────
+// Populados via GET /api/opcoes ao carregar a página.
+// Os arrays começam vazios e são preenchidos por carregarOpcoesDinamicas().
+// Qualquer função que depende deles (criarSelect, filterDefs) usará os valores
+// atualizados automaticamente pois referenciamos o mesmo array.
+let SETOR    = [];
+let SO       = [];
+let ATIV_SO  = [];
+let OFFICE   = [];
+let ATIV_OFF = [];
+let OPERADORA   = [];
+let GERACAO_RAM = [];
+let TIPO_DISCO  = [];
+let TIPO_GPU    = [];
+
+/**
+ * Converte um array de strings da API em [{value, label}].
+ * O valor e o label são idênticos pois o backend salva a string diretamente.
+ */
+function stringsParaOpcoes(arr) {
+    return (arr || []).map(v => ({ value: v, label: v }));
+}
+
+/**
+ * Busca todas as opções dinâmicas da API e popula os arrays globais.
+ * Chamado uma vez no carregamento da página.
+ * Em caso de erro, os arrays ficam vazios (selects aparecem só com "— Selecione —").
+ */
+async function carregarOpcoesDinamicas() {
+    try {
+        const opcoes = await getOpcoes(); // chaves em camelCase: { setor: [...], sistemaOperacional: [...], ... }
+        if (!opcoes) return;
+
+        // ASP.NET serializa as chaves do Dictionary em camelCase por padrão.
+        // Criamos um mapa normalizado para acessar independente do case.
+        const get = (tipo) => {
+            // Tenta exato, depois camelCase (primeira letra minúscula)
+            const camel = tipo.charAt(0).toLowerCase() + tipo.slice(1);
+            const arr = opcoes[tipo] ?? opcoes[camel] ?? [];
+            return stringsParaOpcoes(arr);
+        };
+
+        SETOR.length    = 0; SETOR.push(...get('Setor'));
+        SO.length       = 0; SO.push(...get('SistemaOperacional'));
+        ATIV_SO.length  = 0; ATIV_SO.push(...get('AtivacaoSO'));
+        OFFICE.length   = 0; OFFICE.push(...get('TipoOffice'));
+        ATIV_OFF.length = 0; ATIV_OFF.push(...get('AtivacaoOffice'));
+        OPERADORA.length    = 0; OPERADORA.push(...get('Operadora'));
+        GERACAO_RAM.length  = 0; GERACAO_RAM.push(...get('GeracaoRAM'));
+        TIPO_DISCO.length   = 0; TIPO_DISCO.push(...get('TipoDisco'));
+        TIPO_GPU.length     = 0; TIPO_GPU.push(...get('TipoPlacaVideo'));
+
+    } catch (e) {
+        console.warn('Não foi possível carregar as opções dinâmicas da API:', e);
+    }
+}
+
 const STATUS = [
     {value:'EmManutenção',        label:'Em Manutenção'},
     {value:'NecessitaManutenção', label:'Necessita Manutenção'},
@@ -66,35 +112,6 @@ const STATUS = [
     {value:'AguardandoDescarte',  label:'Aguardando Descarte'},
     {value:'Descartado',          label:'Descartado'},
     {value:'Vendido',             label:'Vendido'},
-];
-const SO = [
-    {value:'Windows7',  label:'Windows 7'},
-    {value:'Windows10', label:'Windows 10'},
-    {value:'Windows11', label:'Windows 11'},
-    {value:'Linux',     label:'Linux'},
-    {value:'MacOS',     label:'MacOS'},
-];
-const ATIV_SO = [
-    {value:'Original_Fabrica',  label:'Original de Fábrica'},
-    {value:'Original_Comprada', label:'Original Comprada'},
-    {value:'Desativado',        label:'Desativado'},
-    {value:'Nao_Possui',        label:'Não Possui'},
-    {value:'Pirata',            label:'Pirata'},
-];
-const OFFICE = [
-    {value:'Nenhum',       label:'Nenhum'},
-    {value:'Office2016',   label:'Office 2016'},
-    {value:'Office2019',   label:'Office 2019'},
-    {value:'Office2021',   label:'Office 2021'},
-    {value:'Microsoft365', label:'Microsoft 365'},
-];
-const ATIV_OFF = [
-    {value:'Desativado',        label:'Desativado'},
-    {value:'NaoPossui',         label:'Não Possui'},
-    {value:'Original_Fabrica',  label:'Original de Fábrica'},
-    {value:'Original_Comprada', label:'Original Comprada'},
-    {value:'Assinatura',        label:'Assinatura'},
-    {value:'Pirata',            label:'Pirata'},
 ];
 const TIPO_PC = [
     {value:'PC_Desktop', label:'PC Desktop'},
@@ -130,38 +147,14 @@ const TIPO_PER = [
     {value:'Gamer',      label:'Gamer'},
     {value:'Escritorio', label:'Escritório'},
 ];
-const OPERADORA = [
-    {value:'Vivo',       label:'Vivo'},
-    {value:'Claro',      label:'Claro'},
-    {value:'Tim',        label:'TIM'},
-    {value:'Oi',         label:'Oi'},
-    {value:'Nextel',     label:'Nextel'},
-    {value:'Algar',      label:'Algar'},
-    {value:'Sercomtel',  label:'Sercomtel'},
-    {value:'MVNOs',      label:'MVNOs'},
-];
+/** Lista de tipos de conector de vídeo (usada nos slots dinâmicos de computador) */
+const CONECTOR_VIDEO = ['HDMI', 'DisplayPort', 'VGA', 'DVI'];
+
 const CONECTOR_CARREGADOR = [
     {value:'USB_C',     label:'USB-C'},
     {value:'Lightning', label:'Lightning (Apple)'},
     {value:'MicroUSB',  label:'Micro USB'},
     {value:'MiniUSB',   label:'Mini USB'},
-];
-
-/** Lista de tipos de conector de vídeo (usada nos slots dinâmicos de computador) */
-const CONECTOR_VIDEO = ['HDMI', 'DisplayPort', 'VGA', 'DVI'];
-const TIPO_DISCO = [
-    {value:'HDD',     label:'HDD'},
-    {value:'SSD',     label:'SSD SATA'},
-    {value:'SSD_NVMe',label:'SSD NVMe'},
-];
-const GERACAO_RAM = [
-    {value:'DDR3', label:'DDR3'},
-    {value:'DDR4', label:'DDR4'},
-    {value:'DDR5', label:'DDR5'},
-];
-const TIPO_GPU = [
-    {value:'Integrada', label:'Integrada'},
-    {value:'Dedicada',  label:'Dedicada'},
 ];
 
 /** Opções para os slots de RAM: tamanho instalado em cada slot */
@@ -179,19 +172,9 @@ const QUANT_SLOTS  = ['0','1','2','3','4','5','6','7','8'];
 const QUANT_DISCOS = ['0','1','2','3','4','5','6'];
 const QUANT_GPUS   = ['0','1','2','3','4'];
 
-// Valores válidos para TipoDisco e TipoPlacaVideo (espelham os enums C#)
-// Com JsonStringEnumConverter o backend serializa/deserializa como string
-const TIPO_DISCO_LABELS = { 'HDD': 'HDD', 'SSD': 'SSD', 'SSD_NVMe': 'SSD NVMe' };
-const TIPO_GPU_LABELS   = { 'Integrada': 'Integrada', 'Dedicada': 'Dedicada' };
-
-// MongoDB Driver serializa enums como índice numérico — mapas para converter
-const DISCO_TIPO_MAP = { 0: 'HDD', 1: 'SSD', 2: 'SSD_NVMe' };
-const GPU_TIPO_MAP   = { 0: 'Integrada', 1: 'Dedicada' };
-
-/** Resolve o Tipo de DiscoInfo — pode vir como número (índice do enum) ou string */
-function resolverTipoDisco(tipo)     { return DISCO_TIPO_MAP[tipo] ?? tipo ?? '—'; }
-/** Resolve o Tipo de PlacaVideoInfo — pode vir como número (índice do enum) ou string */
-function resolverTipoGpu(tipo)       { return GPU_TIPO_MAP[tipo]   ?? tipo ?? '—'; }
+// Tipo de disco e GPU agora são string? direto — sem mapa numérico necessário.
+function resolverTipoDisco(tipo) { return tipo || '—'; }
+function resolverTipoGpu(tipo)   { return tipo || '—'; }
 const QUANT_CON    = ['0','1','2','3','4','5','6'];
 
 /** Mapa de slug → nome legível de cada categoria */
@@ -792,12 +775,12 @@ function renderDiscos(afterGroup, quantidade, valores = []) {
         const g1 = document.createElement('div'); g1.className = 'form-group';
         const l1 = document.createElement('label'); l1.textContent = `Disco ${i+1} — Tipo`;
         g1.appendChild(l1);
-        g1.appendChild(criarSelect(`disco_tipo_${i}`, TIPO_DISCO, resolverTipoDisco(valores[i]?.Tipo)));
+        g1.appendChild(criarSelect(`disco_tipo_${i}`, TIPO_DISCO, valores[i]?.tipo ?? valores[i]?.Tipo ?? ''));
 
         const g2 = document.createElement('div'); g2.className = 'form-group';
         const l2 = document.createElement('label'); l2.textContent = `Disco ${i+1} — Tamanho (GB)`;
         g2.appendChild(l2);
-        g2.appendChild(criarInput(`disco_tamanho_${i}`, valores[i]?.Tamanho ?? '', 'Ex: 512', 'number'));
+        g2.appendChild(criarInput(`disco_tamanho_${i}`, valores[i]?.tamanho ?? valores[i]?.Tamanho ?? '', 'Ex: 512', 'number'));
 
         row.appendChild(g1); row.appendChild(g2);
         div.appendChild(row);
@@ -830,12 +813,12 @@ function renderPlacasVideo(afterGroup, quantidade, valores = []) {
         const g1 = document.createElement('div'); g1.className = 'form-group';
         const l1 = document.createElement('label'); l1.textContent = `GPU ${i+1} — Tipo`;
         g1.appendChild(l1);
-        g1.appendChild(criarSelect(`gpu_tipo_${i}`, TIPO_GPU, resolverTipoGpu(valores[i]?.Tipo)));
+        g1.appendChild(criarSelect(`gpu_tipo_${i}`, TIPO_GPU, valores[i]?.tipo ?? valores[i]?.Tipo ?? ''));
 
         const g2 = document.createElement('div'); g2.className = 'form-group';
         const l2 = document.createElement('label'); l2.textContent = `GPU ${i+1} — VRAM (MB)`;
         g2.appendChild(l2);
-        g2.appendChild(criarInput(`gpu_vram_${i}`, valores[i]?.VRAM ?? '', 'Ex: 2048', 'number'));
+        g2.appendChild(criarInput(`gpu_vram_${i}`, valores[i]?.vram ?? valores[i]?.VRAM ?? '', 'Ex: 2048', 'number'));
 
         row.appendChild(g1); row.appendChild(g2);
         div.appendChild(row);
@@ -2901,9 +2884,11 @@ function addFilterBackend() {
 document.querySelectorAll('.inv-table').forEach(t => t.classList.remove('ativa'));
 const tabelaInicial = document.getElementById('computadores-gestao');
 if (tabelaInicial) tabelaInicial.classList.add('ativa');
-// Busca os dados da categoria inicial na API
-carregarTabela('computadores', 'gestao');
 
-// Popula o select de filtros para a categoria/modo iniciais
-buildFilterPropSelect();
+// Carrega as opções dinâmicas da API (Setor, SO, Office, Operadora, etc.)
+// e só depois carrega a tabela para garantir que os selects já tenham as opções
+carregarOpcoesDinamicas().then(() => {
+    carregarTabela('computadores', 'gestao');
+    buildFilterPropSelect();
+});
 
