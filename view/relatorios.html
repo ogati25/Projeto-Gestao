@@ -286,8 +286,8 @@
                 </a>
             </li>
             <li>
-                <a href="pedidos.html">
-                    <i class="fa-solid fa-clipboard-list"></i><span>Pedidos</span>
+                <a href="produtos.html">
+                    <i class="fa-solid fa-tag"></i><span>Produtos</span>
                 </a>
             </li>
             <li>
@@ -296,8 +296,8 @@
                 </a>
             </li>
             <li>
-                <a href="funcionarios.html">
-                    <i class="fa-solid fa-users"></i><span>Funcionários</span>
+                <a href="configuracoes.html">
+                    <i class="fa-solid fa-gear"></i><span>Configurações</span>
                 </a>
             </li>
         </ul>
@@ -320,10 +320,10 @@
                         <i class="fa-solid fa-sun icon-sun"></i>
                         <i class="fa-solid fa-moon icon-moon"></i>
                     </button>
-                    <button class="btn-config">
+                    <button class="btn-config" onclick="window.location.href='configuracoes.html'" title="Configurações">
                         <i class="fa-solid fa-gear"></i>
                     </button>
-                    <div class="user-avatar" title="Perfil">U</div>
+                    <div class="user-avatar" id="userAvatar" title="Perfil" onclick="window.location.href='perfil.html'" style="cursor:pointer">U</div>
                 </div>
             </div>
         </header>
@@ -495,15 +495,29 @@
 
     <script>
         // ========== SIDEBAR & TEMA ==========
-        const themeBtn = document.getElementById("themeToggle");
-        themeBtn.addEventListener("click", () => themeBtn.classList.toggle("light"));
+        (function () {
+            const saved = localStorage.getItem('tl_theme') || 'light';
+            if (saved === 'dark') document.body.classList.add('dark');
+            const themeBtn = document.getElementById('themeToggle');
+            if (saved === 'light') themeBtn.classList.add('light');
+            themeBtn.addEventListener('click', () => {
+                const isDark = document.body.classList.toggle('dark');
+                themeBtn.classList.toggle('light', !isDark);
+                localStorage.setItem('tl_theme', isDark ? 'dark' : 'light');
+            });
+            // Avatar do usuário
+            try {
+                const u = JSON.parse(localStorage.getItem('tl_user') || '{}');
+                if (u.nome) document.getElementById('userAvatar').textContent = u.nome.charAt(0).toUpperCase();
+            } catch(_) {}
+        })();
 
         const sidebar = document.getElementById("sidebar");
         document.getElementById("toggleSidebar").addEventListener("click", () => {
             sidebar.classList.toggle("closed");
         });
 
-        const currentPage = window.location.pathname.split("/").pop() || "dashboard.html";
+        const currentPage = (window.location.pathname.split("/").pop() || window.location.href.split("/").pop() || "").split("?")[0] || "dashboard.html";
         document.querySelectorAll(".menu li a").forEach(link => {
             if (link.getAttribute("href") === currentPage) {
                 link.parentElement.classList.add("active");

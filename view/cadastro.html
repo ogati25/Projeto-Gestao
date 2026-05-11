@@ -149,8 +149,9 @@
             cursor: pointer;
             color: var(--text-muted);
             font-size: 13px;
-            padding: 0;
+            padding: 4px;
             transition: color 0.2s;
+            z-index: 2;
         }
         .field-input-wrap .toggle-pass:hover { color: var(--text-primary); }
         .field-input-wrap input.has-toggle { padding-right: 36px; }
@@ -315,11 +316,16 @@
             </div>
 
             <div class="field field-full">
-                <label for="setor">Setor</label>
+                <label for="cargo">Cargo</label>
                 <div class="field-input-wrap">
                     <i class="fa-solid fa-briefcase fi"></i>
-                    <select id="setor">
-                        <!-- Opções populadas pelo cadastro.js via populateSetores() -->
+                    <select id="cargo">
+                        <option value="">Selecione o cargo...</option>
+                        <option>Administrador de TI</option>
+                        <option>Analista de TI</option>
+                        <option>Gerente de TI</option>
+                        <option>Técnico de Suporte</option>
+                        <option>Outro</option>
                     </select>
                 </div>
             </div>
@@ -328,8 +334,7 @@
                 <label for="senha">Senha</label>
                 <div class="field-input-wrap">
                     <i class="fa-solid fa-lock fi"></i>
-                    <input type="password" id="senha" class="has-toggle"
-                           placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+                    <input type="password" id="senha" class="has-toggle" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
                     <button type="button" class="toggle-pass" id="togglePass1" tabindex="-1">
                         <i class="fa-solid fa-eye" id="eye1"></i>
                     </button>
@@ -342,8 +347,7 @@
                 <label for="confirmar">Confirmar senha</label>
                 <div class="field-input-wrap">
                     <i class="fa-solid fa-lock fi"></i>
-                    <input type="password" id="confirmar" class="has-toggle"
-                           placeholder="Repita a senha" autocomplete="new-password">
+                    <input type="password" id="confirmar" class="has-toggle" placeholder="Repita a senha" autocomplete="new-password">
                     <button type="button" class="toggle-pass" id="togglePass2" tabindex="-1">
                         <i class="fa-solid fa-eye" id="eye2"></i>
                     </button>
@@ -352,7 +356,12 @@
 
         </div>
 
-        <button class="btn-cadastrar" id="btnCadastrar" onclick="handleCadastro()">
+        <div class="terms-row">
+            <input type="checkbox" id="termos">
+            <label for="termos">Li e aceito os <a href="#">Termos de Uso</a> e a <a href="#">Política de Privacidade</a></label>
+        </div>
+
+        <button class="btn-cadastrar" id="btnCadastrar">
             <i class="fa-solid fa-user-plus"></i> Criar conta
         </button>
 
@@ -362,14 +371,19 @@
     </div>
 
 </div>
-<script src="js/api.js"></script>
-<script src="js/cadastro.js"></script>
+
 <script>
+    // ── Tudo dentro do DOMContentLoaded para garantir que o DOM está pronto ──
+    document.addEventListener('DOMContentLoaded', () => {
+
     // Toggle senhas
     function setupToggle(btnId, inputId, iconId) {
-        document.getElementById(btnId).addEventListener('click', () => {
-            const input = document.getElementById(inputId);
-            const icon  = document.getElementById(iconId);
+        const btn   = document.getElementById(btnId);
+        const input = document.getElementById(inputId);
+        const icon  = document.getElementById(iconId);
+        if (!btn || !input || !icon) return;
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
             if (input.type === 'password') {
                 input.type = 'text';
                 icon.className = 'fa-solid fa-eye-slash';
@@ -407,35 +421,60 @@
         label.style.color     = lvl.bg || 'var(--text-muted)';
     });
 
-    // =============================================================================
-    // UTILITÁRIOS DE UI
-    // =============================================================================
+    // Cadastrar
+    document.getElementById('btnCadastrar').addEventListener('click', async () => {
+        const nome      = document.getElementById('nome').value.trim();
+        const sobrenome = document.getElementById('sobrenome').value.trim();
+        const email     = document.getElementById('email').value.trim();
+        const cargo     = document.getElementById('cargo').value;
+        const senha     = document.getElementById('senha').value;
+        const confirmar = document.getElementById('confirmar').value;
+        const termos    = document.getElementById('termos').checked;
 
-    function mostrarErro(msg) {
-        document.getElementById('alertErrorMsg').textContent = msg;
-        document.getElementById('alertError').style.display   = 'flex';
-        document.getElementById('alertSuccess').style.display = 'none';
-    }
+        const errEl  = document.getElementById('alertError');
+        const errMsg = document.getElementById('alertErrorMsg');
+        const sucEl  = document.getElementById('alertSuccess');
+        const btn    = document.getElementById('btnCadastrar');
 
-    function mostrarSucesso() {
-        document.getElementById('alertError').style.display   = 'none';
-        document.getElementById('alertSuccess').style.display = 'flex';
-    }
+        errEl.classList.remove('show');
+        sucEl.classList.remove('show');
 
-    function ocultarAlertas() {
-        document.getElementById('alertError').style.display   = 'none';
-        document.getElementById('alertSuccess').style.display = 'none';
-    }
+        if (!nome || !sobrenome || !email || !cargo || !senha) {
+            errMsg.textContent = 'Preencha todos os campos obrigatórios.';
+            errEl.classList.add('show'); return;
+        }
+        if (senha !== confirmar) {
+            errMsg.textContent = 'As senhas não coincidem.';
+            errEl.classList.add('show'); return;
+        }
+        if (senha.length < 8) {
+            errMsg.textContent = 'A senha deve ter pelo menos 8 caracteres.';
+            errEl.classList.add('show'); return;
+        }
+        if (!termos) {
+            errMsg.textContent = 'Aceite os termos para continuar.';
+            errEl.classList.add('show'); return;
+        }
 
-    function setLoading(loading) {
-        const btn = document.getElementById('btnCadastrar');
-        btn.disabled  = loading;
-        btn.innerHTML = loading
-            ? '<i class="fa-solid fa-spinner fa-spin"></i> Criando conta...'
-            : '<i class="fa-solid fa-user-plus"></i> Criar conta';
-    }
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Criando conta...';
 
-    populateSetores();
+        try {
+            // Substitua pela chamada real à sua API:
+            // await request('auth/cadastro', 'POST', { nome, sobrenome, email, cargo, senha });
+
+            await new Promise(r => setTimeout(r, 900)); // simulação
+            sucEl.classList.add('show');
+            setTimeout(() => window.location.href = 'login.html', 1800);
+        } catch (err) {
+            errMsg.textContent = err.message || 'Erro ao criar conta. Tente novamente.';
+            errEl.classList.add('show');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Criar conta';
+        }
+    });
+
+    }); // fim DOMContentLoaded
 </script>
 </body>
 </html>

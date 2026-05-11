@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <title>Produtos — Tech Logistics</title>
+    <style>
+        /* ===== PRODUTOS ESPECÍFICO ===== */
+
+        /* ---- Controles superiores ---- */
+        .prod-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .prod-controls-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* ---- Search inline ---- */
+        .search-inline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 7px 12px;
+            min-width: 240px;
+        }
+        .search-inline i { font-size: 13px; color: var(--text-muted); }
+        .search-inline input {
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 13px;
+            color: var(--text-primary);
+            width: 100%;
+        }
+        .search-inline input::placeholder { color: var(--text-muted); }
+
+        /* ---- Select filter ---- */
+        .prod-select {
+            padding: 7px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            background: var(--secondary-color);
+            color: var(--text-primary);
+            outline: none;
+            cursor: pointer;
+            transition: border 0.2s;
+        }
+        .prod-select:focus { border-color: var(--quinary-color); }
+
+        /* ---- KPI cards row ---- */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+        }
+        .kpi-mini {
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px 18px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .kpi-mini-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .kpi-mini-icon i { font-size: 18px; color: #fff; }
+        .kpi-mini-icon.blue   { background: #3b82f6; }
+        .kpi-mini-icon.green  { background: #10b981; }
+        .kpi-mini-icon.orange { background: #f59e0b; }
+        .kpi-mini-icon.purple { background: #8b5cf6; }
+        .kpi-mini-body {}
+        .kpi-mini-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 3px; }
+        .kpi-mini-value { font-size: 22px; font-weight: 700; color: var(--text-primary); line-height: 1; }
+
+        /* ---- Table header tools ---- */
+        .tbl-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .tbl-header-left {
+            display: flex;
+            flex-direction: column;
+        }
+        .tbl-header-left h2 { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+        .tbl-header-left span { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+        .tbl-header-right { display: flex; align-items: center; gap: 8px; }
+
+        /* ---- Action buttons inside table ---- */
+        .btn-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: var(--background-color);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+        .btn-icon:hover { background: var(--border-color); color: var(--text-primary); }
+        .btn-icon.danger:hover { background: #fee2e2; color: #ef4444; border-color: #fecaca; }
+        .btn-icon.edit:hover   { background: #dbeafe; color: #2563eb; border-color: #bfdbfe; }
+
+        /* ---- Tag/chip produto ---- */
+        .prod-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* ---- Preço ---- */
+        .price-cell { font-weight: 700; color: var(--text-primary); font-size: 13px; }
+        .price-cell .currency { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-right: 1px; }
+
+        /* ---- Empty state ---- */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            gap: 12px;
+            color: var(--text-muted);
+        }
+        .empty-state i { font-size: 40px; opacity: 0.4; }
+        .empty-state p { font-size: 14px; font-weight: 600; }
+        .empty-state span { font-size: 12px; }
+
+        /* ---- Paginação ---- */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 18px;
+            border-top: 1px solid var(--border-color);
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .pagination-btns { display: flex; gap: 4px; }
+        .page-btn {
+            min-width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: var(--secondary-color);
+            color: var(--text-primary);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            padding: 0 6px;
+        }
+        .page-btn:hover:not(:disabled) { background: var(--background-color); }
+        .page-btn.active { background: var(--quinary-color); color: #fff; border-color: var(--quinary-color); }
+        .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* ===================== MODAL ===================== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(2px);
+        }
+        .modal-overlay.open { display: flex; }
+
+        .modal {
+            background: var(--secondary-color);
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 620px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.22s ease;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to   { opacity: 1; transform: translateY(0)   scale(1); }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        .modal-header-left { display: flex; align-items: center; gap: 12px; }
+        .modal-header-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--quinary-color);
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-header-icon i { font-size: 17px; color: #fff; }
+        .modal-header h3 { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+        .modal-header p  { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        .modal-close:hover { background: var(--background-color); color: var(--text-primary); }
+
+        .modal-body {
+            padding: 20px 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .modal-body::-webkit-scrollbar { width: 5px; }
+        .modal-body::-webkit-scrollbar-track { background: transparent; }
+        .modal-body::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+
+        /* Form grid */
+        .form-grid { display: grid; gap: 16px; }
+        .form-grid-2 { grid-template-columns: 1fr 1fr; gap: 14px; display: grid; }
+
+        .form-field { display: flex; flex-direction: column; gap: 5px; }
+        .form-field label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 0.2px;
+        }
+        .form-field label .req { color: #ef4444; margin-left: 2px; }
+
+        .form-field input,
+        .form-field select,
+        .form-field textarea {
+            padding: 9px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 13px;
+            background: var(--background-color);
+            color: var(--text-primary);
+            outline: none;
+            transition: border 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+        }
+        .form-field input:focus,
+        .form-field select:focus,
+        .form-field textarea:focus {
+            border-color: var(--quinary-color);
+            box-shadow: 0 0 0 3px rgba(62,96,143,0.13);
+            background: var(--secondary-color);
+        }
+        .form-field input.error,
+        .form-field select.error { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.12); }
+        .form-field .field-error { font-size: 11px; color: #ef4444; margin-top: 2px; display: none; }
+        .form-field .field-error.show { display: block; }
+
+        .form-field textarea { resize: vertical; min-height: 72px; }
+
+        /* Input with prefix */
+        .input-prefix-wrap { position: relative; }
+        .input-prefix-wrap .prefix {
+            position: absolute;
+            left: 11px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            pointer-events: none;
+            user-select: none;
+        }
+        .input-prefix-wrap input { padding-left: 32px; }
+
+        /* Section divider */
+        .form-section {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-muted);
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 2px;
+        }
+
+        /* Stock badge in form */
+        .stock-hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        .modal-footer-right { display: flex; gap: 8px; }
+
+        /* ---- Success toast ---- */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #1e293b;
+            color: #fff;
+            border-radius: 10px;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            z-index: 9999;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast i { font-size: 16px; }
+        .toast.success i { color: #10b981; }
+        .toast.error i   { color: #ef4444; }
+
+        /* ---- Confirm modal ---- */
+        .confirm-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1100;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(2px);
+        }
+        .confirm-overlay.open { display: flex; }
+        .confirm-box {
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 28px 28px 22px;
+            max-width: 380px;
+            width: 100%;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+            animation: slideUp 0.2s ease;
+        }
+        .confirm-icon {
+            width: 46px;
+            height: 46px;
+            background: #fee2e2;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+        }
+        .confirm-icon i { font-size: 20px; color: #ef4444; }
+        .confirm-box h3 { font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+        .confirm-box p  { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 20px; }
+        .confirm-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+        /* ---- Sidebar footer logout (igual dashboard) ---- */
+        .sidebar-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 12px;
+            border-top: 1px solid #2d3f55;
+            font-size: 11px;
+            color: #475569;
+        }
+        .btn-logout {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px;
+            background: rgba(239,68,68,0.12);
+            color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            text-decoration: none;
+        }
+        .btn-logout:hover { background: rgba(239,68,68,0.22); color: #fca5a5; }
+        .header-user { display: flex; align-items: center; gap: 10px; }
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            background: var(--quinary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* Dark mode adjustments */
+        body.dark .prod-select,
+        body.dark .search-inline { background: #1c2128; border-color: #30363d; }
+        body.dark .search-inline input { color: var(--text-primary); }
+        body.dark .form-field input,
+        body.dark .form-field select,
+        body.dark .form-field textarea { background: #1c2128; color: var(--text-primary); border-color: #30363d; }
+        body.dark .form-field input:focus,
+        body.dark .form-field select:focus,
+        body.dark .form-field textarea:focus { background: #22272e; }
+        body.dark .modal { background: #161b22; border-color: #30363d; }
+        body.dark .modal-header { border-color: #30363d; }
+        body.dark .modal-footer { border-color: #30363d; }
+        body.dark .confirm-box { background: #161b22; border-color: #30363d; }
+        body.dark .kpi-mini { background: #161b22; border-color: #30363d; }
+        body.dark .btn-icon { background: #1c2128; border-color: #30363d; color: #6e7681; }
+        body.dark .btn-icon:hover { background: #22272e; color: var(--text-primary); }
+        body.dark .btn-icon.danger:hover { background: #2e1414; color: #ef4444; border-color: #4d1f1f; }
+        body.dark .btn-icon.edit:hover   { background: #1a2744; color: #60a5fa; border-color: #253a63; }
+        body.dark .page-btn { background: #161b22; border-color: #30363d; }
+        body.dark .page-btn:hover:not(:disabled) { background: #1c2128; }
+        body.dark .toast { background: #22272e; border: 1px solid #30363d; }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== SIDEBAR ==================== -->
+    <div class="sidebar" id="sidebar">
+        <button id="toggleSidebar" class="toggle-btn">
+            <i class="fa-solid fa-angles-left icon-close"></i>
+            <i class="fa-solid fa-angles-right icon-open"></i>
+        </button>
+
+        <div class="sidebar-brand">
+            <div class="brand-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+            <h2>Tech Logistics</h2>
+        </div>
+
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="Buscar...">
+            <i class="fa-solid fa-xmark clear-btn"></i>
+        </div>
+
+        <ul class="menu">
+            <li><a href="dashboard.html"><i class="material-icons" style="font-size:18px">dashboard</i><span>Dashboard</span></a></li>
+            <li><a href="estoque.html"><i class="fa-solid fa-box-archive"></i><span>Inventário</span></a></li>
+            <li><a href="produtos.html"><i class="fa-solid fa-tag"></i><span>Produtos</span></a></li>
+            <li><a href="relatorios.html"><i class="fa-solid fa-file-lines"></i><span>Relatórios</span></a></li>
+            <li><a href="configuracoes.html"><i class="fa-solid fa-gear"></i><span>Configurações</span></a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <span>v1.0</span>
+            <a href="login.html" class="btn-logout">
+                <i class="fa-solid fa-right-from-bracket"></i> Sair
+            </a>
+        </div>
+    </div>
+
+    <!-- ==================== MAIN ==================== -->
+    <main>
+        <header>
+            <h1>Produtos</h1>
+            <div class="header-buttons">
+                <div class="header-user">
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fa-solid fa-sun"></i>
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                    <button class="btn-config" onclick="window.location.href='configuracoes.html'">
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
+                    <div class="user-avatar" title="Meu Perfil" onclick="window.location.href='perfil.html'" id="userAvatar">U</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="main">
+
+            <!-- KPIs -->
+            <div class="kpi-row">
+                <div class="kpi-mini">
+                    <div class="kpi-mini-icon blue"><i class="fa-solid fa-tag"></i></div>
+                    <div class="kpi-mini-body">
+                        <div class="kpi-mini-label">Total de Produtos</div>
+                        <div class="kpi-mini-value" id="kpi-total">0</div>
+                    </div>
+                </div>
+                <div class="kpi-mini">
+                    <div class="kpi-mini-icon green"><i class="fa-solid fa-circle-check"></i></div>
+                    <div class="kpi-mini-body">
+                        <div class="kpi-mini-label">Ativos</div>
+                        <div class="kpi-mini-value" id="kpi-ativos">0</div>
+                    </div>
+                </div>
+                <div class="kpi-mini">
+                    <div class="kpi-mini-icon orange"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div class="kpi-mini-body">
+                        <div class="kpi-mini-label">Inativos</div>
+                        <div class="kpi-mini-value" id="kpi-inativos">0</div>
+                    </div>
+                </div>
+                <div class="kpi-mini">
+                    <div class="kpi-mini-icon purple"><i class="fa-solid fa-layer-group"></i></div>
+                    <div class="kpi-mini-body">
+                        <div class="kpi-mini-label">Categorias</div>
+                        <div class="kpi-mini-value" id="kpi-categorias">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controles + Tabela -->
+            <div>
+                <!-- Filtros -->
+                <div class="prod-controls" style="margin-bottom: 12px;">
+                    <div class="prod-controls-left">
+                        <div class="search-inline">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="searchInput" placeholder="Buscar produto, SKU ou marca...">
+                        </div>
+                        <select class="prod-select" id="filterCategoria">
+                            <option value="">Todas as categorias</option>
+                            <option value="Computadores">Computadores</option>
+                            <option value="Monitores">Monitores</option>
+                            <option value="Periféricos">Periféricos</option>
+                            <option value="Redes">Redes</option>
+                            <option value="Armazenamento">Armazenamento</option>
+                            <option value="Impressoras">Impressoras</option>
+                            <option value="Celulares">Celulares</option>
+                            <option value="Acessórios">Acessórios</option>
+                            <option value="Softwares">Softwares</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                        <select class="prod-select" id="filterStatus">
+                            <option value="">Todos os status</option>
+                            <option value="Ativo">Ativo</option>
+                            <option value="Inativo">Inativo</option>
+                            <option value="Descontinuado">Descontinuado</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" id="btnNovoProduto">
+                        <i class="fa-solid fa-plus"></i> Novo Produto
+                    </button>
+                </div>
+
+                <!-- Tabela -->
+                <div class="table-wrapper">
+                    <div class="tbl-header">
+                        <div class="tbl-header-left">
+                            <h2>Catálogo de Produtos</h2>
+                            <span id="tbl-count">0 produtos encontrados</span>
+                        </div>
+                        <div class="tbl-header-right">
+                            <button class="btn btn-outline" id="btnExportar" style="font-size:12px; padding:6px 12px;">
+                                <i class="fa-solid fa-file-export"></i> Exportar CSV
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-scroll" style="max-height: 460px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>SKU</th>
+                                    <th>Nome</th>
+                                    <th>Categoria</th>
+                                    <th>Marca</th>
+                                    <th>Preço (R$)</th>
+                                    <th>Estoque</th>
+                                    <th>Status</th>
+                                    <th style="text-align:center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="produtosTbody">
+                                <!-- Populado via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination">
+                        <span id="paginacao-info">Mostrando 0–0 de 0</span>
+                        <div class="pagination-btns" id="paginacao-btns"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /main -->
+    </main>
+
+    <!-- ==================== MODAL PRODUTO ==================== -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modalProduto">
+            <div class="modal-header">
+                <div class="modal-header-left">
+                    <div class="modal-header-icon">
+                        <i class="fa-solid fa-tag" id="modalIcone"></i>
+                    </div>
+                    <div>
+                        <h3 id="modalTitulo">Novo Produto</h3>
+                        <p id="modalSubtitulo">Preencha os dados para cadastrar um novo produto</p>
+                    </div>
+                </div>
+                <button class="modal-close" id="btnFecharModal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-grid">
+
+                    <!-- Seção: Identificação -->
+                    <div class="form-section">Identificação</div>
+
+                    <div class="form-grid-2">
+                        <div class="form-field">
+                            <label for="f-nome">Nome do Produto <span class="req">*</span></label>
+                            <input type="text" id="f-nome" placeholder="Ex: Notebook Dell Inspiron 15">
+                            <span class="field-error" id="err-nome">Campo obrigatório</span>
+                        </div>
+                        <div class="form-field">
+                            <label for="f-sku">SKU / Código <span class="req">*</span></label>
+                            <input type="text" id="f-sku" placeholder="Ex: NB-DELL-001">
+                            <span class="field-error" id="err-sku">Campo obrigatório</span>
+                        </div>
+                    </div>
+
+                    <div class="form-grid-2">
+                        <div class="form-field">
+                            <label for="f-categoria">Categoria <span class="req">*</span></label>
+                            <select id="f-categoria">
+                                <option value="">Selecionar categoria...</option>
+                                <option value="Computadores">Computadores</option>
+                                <option value="Monitores">Monitores</option>
+                                <option value="Periféricos">Periféricos</option>
+                                <option value="Redes">Redes</option>
+                                <option value="Armazenamento">Armazenamento</option>
+                                <option value="Impressoras">Impressoras</option>
+                                <option value="Celulares">Celulares</option>
+                                <option value="Acessórios">Acessórios</option>
+                                <option value="Softwares">Softwares</option>
+                                <option value="Outros">Outros</option>
+                            </select>
+                            <span class="field-error" id="err-categoria">Campo obrigatório</span>
+                        </div>
+                        <div class="form-field">
+                            <label for="f-marca">Marca</label>
+                            <input type="text" id="f-marca" placeholder="Ex: Dell, HP, Samsung...">
+                        </div>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="f-descricao">Descrição</label>
+                        <textarea id="f-descricao" placeholder="Descreva o produto, especificações técnicas, características principais..."></textarea>
+                    </div>
+
+                    <!-- Seção: Precificação -->
+                    <div class="form-section">Precificação</div>
+
+                    <div class="form-grid-2">
+                        <div class="form-field">
+                            <label for="f-preco-custo">Preço de Custo (R$)</label>
+                            <div class="input-prefix-wrap">
+                                <span class="prefix">R$</span>
+                                <input type="number" id="f-preco-custo" placeholder="0,00" min="0" step="0.01">
+                            </div>
+                        </div>
+                        <div class="form-field">
+                            <label for="f-preco-venda">Preço de Venda (R$) <span class="req">*</span></label>
+                            <div class="input-prefix-wrap">
+                                <span class="prefix">R$</span>
+                                <input type="number" id="f-preco-venda" placeholder="0,00" min="0" step="0.01">
+                            </div>
+                            <span class="field-error" id="err-preco">Campo obrigatório</span>
+                        </div>
+                    </div>
+
+                    <!-- Seção: Estoque -->
+                    <div class="form-section">Estoque</div>
+
+                    <div class="form-grid-2">
+                        <div class="form-field">
+                            <label for="f-estoque">Quantidade em Estoque <span class="req">*</span></label>
+                            <input type="number" id="f-estoque" placeholder="0" min="0" step="1">
+                            <span class="field-error" id="err-estoque">Campo obrigatório</span>
+                        </div>
+                        <div class="form-field">
+                            <label for="f-estoque-min">Estoque Mínimo</label>
+                            <input type="number" id="f-estoque-min" placeholder="0" min="0" step="1">
+                            <span class="stock-hint">Alerta quando atingir este nível</span>
+                        </div>
+                    </div>
+
+                    <div class="form-grid-2">
+                        <div class="form-field">
+                            <label for="f-unidade">Unidade de Medida</label>
+                            <select id="f-unidade">
+                                <option value="un">Unidade (un)</option>
+                                <option value="cx">Caixa (cx)</option>
+                                <option value="pc">Peça (pc)</option>
+                                <option value="kg">Quilograma (kg)</option>
+                                <option value="mt">Metro (mt)</option>
+                                <option value="lt">Litro (lt)</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label for="f-localizacao">Localização no Estoque</label>
+                            <input type="text" id="f-localizacao" placeholder="Ex: Prateleira A-3, Depósito 2">
+                        </div>
+                    </div>
+
+                    <!-- Seção: Informações Adicionais -->
+                    <div class="form-section">Informações Adicionais</div>
+
+                    <div class="form-grid-2">
+                        <div class="form-field">
+                            <label for="f-status">Status <span class="req">*</span></label>
+                            <select id="f-status">
+                                <option value="Ativo">Ativo</option>
+                                <option value="Inativo">Inativo</option>
+                                <option value="Descontinuado">Descontinuado</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label for="f-garantia">Garantia (meses)</label>
+                            <input type="number" id="f-garantia" placeholder="Ex: 12" min="0" step="1">
+                        </div>
+                    </div>
+
+                    <div class="form-grid-2">
+                        <div class="form-field">
+                            <label for="f-fornecedor">Fornecedor</label>
+                            <input type="text" id="f-fornecedor" placeholder="Nome do fornecedor">
+                        </div>
+                        <div class="form-field">
+                            <label for="f-numero-serie">Nº de Série / Modelo</label>
+                            <input type="text" id="f-numero-serie" placeholder="Ex: XPS9315-7842">
+                        </div>
+                    </div>
+
+                </div><!-- /form-grid -->
+            </div><!-- /modal-body -->
+
+            <div class="modal-footer">
+                <div style="font-size:12px; color:var(--text-muted);">
+                    <i class="fa-solid fa-circle-info" style="margin-right:4px"></i>
+                    Campos com <span style="color:#ef4444; font-weight:700;">*</span> são obrigatórios
+                </div>
+                <div class="modal-footer-right">
+                    <button class="btn btn-outline" id="btnCancelar">Cancelar</button>
+                    <button class="btn btn-primary" id="btnSalvar">
+                        <i class="fa-solid fa-floppy-disk"></i> Salvar Produto
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL CONFIRMAR EXCLUSÃO ==================== -->
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="confirm-box">
+            <div class="confirm-icon"><i class="fa-solid fa-trash"></i></div>
+            <h3>Excluir produto?</h3>
+            <p>Esta ação não pode ser desfeita. O produto "<strong id="confirmProdNome"></strong>" será removido permanentemente do catálogo.</p>
+            <div class="confirm-actions">
+                <button class="btn btn-outline" id="confirmCancelar">Cancelar</button>
+                <button class="btn" id="confirmDeletar" style="background:#ef4444; color:#fff;">
+                    <i class="fa-solid fa-trash"></i> Excluir
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== TOAST ==================== -->
+    <div class="toast" id="toast">
+        <i class="fa-solid fa-circle-check" id="toastIcon"></i>
+        <span id="toastMsg">Produto salvo com sucesso!</span>
+    </div>
+
+    <script>
+    // ============================================================
+    //  ESTADO & STORAGE
+    // ============================================================
+    const STORAGE_KEY = 'tl_produtos';
+
+    function loadProdutos() {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+        catch { return []; }
+    }
+    function saveProdutos(list) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    }
+    function genId() {
+        return 'prod_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+    }
+
+    let produtos    = loadProdutos();
+    let editandoId  = null;   // null = novo, string = editar
+    let deletandoId = null;
+    let paginaAtual = 1;
+    const POR_PAGINA = 10;
+
+    // ============================================================
+    //  TEMA & SIDEBAR
+    // ============================================================
+    (function () {
+        const saved = localStorage.getItem('tl_theme') || 'light';
+        if (saved === 'dark') document.body.classList.add('dark');
+        const btn = document.getElementById('themeToggle');
+        if (btn) {
+            if (saved === 'light') btn.classList.add('light');
+            btn.addEventListener('click', () => {
+                const isDark = document.body.classList.toggle('dark');
+                btn.classList.toggle('light', !isDark);
+                localStorage.setItem('tl_theme', isDark ? 'dark' : 'light');
+            });
+        }
+
+        // User avatar
+        const userData = JSON.parse(localStorage.getItem('tl_user') || '{}');
+        if (userData.nome) {
+            document.getElementById('userAvatar').textContent = userData.nome.charAt(0).toUpperCase();
+        }
+    })();
+
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('toggleSidebar').addEventListener('click', () => sidebar.classList.toggle('closed'));
+    document.querySelector('.clear-btn')?.addEventListener('click', () => {
+        document.querySelector('.search-box input').value = '';
+    });
+
+    // Active link
+    const currentPage = (window.location.pathname.split('/').pop() || 'produtos.html').split('?')[0];
+    document.querySelectorAll('.menu li a').forEach(link => {
+        if (link.getAttribute('href') === currentPage) link.parentElement.classList.add('active');
+    });
+
+    // ============================================================
+    //  KPIs
+    // ============================================================
+    function updateKPIs() {
+        const total    = produtos.length;
+        const ativos   = produtos.filter(p => p.status === 'Ativo').length;
+        const inativos = produtos.filter(p => p.status !== 'Ativo').length;
+        const cats     = new Set(produtos.map(p => p.categoria).filter(Boolean)).size;
+
+        document.getElementById('kpi-total').textContent     = total;
+        document.getElementById('kpi-ativos').textContent    = ativos;
+        document.getElementById('kpi-inativos').textContent  = inativos;
+        document.getElementById('kpi-categorias').textContent = cats;
+    }
+
+    // ============================================================
+    //  FILTRO & RENDER TABELA
+    // ============================================================
+    function getFiltered() {
+        const q   = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+        const cat = document.getElementById('filterCategoria').value;
+        const sts = document.getElementById('filterStatus').value;
+
+        return produtos.filter(p => {
+            const matchQ  = !q || [p.nome, p.sku, p.marca].some(f => (f||'').toLowerCase().includes(q));
+            const matchC  = !cat || p.categoria === cat;
+            const matchS  = !sts || p.status === sts;
+            return matchQ && matchC && matchS;
+        });
+    }
+
+    function badgeStatus(status) {
+        const map = {
+            'Ativo':          'badge-success',
+            'Inativo':        'badge-warning',
+            'Descontinuado':  'badge-danger',
+        };
+        return `<span class="badge ${map[status] || 'badge-gray'}">${status || '—'}</span>`;
+    }
+
+    function badgeCategoria(cat) {
+        const colors = {
+            'Computadores': '#3b82f6', 'Monitores': '#8b5cf6', 'Periféricos': '#f59e0b',
+            'Redes': '#06b6d4', 'Armazenamento': '#10b981', 'Impressoras': '#f97316',
+            'Celulares': '#ec4899', 'Acessórios': '#64748b', 'Softwares': '#6366f1', 'Outros': '#94a3b8'
+        };
+        const c = colors[cat] || '#94a3b8';
+        return `<span class="prod-tag" style="background:${c}18; color:${c}; border:1px solid ${c}30">${cat || '—'}</span>`;
+    }
+
+    function formatPreco(val) {
+        if (val === '' || val === null || val === undefined) return '—';
+        return `<span class="price-cell"><span class="currency">R$</span>${parseFloat(val).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>`;
+    }
+
+    function renderTabela() {
+        const filtered = getFiltered();
+        const total    = filtered.length;
+        const totalPag = Math.max(1, Math.ceil(total / POR_PAGINA));
+        if (paginaAtual > totalPag) paginaAtual = totalPag;
+
+        const inicio = (paginaAtual - 1) * POR_PAGINA;
+        const fim    = Math.min(inicio + POR_PAGINA, total);
+        const slice  = filtered.slice(inicio, fim);
+
+        document.getElementById('tbl-count').textContent =
+            `${total} produto${total !== 1 ? 's' : ''} encontrado${total !== 1 ? 's' : ''}`;
+        document.getElementById('paginacao-info').textContent =
+            total === 0 ? 'Nenhum resultado' : `Mostrando ${inicio + 1}–${fim} de ${total}`;
+
+        const tbody = document.getElementById('produtosTbody');
+        if (slice.length === 0) {
+            tbody.innerHTML = `
+                <tr><td colspan="8">
+                    <div class="empty-state">
+                        <i class="fa-solid fa-tag"></i>
+                        <p>Nenhum produto encontrado</p>
+                        <span>Clique em "Novo Produto" para cadastrar ou ajuste os filtros.</span>
+                    </div>
+                </td></tr>`;
+        } else {
+            tbody.innerHTML = slice.map(p => `
+                <tr>
+                    <td><code style="font-size:12px; color:var(--text-muted)">${p.sku || '—'}</code></td>
+                    <td style="font-weight:600; color:var(--text-primary); max-width:200px; overflow:hidden; text-overflow:ellipsis">${p.nome}</td>
+                    <td>${badgeCategoria(p.categoria)}</td>
+                    <td>${p.marca || '—'}</td>
+                    <td>${formatPreco(p.precoVenda)}</td>
+                    <td>
+                        <span style="font-weight:600; color:${
+                            p.estoque === 0 ? 'var(--danger-color)' :
+                            (p.estoqueMin && p.estoque <= p.estoqueMin) ? 'var(--warning-color)' :
+                            'var(--text-primary)'
+                        }">${p.estoque ?? '—'} ${p.unidade || ''}</span>
+                    </td>
+                    <td>${badgeStatus(p.status)}</td>
+                    <td style="text-align:center">
+                        <div style="display:flex; gap:4px; justify-content:center">
+                            <button class="btn-icon edit" title="Editar" onclick="abrirEditar('${p.id}')">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button class="btn-icon danger" title="Excluir" onclick="confirmarDeletar('${p.id}')">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`).join('');
+        }
+
+        renderPaginacao(totalPag);
+        updateKPIs();
+    }
+
+    function renderPaginacao(totalPag) {
+        const container = document.getElementById('paginacao-btns');
+        let html = `<button class="page-btn" ${paginaAtual === 1 ? 'disabled' : ''} onclick="irPagina(${paginaAtual - 1})"><i class="fa-solid fa-chevron-left" style="font-size:10px"></i></button>`;
+        for (let i = 1; i <= totalPag; i++) {
+            if (totalPag <= 7 || Math.abs(i - paginaAtual) <= 2 || i === 1 || i === totalPag) {
+                html += `<button class="page-btn${i === paginaAtual ? ' active' : ''}" onclick="irPagina(${i})">${i}</button>`;
+            } else if (Math.abs(i - paginaAtual) === 3) {
+                html += `<button class="page-btn" disabled>…</button>`;
+            }
+        }
+        html += `<button class="page-btn" ${paginaAtual === totalPag ? 'disabled' : ''} onclick="irPagina(${paginaAtual + 1})"><i class="fa-solid fa-chevron-right" style="font-size:10px"></i></button>`;
+        container.innerHTML = html;
+    }
+
+    window.irPagina = function(p) { paginaAtual = p; renderTabela(); };
+
+    // Eventos de filtro
+    document.getElementById('searchInput').addEventListener('input', () => { paginaAtual = 1; renderTabela(); });
+    document.getElementById('filterCategoria').addEventListener('change', () => { paginaAtual = 1; renderTabela(); });
+    document.getElementById('filterStatus').addEventListener('change', () => { paginaAtual = 1; renderTabela(); });
+
+    // ============================================================
+    //  MODAL
+    // ============================================================
+    const modalOverlay = document.getElementById('modalOverlay');
+    const campos = {
+        nome:        document.getElementById('f-nome'),
+        sku:         document.getElementById('f-sku'),
+        categoria:   document.getElementById('f-categoria'),
+        marca:       document.getElementById('f-marca'),
+        descricao:   document.getElementById('f-descricao'),
+        precoCusto:  document.getElementById('f-preco-custo'),
+        precoVenda:  document.getElementById('f-preco-venda'),
+        estoque:     document.getElementById('f-estoque'),
+        estoqueMin:  document.getElementById('f-estoque-min'),
+        unidade:     document.getElementById('f-unidade'),
+        localizacao: document.getElementById('f-localizacao'),
+        status:      document.getElementById('f-status'),
+        garantia:    document.getElementById('f-garantia'),
+        fornecedor:  document.getElementById('f-fornecedor'),
+        numeroSerie: document.getElementById('f-numero-serie'),
+    };
+
+    function limparModal() {
+        Object.values(campos).forEach(el => el.value = el.tagName === 'SELECT' ? el.options[0]?.value || '' : '');
+        campos.unidade.value = 'un';
+        campos.status.value  = 'Ativo';
+        document.querySelectorAll('.field-error').forEach(e => e.classList.remove('show'));
+        document.querySelectorAll('.form-field input, .form-field select, .form-field textarea').forEach(el => el.classList.remove('error'));
+    }
+
+    function abrirNovo() {
+        editandoId = null;
+        limparModal();
+        document.getElementById('modalTitulo').textContent    = 'Novo Produto';
+        document.getElementById('modalSubtitulo').textContent = 'Preencha os dados para cadastrar um novo produto';
+        document.getElementById('modalIcone').className       = 'fa-solid fa-plus';
+        document.getElementById('btnSalvar').innerHTML        = '<i class="fa-solid fa-floppy-disk"></i> Salvar Produto';
+        modalOverlay.classList.add('open');
+        campos.nome.focus();
+    }
+
+    window.abrirEditar = function(id) {
+        const p = produtos.find(x => x.id === id);
+        if (!p) return;
+        editandoId = id;
+        limparModal();
+        campos.nome.value        = p.nome        || '';
+        campos.sku.value         = p.sku         || '';
+        campos.categoria.value   = p.categoria   || '';
+        campos.marca.value       = p.marca       || '';
+        campos.descricao.value   = p.descricao   || '';
+        campos.precoCusto.value  = p.precoCusto  !== undefined ? p.precoCusto : '';
+        campos.precoVenda.value  = p.precoVenda  !== undefined ? p.precoVenda : '';
+        campos.estoque.value     = p.estoque     !== undefined ? p.estoque    : '';
+        campos.estoqueMin.value  = p.estoqueMin  !== undefined ? p.estoqueMin : '';
+        campos.unidade.value     = p.unidade     || 'un';
+        campos.localizacao.value = p.localizacao || '';
+        campos.status.value      = p.status      || 'Ativo';
+        campos.garantia.value    = p.garantia    !== undefined ? p.garantia   : '';
+        campos.fornecedor.value  = p.fornecedor  || '';
+        campos.numeroSerie.value = p.numeroSerie || '';
+
+        document.getElementById('modalTitulo').textContent    = 'Editar Produto';
+        document.getElementById('modalSubtitulo').textContent = `Editando: ${p.nome}`;
+        document.getElementById('modalIcone').className       = 'fa-solid fa-pen';
+        document.getElementById('btnSalvar').innerHTML        = '<i class="fa-solid fa-floppy-disk"></i> Atualizar Produto';
+        modalOverlay.classList.add('open');
+        campos.nome.focus();
+    };
+
+    function fecharModal() {
+        modalOverlay.classList.remove('open');
+        editandoId = null;
+    }
+
+    document.getElementById('btnNovoProduto').addEventListener('click', abrirNovo);
+    document.getElementById('btnFecharModal').addEventListener('click', fecharModal);
+    document.getElementById('btnCancelar').addEventListener('click', fecharModal);
+    modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) fecharModal(); });
+
+    // ============================================================
+    //  VALIDAÇÃO & SALVAR
+    // ============================================================
+    function validar() {
+        let ok = true;
+        const obrigatorios = [
+            { campo: campos.nome,      err: 'err-nome',      msg: 'O nome é obrigatório'     },
+            { campo: campos.sku,       err: 'err-sku',       msg: 'O SKU é obrigatório'      },
+            { campo: campos.categoria, err: 'err-categoria', msg: 'Selecione uma categoria'  },
+            { campo: campos.precoVenda,err: 'err-preco',     msg: 'Informe o preço de venda' },
+            { campo: campos.estoque,   err: 'err-estoque',   msg: 'Informe a quantidade'     },
+        ];
+        obrigatorios.forEach(({ campo, err, msg }) => {
+            const vazio = !campo.value.toString().trim();
+            campo.classList.toggle('error', vazio);
+            const errEl = document.getElementById(err);
+            errEl.textContent = msg;
+            errEl.classList.toggle('show', vazio);
+            if (vazio) ok = false;
+        });
+
+        // SKU único
+        if (campos.sku.value.trim()) {
+            const dup = produtos.find(p => p.sku.toLowerCase() === campos.sku.value.trim().toLowerCase() && p.id !== editandoId);
+            if (dup) {
+                campos.sku.classList.add('error');
+                const errEl = document.getElementById('err-sku');
+                errEl.textContent = 'SKU já cadastrado';
+                errEl.classList.add('show');
+                ok = false;
+            }
+        }
+        return ok;
+    }
+
+    document.getElementById('btnSalvar').addEventListener('click', () => {
+        if (!validar()) return;
+
+        const produto = {
+            id:          editandoId || genId(),
+            nome:        campos.nome.value.trim(),
+            sku:         campos.sku.value.trim().toUpperCase(),
+            categoria:   campos.categoria.value,
+            marca:       campos.marca.value.trim(),
+            descricao:   campos.descricao.value.trim(),
+            precoCusto:  campos.precoCusto.value !== '' ? parseFloat(campos.precoCusto.value)  : null,
+            precoVenda:  parseFloat(campos.precoVenda.value),
+            estoque:     parseInt(campos.estoque.value, 10),
+            estoqueMin:  campos.estoqueMin.value !== '' ? parseInt(campos.estoqueMin.value, 10) : null,
+            unidade:     campos.unidade.value,
+            localizacao: campos.localizacao.value.trim(),
+            status:      campos.status.value,
+            garantia:    campos.garantia.value !== '' ? parseInt(campos.garantia.value, 10)    : null,
+            fornecedor:  campos.fornecedor.value.trim(),
+            numeroSerie: campos.numeroSerie.value.trim(),
+            criadoEm:    editandoId ? (produtos.find(p => p.id === editandoId)?.criadoEm || new Date().toISOString()) : new Date().toISOString(),
+            atualizadoEm: new Date().toISOString(),
+        };
+
+        if (editandoId) {
+            const idx = produtos.findIndex(p => p.id === editandoId);
+            produtos[idx] = produto;
+            showToast('Produto atualizado com sucesso!', 'success');
+        } else {
+            produtos.unshift(produto);
+            showToast('Produto cadastrado com sucesso!', 'success');
+        }
+
+        saveProdutos(produtos);
+        fecharModal();
+        renderTabela();
+    });
+
+    // ============================================================
+    //  DELETAR
+    // ============================================================
+    window.confirmarDeletar = function(id) {
+        const p = produtos.find(x => x.id === id);
+        if (!p) return;
+        deletandoId = id;
+        document.getElementById('confirmProdNome').textContent = p.nome;
+        document.getElementById('confirmOverlay').classList.add('open');
+    };
+
+    document.getElementById('confirmCancelar').addEventListener('click', () => {
+        document.getElementById('confirmOverlay').classList.remove('open');
+        deletandoId = null;
+    });
+    document.getElementById('confirmDeletar').addEventListener('click', () => {
+        if (!deletandoId) return;
+        produtos = produtos.filter(p => p.id !== deletandoId);
+        saveProdutos(produtos);
+        document.getElementById('confirmOverlay').classList.remove('open');
+        deletandoId = null;
+        renderTabela();
+        showToast('Produto excluído.', 'error');
+    });
+
+    // ============================================================
+    //  EXPORTAR CSV
+    // ============================================================
+    document.getElementById('btnExportar').addEventListener('click', () => {
+        const filtered = getFiltered();
+        if (!filtered.length) { showToast('Nenhum produto para exportar.', 'error'); return; }
+
+        const header = ['SKU','Nome','Categoria','Marca','Preço Custo','Preço Venda','Estoque','Estoque Mín.','Unidade','Localização','Status','Garantia (meses)','Fornecedor','Nº Série','Criado em'];
+        const rows = filtered.map(p => [
+            p.sku, p.nome, p.categoria, p.marca,
+            p.precoCusto ?? '', p.precoVenda ?? '', p.estoque ?? '', p.estoqueMin ?? '',
+            p.unidade, p.localizacao, p.status, p.garantia ?? '', p.fornecedor, p.numeroSerie,
+            p.criadoEm ? new Date(p.criadoEm).toLocaleDateString('pt-BR') : ''
+        ].map(v => `"${String(v).replace(/"/g, '""')}"`));
+
+        const csv  = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = `produtos_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('CSV exportado com sucesso!', 'success');
+    });
+
+    // ============================================================
+    //  TOAST
+    // ============================================================
+    let toastTimer;
+    function showToast(msg, type = 'success') {
+        const toast    = document.getElementById('toast');
+        const toastMsg = document.getElementById('toastMsg');
+        const toastIco = document.getElementById('toastIcon');
+        toastMsg.textContent = msg;
+        toast.className = `toast ${type}`;
+        toastIco.className = type === 'success' ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark';
+        void toast.offsetWidth;
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
+    }
+
+    // ============================================================
+    //  INIT
+    // ============================================================
+    renderTabela();
+    </script>
+</body>
+</html>

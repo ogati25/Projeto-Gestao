@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+
     <link rel="stylesheet" href="style.css">
-    <title>Inventário — Tech Logistics</title>
+    <script src="js/api.js"></script>
     <style>
         /* ===== INVENTÁRIO ESPECÍFICO ===== */
 
@@ -539,9 +539,7 @@
             border-color: #ef4444 !important;
             box-shadow: 0 0 0 3px rgba(239,68,68,0.12) !important;
         }
-        .form-group input[type="number"] {
-            appearance: textfield;
-        }
+        .form-group input[type="number"] { -moz-appearance: textfield; }
         .form-group input[type="number"]::-webkit-outer-spin-button,
         .form-group input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .form-section-title {
@@ -900,8 +898,8 @@
                 </a>
             </li>
             <li>
-                <a href="pedidos.html">
-                    <i class="fa-solid fa-clipboard-list"></i><span>Pedidos</span>
+                <a href="produtos.html">
+                    <i class="fa-solid fa-tag"></i><span>Produtos</span>
                 </a>
             </li>
             <li>
@@ -910,8 +908,8 @@
                 </a>
             </li>
             <li>
-                <a href="funcionarios.html">
-                    <i class="fa-solid fa-users"></i><span>Funcionários</span>
+                <a href="configuracoes.html">
+                    <i class="fa-solid fa-gear"></i><span>Configurações</span>
                 </a>
             </li>
         </ul>
@@ -928,9 +926,10 @@
                     <i class="fa-solid fa-sun icon-sun"></i>
                     <i class="fa-solid fa-moon icon-moon"></i>
                 </button>
-                <button class="btn-config">
+                <button class="btn-config" onclick="window.location.href='configuracoes.html'" title="Configurações">
                     <i class="fa-solid fa-gear"></i>
                 </button>
+                <div class="user-avatar" id="userAvatar" title="Meu Perfil" onclick="window.location.href='perfil.html'" style="width:34px;height:34px;background:var(--quinary-color);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0;">U</div>
             </div>
         </header>
 
@@ -2092,9 +2091,22 @@
         //  Toggle visual puro — só adiciona/remove classe no botão.
         // ============================================================
 
-        document.getElementById('themeToggle').addEventListener('click', function () {
-            this.classList.toggle('light');
-        });
+        (function () {
+            const saved = localStorage.getItem('tl_theme') || 'light';
+            if (saved === 'dark') document.body.classList.add('dark');
+            const themeBtn = document.getElementById('themeToggle');
+            if (saved === 'light') themeBtn.classList.add('light');
+            themeBtn.addEventListener('click', () => {
+                const isDark = document.body.classList.toggle('dark');
+                themeBtn.classList.toggle('light', !isDark);
+                localStorage.setItem('tl_theme', isDark ? 'dark' : 'light');
+            });
+            // Avatar do usuário
+            try {
+                const u = JSON.parse(localStorage.getItem('tl_user') || '{}');
+                if (u.nome) document.getElementById('userAvatar').textContent = u.nome.charAt(0).toUpperCase();
+            } catch(_) {}
+        })();
 
 
         // ============================================================
@@ -2111,7 +2123,7 @@
         //  Compara a URL atual com os hrefs dos links do menu lateral.
         // ============================================================
 
-        const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
+        const currentPage = (window.location.pathname.split('/').pop() || window.location.href.split('/').pop() || '').split('?')[0] || 'dashboard.html';
         document.querySelectorAll('.menu li a').forEach(link => {
             if (link.getAttribute('href') === currentPage) {
                 link.parentElement.classList.add('active');
@@ -2530,7 +2542,6 @@
             }
         }
     </script>
-    <script src="js/api.js"></script>
     <script src="js/estoque.js"></script>
 </body>
 </html>

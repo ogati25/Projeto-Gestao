@@ -15,6 +15,7 @@
             background: var(--background-color);
             overflow: auto;
         }
+
         .login-wrapper {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -62,6 +63,7 @@
             margin-bottom: 12px;
         }
         .login-brand-body p { font-size: 13px; color: #94a3b8; line-height: 1.6; }
+
         .login-stats {
             display: flex;
             flex-direction: column;
@@ -301,10 +303,10 @@
             <label class="checkbox-label">
                 <input type="checkbox" id="lembrar"> Lembrar-me
             </label>
-            <a href="#" class="forgot-link">Esqueci a senha</a>
+            <a href="esqueci-senha.html" class="forgot-link">Esqueci a senha</a>
         </div>
 
-        <button class="btn-login" id="btnLogin" onclick="handleLogin()">
+        <button class="btn-login" id="btnLogin">
             <i class="fa-solid fa-right-to-bracket"></i> Entrar
         </button>
 
@@ -313,8 +315,7 @@
         </div>
     </div>
 </div>
-<script src="js/api.js"></script>
-<script src="js/login.js"></script>
+
 <script>
     // Toggle senha visível
     document.getElementById('togglePass').addEventListener('click', () => {
@@ -329,23 +330,67 @@
         }
     });
 
-    function mostrarErro(msg) {
-        document.getElementById('alertErrorMsg').textContent = msg;
-        document.getElementById('alertError').classList.add('show');
-    }
+    // Login
+    document.getElementById('btnLogin').addEventListener('click', async () => {
+        const email = document.getElementById('email').value.trim();
+        const senha = document.getElementById('senha').value;
+        const alert = document.getElementById('alertError');
+        const msg   = document.getElementById('alertErrorMsg');
+        const btn   = document.getElementById('btnLogin');
 
-    function ocultarErro() {
-        document.getElementById('alertError').classList.remove('show');
-    }
+        alert.classList.remove('show');
 
-    function setLoading(loading) {
-        const btn = document.getElementById('btnLogin');
-        btn.disabled  = loading;
-        btn.innerHTML = loading
-            ? '<i class="fa-solid fa-spinner fa-spin"></i> Entrando...'
-            : '<i class="fa-solid fa-right-to-bracket"></i> Entrar';
-    }
-    
+        if (!email || !senha) {
+            msg.textContent = 'Preencha o e-mail e a senha.';
+            alert.classList.add('show');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Entrando...';
+
+        try {
+            // Substitua pela chamada real à sua API de autenticação
+            // const resp = await request('auth/login', 'POST', { email, senha });
+            // localStorage.setItem('token', resp.token);
+
+            // Simulação: salva dados do usuário e redireciona
+            // Na integração real: const resp = await request('auth/login', 'POST', { email, senha });
+            await new Promise(r => setTimeout(r, 800));
+
+            // Salva dados do usuário no localStorage para usar no Perfil
+            const nomeSimulado = email.split('@')[0].replace('.', ' ');
+            const nomeFormatado = nomeSimulado.split(' ')
+                .map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+            const partes = nomeFormatado.split(' ');
+
+            const userData = {
+                nome:            partes[0] || 'Usuário',
+                sobrenome:       partes.slice(1).join(' ') || '',
+                email:           email,
+                cargo:           'Administrador de TI',
+                setor:           'Tecnologia da Informação',
+                nivel:           'Administrador',
+                membroDesde:     new Date().toLocaleDateString('pt-BR'),
+                ultimaAtualizacao: null
+            };
+            localStorage.setItem('tl_user', JSON.stringify(userData));
+            // Tema padrão se não existir
+            if (!localStorage.getItem('tl_theme')) localStorage.setItem('tl_theme', 'light');
+
+            window.location.href = 'dashboard.html';
+        } catch (err) {
+            msg.textContent = err.message || 'Usuário ou senha incorretos.';
+            alert.classList.add('show');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Entrar';
+        }
+    });
+
+    // Enter para login
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Enter') document.getElementById('btnLogin').click();
+    });
 </script>
 </body>
 </html>

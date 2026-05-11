@@ -238,8 +238,8 @@
         <ul class="menu">
             <li><a href="dashboard.html"><i class="material-icons" style="font-size:18px">dashboard</i><span>Dashboard</span></a></li>
             <li><a href="estoque.html"><i class="fa-solid fa-box-archive"></i><span>Inventário</span></a></li>
-            <li><a href="pedidos.html"><i class="fa-solid fa-clipboard-list"></i><span>Pedidos</span></a></li>
-            <li><a href="funcionarios.html"><i class="fa-solid fa-users"></i><span>Funcionários</span></a></li>
+            <li><a href="produtos.html"><i class="fa-solid fa-tag"></i><span>Produtos</span></a></li>
+            <li><a href="relatorios.html"><i class="fa-solid fa-file-lines"></i><span>Relatórios</span></a></li>
             <li><a href="configuracoes.html"><i class="fa-solid fa-gear"></i><span>Configurações</span></a></li>
         </ul>
 
@@ -261,7 +261,7 @@
                         <i class="fa-solid fa-sun icon-sun"></i>
                         <i class="fa-solid fa-moon icon-moon"></i>
                     </button>
-                    <button class="btn-config">
+                    <button class="btn-config" onclick="window.location.href='configuracoes.html'" title="Configurações">
                         <i class="fa-solid fa-gear"></i>
                     </button>
                     <div class="user-avatar" title="Meu Perfil" onclick="window.location.href='perfil.html'" style="cursor:pointer">U</div>
@@ -442,7 +442,7 @@
         document.getElementById('toggleSidebar').addEventListener('click', () => sidebar.classList.toggle('closed'));
 
         // ── ACTIVE LINK ──────────────────────────────────────
-        const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
+        const currentPage = (window.location.pathname.split('/').pop() || window.location.href.split('/').pop() || '').split('?')[0] || 'dashboard.html';
         document.querySelectorAll('.menu li a').forEach(link => {
             if (link.getAttribute('href') === currentPage) link.parentElement.classList.add('active');
         });

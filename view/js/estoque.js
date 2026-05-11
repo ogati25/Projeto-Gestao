@@ -417,7 +417,7 @@ const formFields = {
     // ----------------------------------------------------------
     chips: [
         { section: 'Dados do Chip' },
-        { label: 'Número',               key: 'numero',    type: 'text',   placeholder: '(11) 99999-9999', mask: 'phone', required: true },
+        { label: 'Número',               key: 'numero',    type: 'text',   placeholder: '+55 (11) 99999-9999', mask: 'phone', required: true },
         { label: 'Operadora',            key: 'operadora', type: 'select', options: OPERADORA, required: true },
         { label: 'Dono',                 key: 'dono',      type: 'text',   maxlen: 80 },
         { label: 'Celular Vinculado (ID)',key: 'celularId', type: 'text',   placeholder: 'ID do celular no banco' },
@@ -466,162 +466,270 @@ const formFields = {
 //                       precoAquisicao, ativo, setor, status, observacoes
 //  Cada subclasse adiciona seus próprios campos.
 // ============================================================
-
-// Helper interno: compartilha a mesma referência entre suporte e gestao
-// para que trocar de modo não destrua os filtros ativos.
-const _filterDefsBase = {
-    computadores: [
-        { label: 'ID',               key: 'codigo'                                },
-        { label: 'Modelo',           key: 'modelo'                                },
-        { label: 'Tipo',             key: 'tipo',            values: TIPO_PC      },
-        { label: 'IP',               key: 'ip'                                    },
-        { label: 'Geração RAM',      key: 'geracaoRAM',      values: GERACAO_RAM  },
-        { label: 'Velocidade RAM',   key: 'velocidadeRAM'                         },
-        { label: 'Sistema Op.',      key: 'so',              values: SO           },
-        { label: 'Ativação SO',      key: 'ativacao_so',     values: ATIV_SO      },
-        { label: 'Office',           key: 'office',          values: OFFICE       },
-        { label: 'Ativação Office',  key: 'ativacao_office', values: ATIV_OFF     },
-        { label: 'Status',           key: 'status',          values: STATUS       },
-        { label: 'Setor',            key: 'setor',           values: SETOR        },
-        { label: 'Usuário',          key: 'usuario'                               },
-        { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
-        { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
-        { label: 'Observações',      key: 'observacoes'                           },
-        { label: 'Ativo',            key: 'ativo',           values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}]       },
-    ],
-    monitores: [
-        { label: 'ID',               key: 'codigo'                                },
-        { label: 'Modelo',           key: 'modelo'                                },
-        { label: 'Tamanho (pol.)',   key: 'tamanho'                               },
-        { label: 'Resolução',        key: 'resolucao',       values: RESOLUCAO    },
-        { label: 'Frequência (Hz)',  key: 'frequencia'                            },
-        { label: 'HDMI',             key: 'hdmi',            values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}]       },
-        { label: 'DisplayPort',      key: 'displayPort',     values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}]       },
-        { label: 'VGA',              key: 'vga',             values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}]       },
-        { label: 'DVI',              key: 'dvi',             values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}]       },
-        { label: 'Status',           key: 'status',          values: STATUS       },
-        { label: 'Setor',            key: 'setor',           values: SETOR        },
-        { label: 'Usuário',          key: 'usuario'                               },
-        { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
-        { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
-        { label: 'Observações',      key: 'observacoes'                           },
-        { label: 'Ativo',            key: 'ativo',           values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}]       },
-    ],
-    mouses: [
-        { label: 'ID',               key: 'codigo'                                },
-        { label: 'Modelo',           key: 'modelo'                                },
-        { label: 'Tipo',             key: 'tipo',            values: TIPO_PER     },
-        { label: 'Conectividade',    key: 'conectividade',   values: CONECTIV     },
-        { label: 'Status',           key: 'status',          values: STATUS       },
-        { label: 'Setor',            key: 'setor',           values: SETOR        },
-        { label: 'Usuário',          key: 'usuario'                               },
-        { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
-        { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
-        { label: 'Observações',      key: 'observacoes'                           },
-        { label: 'Ativo',            key: 'ativo',           values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}]       },
-    ],
-    teclados: [
-        { label: 'ID',               key: 'codigo'                                },
-        { label: 'Modelo',           key: 'modelo'                                },
-        { label: 'Tipo',             key: 'tipo',            values: TIPO_PER     },
-        { label: 'Conectividade',    key: 'conectividade',   values: CONECTIV     },
-        { label: 'Switch',           key: 'switch',          values: SWITCH       },
-        { label: 'Tamanho (%)',      key: 'tamanho'                               },
-        { label: 'Status',           key: 'status',          values: STATUS       },
-        { label: 'Setor',            key: 'setor',           values: SETOR        },
-        { label: 'Usuário',          key: 'usuario'                               },
-        { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
-        { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
-        { label: 'Observações',      key: 'observacoes'                           },
-        { label: 'Ativo',            key: 'ativo',           values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}]       },
-    ],
-    fones: [
-        { label: 'ID',               key: 'codigo'                                },
-        { label: 'Modelo',           key: 'modelo'                                },
-        { label: 'Tipo',             key: 'tipo',            values: TIPO_PER     },
-        { label: 'Conectividade',    key: 'conectividade',   values: CONECTIV     },
-        { label: 'Microfone',        key: 'microfone',       values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}]       },
-        { label: 'Status',           key: 'status',          values: STATUS       },
-        { label: 'Setor',            key: 'setor',           values: SETOR        },
-        { label: 'Usuário',          key: 'usuario'                               },
-        { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
-        { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
-        { label: 'Observações',      key: 'observacoes'                           },
-        { label: 'Ativo',            key: 'ativo',           values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}]       },
-    ],
-    celulares: [
-        { label: 'ID',               key: 'codigo'                                },
-        { label: 'Modelo',           key: 'modelo'                                },
-        { label: 'Memória RAM (GB)', key: 'ram'                                   },
-        { label: 'Armazenamento (GB)',key: 'armazenamento'                         },
-        { label: 'Conector Carregador', key: 'conectividade', values: CONECTOR_CARREGADOR },
-        { label: 'Status',           key: 'status',          values: STATUS       },
-        { label: 'Setor',            key: 'setor',           values: SETOR        },
-        { label: 'Usuário',          key: 'usuario'                               },
-        { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
-        { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
-        { label: 'Observações',      key: 'observacoes'                           },
-        { label: 'Ativo',            key: 'ativo',           values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}]       },
-    ],
-    ramais: [
-        { label: 'ID',               key: 'codigo'                                },
-        { label: 'Modelo',           key: 'modelo'                                },
-        { label: 'Cor',              key: 'cor'                                   },
-        { label: 'Tipo',             key: 'tipo'                                  },
-        { label: 'IP',               key: 'ip'                                    },
-        { label: 'MAC',              key: 'mac'                                   },
-        { label: 'Linha',            key: 'linha'                                 },
-        { label: 'Número',           key: 'numero'                                },
-        { label: 'Configurado',      key: 'configurado',     values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}]       },
-        { label: 'Status',           key: 'status',          values: STATUS       },
-        { label: 'Setor',            key: 'setor',           values: SETOR        },
-        { label: 'Usuário',          key: 'usuario'                               },
-        { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
-        { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
-        { label: 'Observações',      key: 'observacoes'                           },
-        { label: 'Ativo',            key: 'ativo',           values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}]       },
-    ],
-    chips: [
-        { label: 'ID',               key: 'codigo'                                },
-        { label: 'Número',           key: 'numero'                                },
-        { label: 'Operadora',        key: 'operadora',       values: OPERADORA    },
-        { label: 'Dono',             key: 'dono'                                  },
-        { label: 'Plano (R$)',       key: 'plano'                                 },
-        { label: 'Celular Vinculado',key: 'celularId'                             },
-        { label: 'Status',           key: 'status',          values: STATUS       },
-        { label: 'Setor',            key: 'setor',           values: SETOR        },
-        { label: 'Usuário',          key: 'usuario'                               },
-        { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
-        { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
-        { label: 'Observações',      key: 'observacoes'                           },
-        { label: 'Ativo',            key: 'ativo',           values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}]       },
-    ],
-    extras: [
-        { label: 'ID',               key: 'codigo'                                },
-        { label: 'Categoria',        key: 'categoria'                             },
-        { label: 'Descrição',        key: 'descricao'                             },
-        { label: 'Status',           key: 'status',          values: STATUS       },
-        { label: 'Setor',            key: 'setor',           values: SETOR        },
-        { label: 'Usuário',          key: 'usuario'                               },
-        { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
-        { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
-        { label: 'Observações',      key: 'observacoes'                           },
-        { label: 'Ativo',            key: 'ativo',           values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}]       },
-    ],
+const filterDefs = {
+    computadores: {
+        suporte: [
+            { label: 'ID',               key: 'codigo'                                },
+            { label: 'Modelo',           key: 'modelo'                                },
+            { label: 'Tipo',          key: 'tipo',            values: TIPO_PC  },
+            { label: 'IP',               key: 'ip'                                    },
+            { label: 'Geração RAM',      key: 'geracaoRAM',      values: GERACAO_RAM  },
+            { label: 'Velocidade RAM',   key: 'velocidadeRAM'                         },
+            { label: 'Sistema Op.',   key: 'so',              values: SO       },
+            { label: 'Ativação SO',   key: 'ativacao_so',     values: ATIV_SO  },
+            { label: 'Office',        key: 'office',          values: OFFICE   },
+            { label: 'Status',        key: 'status',          values: STATUS   },
+            { label: 'Setor',         key: 'setor',           values: SETOR    },
+            { label: 'Usuário',          key: 'usuario'                               },
+            { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
+            { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
+            { label: 'Observações',      key: 'observacoes'                           },
+            { label: 'Ativo',         key: 'ativo',           values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+        ],
+        gestao: [
+            { label: 'ID',               key: 'codigo'                                },
+            { label: 'Modelo',           key: 'modelo'                                },
+            { label: 'Tipo',            key: 'tipo',            values: TIPO_PC  },
+            { label: 'IP',               key: 'ip'                                    },
+            { label: 'Geração RAM',      key: 'geracaoRAM',      values: GERACAO_RAM  },
+            { label: 'Velocidade RAM',   key: 'velocidadeRAM'                         },
+            { label: 'Ativação SO',     key: 'ativacao_so',     values: ATIV_SO  },
+            { label: 'Ativação Office', key: 'ativacao_office', values: ATIV_OFF },
+            { label: 'Status',          key: 'status',          values: STATUS   },
+            { label: 'Setor',           key: 'setor',           values: SETOR    },
+            { label: 'Usuário',          key: 'usuario'                               },
+            { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
+            { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
+            { label: 'Observações',      key: 'observacoes'                           },
+            { label: 'Ativo',           key: 'ativo',           values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+        ],
+    },
+    monitores: {
+        suporte: [
+            { label: 'ID',               key: 'codigo'                                },
+            { label: 'Modelo',           key: 'modelo'                                },
+            { label: 'Tamanho (pol.)',   key: 'tamanho'                               },
+            { label: 'Resolução', key: 'resolucao', values: RESOLUCAO },
+            { label: 'Frequência (Hz)',  key: 'frequencia'                            },
+            { label: 'HDMI',             key: 'hdmi',            values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+            { label: 'DisplayPort',      key: 'displayPort',     values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+            { label: 'VGA',              key: 'vga',             values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+            { label: 'DVI',              key: 'dvi',             values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+            { label: 'Status',    key: 'status',    values: STATUS    },
+            { label: 'Setor',     key: 'setor',     values: SETOR     },
+            { label: 'Usuário',          key: 'usuario'                               },
+            { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
+            { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
+            { label: 'Observações',      key: 'observacoes'                           },
+            { label: 'Ativo',     key: 'ativo',     values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+        ],
+        gestao: [
+            { label: 'ID',               key: 'codigo'                                },
+            { label: 'Modelo',           key: 'modelo'                                },
+            { label: 'Status', key: 'status', values: STATUS },
+            { label: 'Setor',  key: 'setor',  values: SETOR  },
+            { label: 'Usuário',          key: 'usuario'                               },
+            { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
+            { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
+            { label: 'Observações',      key: 'observacoes'                           },
+            { label: 'Ativo',  key: 'ativo',  values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+        ],
+    },
+    mouses: {
+        suporte: [
+            { label: 'ID',               key: 'codigo'                                },
+            { label: 'Modelo',           key: 'modelo'                                },
+            { label: 'Tipo',          key: 'tipo',          values: TIPO_PER },
+            { label: 'Conectividade', key: 'conectividade', values: CONECTIV },
+            { label: 'Status',        key: 'status',        values: STATUS   },
+            { label: 'Setor',         key: 'setor',         values: SETOR    },
+            { label: 'Usuário',          key: 'usuario'                               },
+            { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
+            { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
+            { label: 'Observações',      key: 'observacoes'                           },
+            { label: 'Ativo',         key: 'ativo',         values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+        ],
+        gestao: [
+            { label: 'ID',               key: 'codigo'                                },
+            { label: 'Modelo',           key: 'modelo'                                },
+            { label: 'Status', key: 'status', values: STATUS },
+            { label: 'Setor',  key: 'setor',  values: SETOR  },
+            { label: 'Usuário',          key: 'usuario'                               },
+            { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
+            { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
+            { label: 'Observações',      key: 'observacoes'                           },
+            { label: 'Ativo',  key: 'ativo',  values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+        ],
+    },
+    teclados: {
+        suporte: [
+            { label: 'ID',               key: 'codigo'                                },
+            { label: 'Modelo',           key: 'modelo'                                },
+            { label: 'Tipo',          key: 'tipo',          values: TIPO_PER },
+            { label: 'Conectividade', key: 'conectividade', values: CONECTIV },
+            { label: 'Switch',        key: 'switch',        values: SWITCH   },
+            { label: 'Tamanho (%)',      key: 'tamanho'                               },
+            { label: 'Status',        key: 'status',        values: STATUS   },
+            { label: 'Setor',         key: 'setor',         values: SETOR    },
+            { label: 'Usuário',          key: 'usuario'                               },
+            { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
+            { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
+            { label: 'Observações',      key: 'observacoes'                           },
+            { label: 'Ativo',         key: 'ativo',         values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+        ],
+        gestao: [
+            { label: 'ID',               key: 'codigo'                                },
+            { label: 'Modelo',           key: 'modelo'                                },
+            { label: 'Status', key: 'status', values: STATUS },
+            { label: 'Setor',  key: 'setor',  values: SETOR  },
+            { label: 'Usuário',          key: 'usuario'                               },
+            { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
+            { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
+            { label: 'Observações',      key: 'observacoes'                           },
+            { label: 'Ativo',  key: 'ativo',  values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+        ],
+    },
+    fones: {
+        suporte: [
+            { label: 'ID',               key: 'codigo'                                },
+            { label: 'Modelo',           key: 'modelo'                                },
+            { label: 'Tipo',          key: 'tipo',          values: TIPO_PER },
+            { label: 'Conectividade', key: 'conectividade', values: CONECTIV },
+            { label: 'Microfone',        key: 'microfone',       values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+            { label: 'Status',        key: 'status',        values: STATUS   },
+            { label: 'Setor',         key: 'setor',         values: SETOR    },
+            { label: 'Usuário',          key: 'usuario'                               },
+            { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
+            { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
+            { label: 'Observações',      key: 'observacoes'                           },
+            { label: 'Ativo',         key: 'ativo',         values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+        ],
+        gestao: [
+            { label: 'ID',               key: 'codigo'                                },
+            { label: 'Modelo',           key: 'modelo'                                },
+            { label: 'Status', key: 'status', values: STATUS },
+            { label: 'Setor',  key: 'setor',  values: SETOR  },
+            { label: 'Usuário',          key: 'usuario'                               },
+            { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
+            { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
+            { label: 'Observações',      key: 'observacoes'                           },
+            { label: 'Ativo',  key: 'ativo',  values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+        ],
+    },
+    celulares: {
+        suporte: [
+            { label: 'ID',               key: 'codigo'                                },
+            { label: 'Modelo',           key: 'modelo'                                },
+            { label: 'Memória RAM (GB)', key: 'ram'                                   },
+            { label: 'Armazenamento (GB)',key: 'armazenamento'                         },
+            { label: 'Conector Carregador', key: 'conectividade', values: CONECTOR_CARREGADOR },
+            { label: 'Status',              key: 'status',        values: STATUS              },
+            { label: 'Setor',               key: 'setor',         values: SETOR               },
+            { label: 'Usuário',          key: 'usuario'                               },
+            { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
+            { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
+            { label: 'Observações',      key: 'observacoes'                           },
+            { label: 'Ativo',           key: 'ativo',           values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+        ],
+        gestao: [
+            { label: 'ID',               key: 'codigo'                                },
+            { label: 'Modelo',           key: 'modelo'                                },
+            { label: 'Status', key: 'status', values: STATUS },
+            { label: 'Setor',  key: 'setor',  values: SETOR  },
+            { label: 'Usuário',          key: 'usuario'                               },
+            { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
+            { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
+            { label: 'Observações',      key: 'observacoes'                           },
+            { label: 'Ativo',  key: 'ativo',  values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+        ],
+    },
+    ramais: {
+        suporte: [
+            { label: 'ID',               key: 'codigo'                                },
+            { label: 'Modelo',           key: 'modelo'                                },
+            { label: 'Cor',              key: 'cor'                                   },
+            { label: 'Tipo',             key: 'tipo'                                  },
+            { label: 'IP',               key: 'ip'                                    },
+            { label: 'MAC',              key: 'mac'                                   },
+            { label: 'Linha',            key: 'linha'                                 },
+            { label: 'Número',           key: 'numero'                                },
+            { label: 'Configurado', key: 'configurado', values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+            { label: 'Status',      key: 'status',      values: STATUS        },
+            { label: 'Setor',       key: 'setor',       values: SETOR         },
+            { label: 'Usuário',          key: 'usuario'                               },
+            { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
+            { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
+            { label: 'Observações',      key: 'observacoes'                           },
+            { label: 'Ativo',       key: 'ativo',       values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+        ],
+        gestao: [
+            { label: 'ID',               key: 'codigo'                                },
+            { label: 'Modelo',           key: 'modelo'                                },
+            { label: 'Status', key: 'status', values: STATUS },
+            { label: 'Setor',  key: 'setor',  values: SETOR  },
+            { label: 'Usuário',          key: 'usuario'                               },
+            { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
+            { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
+            { label: 'Observações',      key: 'observacoes'                           },
+            { label: 'Ativo',  key: 'ativo',  values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+        ],
+    },
+    chips: {
+        suporte: [
+            { label: 'ID',               key: 'codigo'                                },
+            { label: 'Número',           key: 'numero'                                },
+            { label: 'Operadora', key: 'operadora', values: OPERADORA },
+            { label: 'Dono',             key: 'dono'                                  },
+            { label: 'Plano (R$)',       key: 'plano'                                 },
+            { label: 'Celular Vinculado',key: 'celularId'                             },
+            { label: 'Status',    key: 'status',    values: STATUS    },
+            { label: 'Setor',     key: 'setor',     values: SETOR     },
+            { label: 'Usuário',          key: 'usuario'                               },
+            { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
+            { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
+            { label: 'Observações',      key: 'observacoes'                           },
+            { label: 'Ativo',     key: 'ativo',     values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+        ],
+        gestao: [
+            { label: 'ID',               key: 'codigo'                                },
+            { label: 'Número',           key: 'numero'                                },
+            { label: 'Operadora', key: 'operadora', values: OPERADORA },
+            { label: 'Status',    key: 'status',    values: STATUS    },
+            { label: 'Setor',     key: 'setor',     values: SETOR     },
+            { label: 'Usuário',          key: 'usuario'                               },
+            { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
+            { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
+            { label: 'Observações',      key: 'observacoes'                           },
+            { label: 'Ativo',     key: 'ativo',     values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+        ],
+    },
+    extras: {
+        suporte: [
+            { label: 'ID',               key: 'codigo'                                },
+            { label: 'Categoria',        key: 'categoria'                             },
+            { label: 'Descrição',        key: 'descricao'                             },
+            { label: 'Status', key: 'status', values: STATUS },
+            { label: 'Setor',  key: 'setor',  values: SETOR  },
+            { label: 'Usuário',          key: 'usuario'                               },
+            { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
+            { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
+            { label: 'Observações',      key: 'observacoes'                           },
+            { label: 'Ativo',  key: 'ativo',  values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+        ],
+        gestao: [
+            { label: 'ID',               key: 'codigo'                                },
+            { label: 'Categoria',        key: 'categoria'                             },
+            { label: 'Descrição',        key: 'descricao'                             },
+            { label: 'Status', key: 'status', values: STATUS },
+            { label: 'Setor',  key: 'setor',  values: SETOR  },
+            { label: 'Usuário',          key: 'usuario'                               },
+            { label: 'Data Aquisição',   key: 'dataAquisicao'                         },
+            { label: 'Preço Aquisição',  key: 'precoAquisicao'                        },
+            { label: 'Observações',      key: 'observacoes'                           },
+            { label: 'Ativo',  key: 'ativo',  values: [{value:'Sim',label:'Sim'},{value:'Não',label:'Não'}] },
+        ],
+    },
 };
-
-// Proxy que retorna a mesma lista para 'suporte' e 'gestao',
-// garantindo que trocar de modo não limpe os filtros ativos.
-const filterDefs = new Proxy(_filterDefsBase, {
-    get(target, cat) {
-        const lista = target[cat];
-        if (!lista) return undefined;
-        // Retorna um objeto onde qualquer modo aponta para a mesma lista
-        return new Proxy({}, {
-            get(_, mode) { return lista; }
-        });
-    }
-});
 
 // ============================================================
 //  HELPERS DE CRIAÇÃO DE ELEMENTOS DE FORMULÁRIO
@@ -735,7 +843,7 @@ function renderSlotsRAM(afterGroup, quantidade, valores = []) {
     const div = document.createElement('div');
     div.id        = 'slots-ram-wrapper';
     div.className = 'span-2';
-    div.style.cssText = `display:grid;grid-template-columns:repeat(${cols}, 1fr);gap:10px;`;
+    div.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:10px;';
 
     for (let i = 0; i < quantidade; i++) {
         const group = document.createElement('div');
@@ -775,12 +883,12 @@ function renderDiscos(afterGroup, quantidade, valores = []) {
         const g1 = document.createElement('div'); g1.className = 'form-group';
         const l1 = document.createElement('label'); l1.textContent = `Disco ${i+1} — Tipo`;
         g1.appendChild(l1);
-        g1.appendChild(criarSelect(`disco_tipo_${i}`, TIPO_DISCO, valores[i]?.tipo ?? valores[i]?.Tipo ?? ''));
+        g1.appendChild(criarSelect(`disco_tipo_${i}`, TIPO_DISCO, valores[i]?.tipo || ''));
 
         const g2 = document.createElement('div'); g2.className = 'form-group';
         const l2 = document.createElement('label'); l2.textContent = `Disco ${i+1} — Tamanho (GB)`;
         g2.appendChild(l2);
-        g2.appendChild(criarInput(`disco_tamanho_${i}`, valores[i]?.tamanho ?? valores[i]?.Tamanho ?? '', 'Ex: 512', 'number'));
+        g2.appendChild(criarInput(`disco_tamanho_${i}`, valores[i]?.tamanho || '', 'Ex: 512', 'number'));
 
         row.appendChild(g1); row.appendChild(g2);
         div.appendChild(row);
@@ -813,12 +921,12 @@ function renderPlacasVideo(afterGroup, quantidade, valores = []) {
         const g1 = document.createElement('div'); g1.className = 'form-group';
         const l1 = document.createElement('label'); l1.textContent = `GPU ${i+1} — Tipo`;
         g1.appendChild(l1);
-        g1.appendChild(criarSelect(`gpu_tipo_${i}`, TIPO_GPU, valores[i]?.tipo ?? valores[i]?.Tipo ?? ''));
+        g1.appendChild(criarSelect(`gpu_tipo_${i}`, TIPO_GPU, valores[i]?.tipo || ''));
 
         const g2 = document.createElement('div'); g2.className = 'form-group';
         const l2 = document.createElement('label'); l2.textContent = `GPU ${i+1} — VRAM (MB)`;
         g2.appendChild(l2);
-        g2.appendChild(criarInput(`gpu_vram_${i}`, valores[i]?.vram ?? valores[i]?.VRAM ?? '', 'Ex: 2048', 'number'));
+        g2.appendChild(criarInput(`gpu_vram_${i}`, valores[i]?.vram || '', 'Ex: 2048', 'number'));
 
         row.appendChild(g1); row.appendChild(g2);
         div.appendChild(row);
@@ -1778,7 +1886,7 @@ function extrairValorFiltro(item, key) {
         categoria:       item.categoria,
         descricao:       item.descricao,
     };
-    return mapa[key] !== undefined ? mapa[key] : (item[key] != null ? String(item[key]) : '');
+    return mapa[key] !== undefined ? mapa[key] : item[key];
 }
 
 /**
@@ -1802,7 +1910,7 @@ function aplicarFiltrosNaTabela() {
     const tbody   = document.querySelector(`#${tableId} tbody`);
     if (!tbody) return;
 
-    let dados = [...(cache[currentCategory] || [])];
+    let dados = cache[currentCategory];
 
     // ── Filtragem ──────────────────────────────────────────────
     if (activeFilters.length > 0) {
@@ -1815,12 +1923,7 @@ function aplicarFiltrosNaTabela() {
                 const vals      = f.values.map(v => normalizarValor(v));
 
                 // Busca o def para saber se é enum (exato) ou texto livre (parcial)
-                const def = (_filterDefsBase[currentCategory] || []).find(d => d.key === f.key);
-                const isEnum = def && def.values && def.values.length > 0;
-
-                return vals.some(v =>
-                    isEnum ? valorItem === v : valorItem.includes(v)
-                );
+                return vals.some(v => valorItem === normalizarValor(v) || valorItem.includes(normalizarValor(v)));
             })
         );
     }
@@ -2140,8 +2243,8 @@ function mapFormToApi(categoria, form) {
         i = 0;
         while (form[`disco_tipo_${i}`] !== undefined) {
             discos.push({
-                Tipo:    form[`disco_tipo_${i}`] || null,
-                Tamanho: parseInt(form[`disco_tamanho_${i}`]) || 0,
+                tipo:    form[`disco_tipo_${i}`]   || 'HDD',
+                tamanho: parseInt(form[`disco_tamanho_${i}`]) || 0,
             });
             i++;
         }
@@ -2151,8 +2254,8 @@ function mapFormToApi(categoria, form) {
         i = 0;
         while (form[`gpu_tipo_${i}`] !== undefined) {
             placasVideo.push({
-                Tipo: form[`gpu_tipo_${i}`] || null,
-                VRAM: parseInt(form[`gpu_vram_${i}`]) || 0,
+                tipo: form[`gpu_tipo_${i}`] || 'Integrada',
+                vram: parseInt(form[`gpu_vram_${i}`]) || 0,
             });
             i++;
         }
@@ -2175,10 +2278,10 @@ function mapFormToApi(categoria, form) {
             placasVideo,
             quantidadeConectoresVideo: Math.max(conectoresVideo.length, parseInt(form.quant_conectores) || 0),
             conectoresVideo,
-            sistemaOperacional: form.so              || null,
-            ativacaoSO:         form.ativacao_so     || null,
-            office:             form.office          || null,
-            ativacaoOffice:     form.ativacao_office || null,
+            sistemaOperacional: form.so              || 'Windows11',
+            ativacaoSO:         form.ativacao_so     || 'Desativado',
+            office:             form.office          || 'Nenhum',
+            ativacaoOffice:     form.ativacao_office || 'Desativado',
             setor:              form.setor,
             usuario:            form.usuario,
             status:             form.status,
@@ -2253,7 +2356,7 @@ function mapFormToApi(categoria, form) {
 
     if (categoria === 'chips') return {
         // Formata o número de telefone removendo não-dígitos e adicionando o +
-        numero:    form.numero || '',
+        numero:    (form.numero || '').replace(/\D/g, '').replace(/^(\d{2})(\d+)$/, '+$1$2') || form.numero,
         operadora: form.operadora || undefined,
         dono:      form.dono      || null,
         celularId: form.celularId || null,
@@ -2520,13 +2623,12 @@ var _filterDropdownAberto = null;
 
 /**
  * Popula o select de propriedade de filtro.
- * Usa _filterDefsBase diretamente (não depende do modo).
+ * Usa filterDefs[currentCategory][currentMode] para obter os filtros disponíveis.
  * NÃO limpa activeFilters — trocar modo/categoria é responsabilidade do HTML.
  */
 function buildFilterPropSelect() {
     const sel  = document.getElementById('filterProp');
-    // Usa a lista base diretamente, sem depender do modo
-    const defs = _filterDefsBase[currentCategory] || [];
+    const defs = (filterDefs[currentCategory] || {})[currentMode] || [];
 
     sel.innerHTML = '<option value="">— Escolha a propriedade —</option>';
     defs.forEach(def => {
@@ -2550,7 +2652,7 @@ function updateFilterValueOptions() {
     fecharFilterDropdown();
 
     const key  = document.getElementById('filterProp').value;
-    const defs = _filterDefsBase[currentCategory] || [];
+    const defs = (filterDefs[currentCategory] || {})[currentMode] || [];
     const def  = defs.find(d => d.key === key);
 
     const area = document.getElementById('filterValueArea');
@@ -2828,7 +2930,7 @@ function addFilterBackend() {
     const key     = propSel.value;
     if (!key) { propSel.focus(); return; }
 
-    const defs = _filterDefsBase[currentCategory] || [];
+    const defs = (filterDefs[currentCategory] || {})[currentMode] || [];
     const def  = defs.find(d => d.key === key);
     if (!def)  return;
 
@@ -2894,7 +2996,7 @@ function addFilterBackend() {
 function obterDadosExportacao() {
     if (!cache[currentCategory]) return [];
 
-    let dados = [...(cache[currentCategory] || [])];
+    let dados = cache[currentCategory];
 
     if (activeFilters.length > 0) {
         dados = dados.filter(item =>
@@ -2902,9 +3004,7 @@ function obterDadosExportacao() {
                 if (!f.values || f.values.length === 0) return true;
                 const valorItem = normalizarValor(extrairValorFiltro(item, f.key));
                 const vals      = f.values.map(v => normalizarValor(v));
-                const def = (_filterDefsBase[currentCategory] || []).find(d => d.key === f.key);
-                const isEnum = def && def.values && def.values.length > 0;
-                return vals.some(v => isEnum ? valorItem === v : valorItem.includes(v));
+                return vals.some(v => valorItem === normalizarValor(v) || valorItem.includes(normalizarValor(v)));
             })
         );
     }
@@ -3087,8 +3187,7 @@ document.querySelectorAll('.inv-table').forEach(t => t.classList.remove('ativa')
 const tabelaInicial = document.getElementById('computadores-gestao');
 if (tabelaInicial) tabelaInicial.classList.add('ativa');
 
-// Carrega as opções dinâmicas da API (Setor, SO, Office, Operadora, etc.)
-// e só depois carrega a tabela para garantir que os selects já tenham as opções
+// Carrega as opções dinâmicas da API e depois inicializa a tabela
 carregarOpcoesDinamicas().then(() => {
     carregarTabela('computadores', 'gestao');
     buildFilterPropSelect();
