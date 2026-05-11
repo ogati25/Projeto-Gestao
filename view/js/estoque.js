@@ -417,7 +417,7 @@ const formFields = {
     // ----------------------------------------------------------
     chips: [
         { section: 'Dados do Chip' },
-        { label: 'Número',               key: 'numero',    type: 'text',   placeholder: '+55 (11) 99999-9999', mask: 'phone', required: true },
+        { label: 'Número',               key: 'numero',    type: 'text',   placeholder: '(11) 99999-9999', mask: 'phone', required: true },
         { label: 'Operadora',            key: 'operadora', type: 'select', options: OPERADORA, required: true },
         { label: 'Dono',                 key: 'dono',      type: 'text',   maxlen: 80 },
         { label: 'Celular Vinculado (ID)',key: 'celularId', type: 'text',   placeholder: 'ID do celular no banco' },
@@ -1065,7 +1065,7 @@ function renderFields(containerId, category, mode, prefillData = {}) {
                     const inp1       = document.createElement('input');
                     inp1.type        = 'text';
                     inp1.name        = `wpp_numero_${i}`;
-                    inp1.placeholder = '+55 (11) 99999-9999';
+                    inp1.placeholder = '(11) 99999-9999';
                     inp1.value       = wpp.numero || '';
                     inp1.maxLength   = 20;
                     inp1.style.cssText = 'padding:7px 10px;border:1px solid var(--border-color);border-radius:7px;font-size:13px;background:var(--background-color);color:var(--text-primary);outline:none;';
@@ -2253,7 +2253,7 @@ function mapFormToApi(categoria, form) {
 
     if (categoria === 'chips') return {
         // Formata o número de telefone removendo não-dígitos e adicionando o +
-        numero:    (form.numero || '').replace(/\D/g, '').replace(/^(\d{2})(\d+)$/, '+$1$2') || form.numero,
+        numero:    form.numero || '',
         operadora: form.operadora || undefined,
         dono:      form.dono      || null,
         celularId: form.celularId || null,
@@ -2880,7 +2880,209 @@ function addFilterBackend() {
 //  em modo gestão (padrão) e carrega os dados da API.
 // ============================================================
 
-// Garante que apenas a tabela inicial esteja visível
+
+
+// ============================================================
+//  EXPORTAÇÃO DE DADOS — CSV e XLSX
+//  Usa os dados já filtrados exibidos na tabela atual.
+// ============================================================
+
+/**
+ * Retorna os dados atualmente exibidos na tabela (pós-filtro).
+ * Reutiliza a mesma lógica de aplicarFiltrosNaTabela, sem re-renderizar.
+ */
+function obterDadosExportacao() {
+    if (!cache[currentCategory]) return [];
+
+    let dados = [...(cache[currentCategory] || [])];
+
+    if (activeFilters.length > 0) {
+        dados = dados.filter(item =>
+            activeFilters.every(f => {
+                if (!f.values || f.values.length === 0) return true;
+                const valorItem = normalizarValor(extrairValorFiltro(item, f.key));
+                const vals      = f.values.map(v => normalizarValor(v));
+                const def = (_filterDefsBase[currentCategory] || []).find(d => d.key === f.key);
+                const isEnum = def && def.values && def.values.length > 0;
+                return vals.some(v => isEnum ? valorItem === v : valorItem.includes(v));
+            })
+        );
+    }
+
+    return dados;
+}
+
+/**
+ * Retorna cabeçalhos (label) e chaves (key) para a categoria/modo atual,
+ * acrescentando sempre o ID no início.
+ */
+function obterColunas() {
+    const fields = (formFields[currentCategory] || []).filter(f => {
+        if (!f.key) return false;                          // seções e separadores
+        if (f.mode && f.mode !== currentMode) return false; // fora do modo atual
+        return true;
+    });
+
+    // ID sempre primeiro
+    const colunas = [{ label: 'ID', key: 'id' }];
+
+    fields.forEach(f => {
+        // Pula chaves de controle que não são valores diretos
+        const skipKeys = ['quant_slots', 'quant_discos', 'quant_gpus', 'quant_conectores'];
+        if (skipKeys.includes(f.key)) return;
+        colunas.push({ label: f.label, key: f.key });
+    });
+
+    return colunas;
+}
+
+/**
+ * Extrai o valor de uma célula de forma legível (flat),
+ * lidando com objetos aninhados, arrays e valores nulos.
+ */
+function extrairValorCelula(item, key) {
+    let val = item[key];
+
+    if (val === null || val === undefined) return '';
+
+    // Objetos com propriedade "nome" (ex: processador, setor)
+    if (typeof val === 'object' && !Array.isArray(val)) {
+        if (val.nome) return val.nome;
+        if (val.name) return val.name;
+        return JSON.stringify(val);
+    }
+
+    // Arrays (ex: discos, placas, chips)
+    if (Array.isArray(val)) {
+        return val.map(v => {
+            if (typeof v === 'object') return v.nome || v.name || v.numero || JSON.stringify(v);
+            return v;
+        }).join(' | ');
+    }
+
+    return String(val);
+}
+
+/**
+ * Constrói as linhas de dados para exportação.
+ * @returns {{ headers: string[], rows: string[][] }}
+ */
+function construirMatrizExport() {
+    const colunas = obterColunas();
+    const dados   = obterDadosExportacao();
+
+    const headers = colunas.map(c => c.label);
+    const rows    = dados.map(item =>
+        colunas.map(c => extrairValorCelula(item, c.key))
+    );
+
+    return { headers, rows };
+}
+
+/**
+ * Gera um nome de arquivo com a categoria, modo e data atual.
+ */
+function gerarNomeArquivo(extensao) {
+    const cat  = (categoryNames && categoryNames[currentCategory]) || currentCategory;
+    const modo = currentMode === 'gestao' ? 'Gestao' : 'Suporte';
+    const hoje = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+    return `${cat}_${modo}_${hoje}.${extensao}`;
+}
+
+// ─── Exportação CSV ──────────────────────────────────────────
+
+function exportarCSV() {
+    const { headers, rows } = construirMatrizExport();
+
+    const escapar = v => {
+        const s = String(v).replace(/"/g, '""');
+        return /[,"\n\r]/.test(s) ? `"${s}"` : s;
+    };
+
+    const linhas = [
+        headers.map(escapar).join(','),
+        ...rows.map(r => r.map(escapar).join(','))
+    ];
+
+    const blob = new Blob(['\uFEFF' + linhas.join('\r\n')], {
+        type: 'text/csv;charset=utf-8;'
+    });
+
+    _downloadBlob(blob, gerarNomeArquivo('csv'));
+}
+
+// ─── Exportação XLSX ─────────────────────────────────────────
+
+async function exportarXLSX() {
+    const { headers, rows } = construirMatrizExport();
+
+    // Carrega SheetJS dinamicamente se ainda não estiver disponível
+    if (typeof XLSX === 'undefined') {
+        await _carregarScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
+    }
+
+    const wsData = [headers, ...rows];
+    const wb     = XLSX.utils.book_new();
+    const ws     = XLSX.utils.aoa_to_sheet(wsData);
+
+    // Largura automática das colunas
+    const colWidths = headers.map((h, i) => ({
+        wch: Math.max(
+            h.length,
+            ...rows.map(r => String(r[i] || '').length)
+        ) + 2
+    }));
+    ws['!cols'] = colWidths;
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Dados');
+    XLSX.writeFile(wb, gerarNomeArquivo('xlsx'));
+}
+
+// ─── Helpers ─────────────────────────────────────────────────
+
+function _downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a   = document.createElement('a');
+    a.href     = url;
+    a.download = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+function _carregarScript(src) {
+    return new Promise((resolve, reject) => {
+        const s   = document.createElement('script');
+        s.src     = src;
+        s.onload  = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+    });
+}
+
+// ─── Ponto de entrada (chamado pelo modal) ───────────────────
+
+async function exportarDados(formato) {
+    const dados = obterDadosExportacao();
+
+    if (!dados || dados.length === 0) {
+        alert('Não há dados para exportar.');
+        return;
+    }
+
+    try {
+        if (formato === 'csv') {
+            exportarCSV();
+        } else if (formato === 'xlsx') {
+            await exportarXLSX();
+        }
+        // Fecha o modal após exportar
+        if (typeof closeModal === 'function') closeModal('modalExport');
+    } catch (err) {
+        console.error('Erro ao exportar:', err);
+        alert('Ocorreu um erro ao gerar o arquivo. Verifique o console para mais detalhes.');
+    }
+}
+
 document.querySelectorAll('.inv-table').forEach(t => t.classList.remove('ativa'));
 const tabelaInicial = document.getElementById('computadores-gestao');
 if (tabelaInicial) tabelaInicial.classList.add('ativa');

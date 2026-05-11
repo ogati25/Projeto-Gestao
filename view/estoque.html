@@ -299,6 +299,63 @@
         }
         .btn-export:hover { background: var(--background-color); color: var(--text-primary); }
 
+        /* ---- Modal de Exportação ---- */
+        .modal-export {
+            max-width: 400px;
+        }
+        .export-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 22px;
+        }
+        .export-option-btn {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--secondary-color);
+            cursor: pointer;
+            transition: 0.18s;
+            text-align: left;
+            width: 100%;
+        }
+        .export-option-btn:hover {
+            border-color: var(--primary-color);
+            background: var(--background-color);
+        }
+        .export-option-btn:hover .export-icon { color: var(--primary-color); }
+        .export-icon {
+            font-size: 24px;
+            color: var(--text-muted);
+            width: 32px;
+            text-align: center;
+            flex-shrink: 0;
+            transition: 0.18s;
+        }
+        .export-icon.csv  { color: #2e7d32; }
+        .export-icon.xlsx { color: #1565c0; }
+        .export-option-btn:hover .export-icon.csv  { color: #2e7d32; }
+        .export-option-btn:hover .export-icon.xlsx { color: #1565c0; }
+        .export-info { display: flex; flex-direction: column; gap: 2px; }
+        .export-info strong {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .export-info span {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .export-footer {
+            padding: 14px 22px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+        }
+
         /* ---- Coluna de ações na tabela ---- */
         .col-acoes { min-width: 90px; text-align: right !important; }
         .row-actions {
@@ -1299,7 +1356,7 @@
 
                 <div class="inv-table-footer">
                     <span id="footerInfo">0 registros</span>
-                    <button class="btn-export">
+                    <button class="btn-export" id="btnExportar" onclick="openModal('modalExport')">
                         <i class="fa-solid fa-file-export"></i> Exportar
                     </button>
                 </div>
@@ -1401,6 +1458,46 @@
             <div class="modal-detail-footer">
                 <button class="btn btn-outline" id="modalDetailClose2" style="font-size:13px;">
                     <i class="fa-solid fa-xmark"></i> Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: EXPORTAR ==================== -->
+    <div class="modal-overlay" id="modalExport">
+        <div class="modal modal-export">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-file-export"></i> Exportar dados</h2>
+                <button class="modal-close" onclick="closeModal('modalExport')">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="export-options">
+                <p style="font-size:13px; color:var(--text-muted); margin:0 0 4px;">
+                    Escolha o formato para exportar os registros visíveis na tabela atual.
+                </p>
+
+                <button class="export-option-btn" onclick="exportarDados('csv')">
+                    <i class="fa-solid fa-file-csv export-icon csv"></i>
+                    <div class="export-info">
+                        <strong>CSV</strong>
+                        <span>Compatível com qualquer planilha ou editor de texto</span>
+                    </div>
+                </button>
+
+                <button class="export-option-btn" onclick="exportarDados('xlsx')">
+                    <i class="fa-solid fa-file-excel export-icon xlsx"></i>
+                    <div class="export-info">
+                        <strong>Excel (.xlsx)</strong>
+                        <span>Arquivo formatado para Microsoft Excel</span>
+                    </div>
+                </button>
+            </div>
+
+            <div class="export-footer">
+                <button class="btn btn-outline" onclick="closeModal('modalExport')" style="font-size:13px;">
+                    <i class="fa-solid fa-xmark"></i> Cancelar
                 </button>
             </div>
         </div>
@@ -1744,46 +1841,66 @@
         }
 
         /**
-         * Aplica máscara de telefone brasileiro ao elemento de input.
-         * Formata em tempo real como: (11) 99999-9999 ou +55 (11) 99999-9999
+         * Aplica máscara de telefone ao elemento de input.
+         * Formata em tempo real como: (11) 99999-9999 ou, com DDI, +XX (11) 99999-9999
          * @param {HTMLInputElement} inp
          * @param {string} valorInicial — valor já existente para aplicar máscara ao carregar
          */
         function aplicarMascaraTelefone(inp, valorInicial = '') {
-            const aplicar = () => {
-                let v        = inp.value.replace(/\D/g, '');
-                let resultado = '';
-
-                if (v.startsWith('55') && v.length > 2) {
-                    // Número com DDI +55
-                    const sem55 = v.slice(2);
-                    if      (sem55.length <= 2)  { resultado = `+55 (${sem55}`; }
-                    else if (sem55.length <= 7)  { resultado = `+55 (${sem55.slice(0,2)}) ${sem55.slice(2)}`; }
-                    else if (sem55.length <= 11) {
-                        const meio = sem55.length === 11 ? 5 : 4;
-                        resultado = `+55 (${sem55.slice(0,2)}) ${sem55.slice(2, 2+meio)}-${sem55.slice(2+meio)}`;
-                    } else {
-                        resultado = `+55 (${sem55.slice(0,2)}) ${sem55.slice(2,7)}-${sem55.slice(7,11)}`;
-                    }
-                } else if (v.length > 0) {
-                    // Número sem DDI
-                    if      (v.length <= 2)  { resultado = `(${v}`; }
-                    else if (v.length <= 7)  { resultado = `(${v.slice(0,2)}) ${v.slice(2)}`; }
-                    else if (v.length <= 11) {
-                        const meio = v.length === 11 ? 5 : 4;
-                        resultado = `(${v.slice(0,2)}) ${v.slice(2, 2+meio)}-${v.slice(2+meio)}`;
-                    } else {
-                        resultado = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7,11)}`;
-                    }
+            // Formata a parte local (DDD + número) no estilo (XX) XXXX-XXXX ou (XX) XXXXX-XXXX
+            function formatarParteLocal(digits) {
+                if (digits.length === 0)  return '';
+                if (digits.length <= 2)   return `(${digits}`;
+                if (digits.length <= 6)   return `(${digits.slice(0,2)}) ${digits.slice(2)}`;
+                const meio = digits.length >= 11 ? 5 : 4;
+                if (digits.length <= (2 + meio + 4)) {
+                    return `(${digits.slice(0,2)}) ${digits.slice(2, 2+meio)}-${digits.slice(2+meio)}`;
                 }
+                // Limita ao máximo de 11 dígitos locais (celular BR)
+                const d = digits.slice(0, 11);
+                return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
+            }
 
-                inp.value = resultado;
+            const aplicar = () => {
+                const raw = inp.value;
+
+                // Usuário digitou "+" no início → inclui DDI do país
+                if (raw.startsWith('+')) {
+                    // Separa DDI e parte local pelo primeiro espaço ou "("
+                    const semPlus = raw.slice(1);
+                    const match = semPlus.match(/^(\d+)([\s(](.*))?$/);
+
+                    if (!match) return; // só "+" ainda, nada a formatar
+
+                    const ddiDigits  = match[1];
+                    const restoBruto = match[3] || '';
+                    const restoDigits = restoBruto.replace(/\D/g, '');
+
+                    const localFormatado = formatarParteLocal(restoDigits);
+                    inp.value = localFormatado
+                        ? `+${ddiDigits} ${localFormatado}`
+                        : `+${ddiDigits}`;
+
+                } else {
+                    // Sem "+" → número local sem DDI
+                    const digits = raw.replace(/\D/g, '');
+                    inp.value = digits.length > 0 ? formatarParteLocal(digits) : '';
+                }
             };
 
-            inp.addEventListener('input', aplicar);
+            inp.addEventListener('input', function () {
+                // "+" só é permitido no início; remove se aparecer em outra posição
+                if (inp.value.indexOf('+') > 0) {
+                    inp.value = inp.value.replace(/\+/g, '');
+                }
+                aplicar();
+            });
 
-            // Aplica máscara no valor já existente ao carregar a página/modal
-            if (valorInicial) setTimeout(aplicar, 0);
+            // Aplica máscara no valor já existente ao carregar o modal
+            if (valorInicial) {
+                inp.value = valorInicial;
+                setTimeout(aplicar, 0);
+            }
         }
 
         /**
