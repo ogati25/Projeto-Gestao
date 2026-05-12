@@ -38,4 +38,11 @@ public class ChipService
         var filtro = Builders<Chip>.Filter.In(c => c.Id, ids);
         return await _chips.Find(filtro).ToListAsync();
     }
+
+    // atualiza apenas o campo CelularId de um chip (vinculação/desvinculação)
+    public async Task PatchCelularIdAsync(string id, string? celularId)
+    {
+        var update = Builders<Chip>.Update.Set(c => c.CelularId, celularId);
+        await _chips.UpdateOneAsync(c => c.Id == id, update);
+    }
 }

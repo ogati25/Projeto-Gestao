@@ -1105,7 +1105,20 @@ function renderFields(containerId, category, mode, prefillData = {}) {
             input.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
 
             const chipsSelecionados = prefillData[f.key] || [];
+
+            // Lê IDs atualmente selecionados nos selects antes de re-renderizar
+            const lerSelecionadosChip = () => {
+                const sels = input.querySelectorAll('select[name^="chip_id_"]');
+                return Array.from(sels).map(s => s.value);
+            };
+
             const renderChipSelector = (lista) => {
+                // Chips já ocupados em outros celulares (celularId preenchido e diferente do item atual)
+                const celularAtualId = document.getElementById('modalEdit')?.dataset?.editId || null;
+                const ocupados = (window._chipsCache || [])
+                    .filter(c => c.celularId && c.celularId !== celularAtualId && !lista.includes(c.id))
+                    .map(c => c.id);
+
                 input.innerHTML = '';
                 lista.forEach((chip, i) => {
                     const row = document.createElement('div');
@@ -1118,11 +1131,19 @@ function renderFields(containerId, category, mode, prefillData = {}) {
                     blank.textContent = '— Selecione o chip —';
                     sel.appendChild(blank);
                     (window._chipsCache || []).forEach(c => {
+                        // Oculta chips já vinculados a outro celular ou já selecionados em outra linha
+                        const selecionadoEmOutraLinha = lista.some((id, j) => j !== i && id === c.id);
+                        if (ocupados.includes(c.id) || selecionadoEmOutraLinha) return;
                         const o       = document.createElement('option');
                         o.value       = c.id;
                         o.textContent = `${c.numero} (${c.dono || 'sem dono'})`;
                         if (chip === c.id) o.selected = true;
                         sel.appendChild(o);
+                    });
+                    // Ao mudar seleção, atualiza lista e re-renderiza para refletir disponibilidade
+                    sel.addEventListener('change', () => {
+                        lista[i] = sel.value;
+                        renderChipSelector(lista);
                     });
                     const btnRem       = document.createElement('button');
                     btnRem.type        = 'button';
@@ -1139,7 +1160,11 @@ function renderFields(containerId, category, mode, prefillData = {}) {
                     btnAdd.type        = 'button';
                     btnAdd.textContent = '+ Adicionar Chip';
                     btnAdd.style.cssText = 'border:1px dashed #cbd5e1;background:transparent;border-radius:7px;padding:6px 12px;cursor:pointer;font-size:13px;color:var(--text-muted);';
-                    btnAdd.onclick     = () => { lista.push(''); renderChipSelector(lista); };
+                    btnAdd.onclick     = () => {
+                        const atual = lerSelecionadosChip();
+                        atual.push('');
+                        renderChipSelector(atual);
+                    };
                     input.appendChild(btnAdd);
                 }
             };
@@ -1154,54 +1179,58 @@ function renderFields(containerId, category, mode, prefillData = {}) {
             });
 
         } else if (f.type === 'whatsapp_list') {
-            // Lista dinâmica de contas WhatsApp — cada entrada tem {numero, dono}
+            // Seletor de chips vinculados como contas WhatsApp — envia List<string> de IDs
             input              = document.createElement('div');
             input.id           = 'whatsapp-list-widget';
             input.dataset.max  = f.max || 6;
             input.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
 
-            const wppInicial      = Array.isArray(prefillData[f.key]) ? prefillData[f.key] : [];
-            const renderWppList   = (lista) => {
+            // prefillData[f.key] pode chegar como List<string> de IDs (ao editar)
+            // ou como array de {Numero, Dono} resolvidos pelo GET — neste caso extrai o ID pelo chip cache
+            const wppInicial = Array.isArray(prefillData[f.key])
+                ? prefillData[f.key].map(v => (typeof v === 'string' ? v : (v.id || '')))
+                : [];
+
+            // Lê IDs atualmente selecionados nos selects antes de re-renderizar
+            const lerSelecionadosWpp = () => {
+                const sels = input.querySelectorAll('select[name^="wpp_chip_id_"]');
+                return Array.from(sels).map(s => s.value);
+            };
+
+            const renderWppSelector = (lista) => {
                 input.innerHTML = '';
-                lista.forEach((wpp, i) => {
+                lista.forEach((chipId, i) => {
                     const row = document.createElement('div');
-                    row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;';
-
-                    // Campo de número
-                    const g1 = document.createElement('div'); g1.className = 'form-group'; g1.style.margin = '0';
-                    const l1 = document.createElement('label'); l1.textContent = `Número ${i+1}`;
-                    const inp1       = document.createElement('input');
-                    inp1.type        = 'text';
-                    inp1.name        = `wpp_numero_${i}`;
-                    inp1.placeholder = '(11) 99999-9999';
-                    inp1.value       = wpp.numero || '';
-                    inp1.maxLength   = 20;
-                    inp1.style.cssText = 'padding:7px 10px;border:1px solid var(--border-color);border-radius:7px;font-size:13px;background:var(--background-color);color:var(--text-primary);outline:none;';
-                    g1.appendChild(l1); g1.appendChild(inp1);
-                    // Aplica máscara de telefone (função definida no script inline do estoque.html)
-                    if (typeof aplicarMascaraTelefone === 'function') {
-                        aplicarMascaraTelefone(inp1, wpp.numero || '');
-                    }
-
-                    // Campo de dono
-                    const g2 = document.createElement('div'); g2.className = 'form-group'; g2.style.margin = '0';
-                    const l2 = document.createElement('label'); l2.textContent = `Dono ${i+1}`;
-                    const inp2       = document.createElement('input');
-                    inp2.type        = 'text';
-                    inp2.name        = `wpp_dono_${i}`;
-                    inp2.placeholder = 'Nome do dono';
-                    inp2.value       = wpp.dono || '';
-                    inp2.style.cssText = inp1.style.cssText;
-                    g2.appendChild(l2); g2.appendChild(inp2);
-
-                    // Botão de remover
+                    row.style.cssText = 'display:flex;align-items:center;gap:8px;';
+                    const sel = document.createElement('select');
+                    sel.name  = `wpp_chip_id_${i}`;
+                    sel.style.flex = '1';
+                    const blank       = document.createElement('option');
+                    blank.value       = '';
+                    blank.textContent = '— Selecione o chip —';
+                    sel.appendChild(blank);
+                    (window._chipsCache || []).forEach(c => {
+                        // Bloqueia chip já selecionado em outra linha
+                        const selecionadoEmOutraLinha = lista.some((id, j) => j !== i && id === c.id);
+                        if (selecionadoEmOutraLinha) return;
+                        const o       = document.createElement('option');
+                        o.value       = c.id;
+                        o.textContent = `${c.numero} (${c.dono || 'sem dono'})`;
+                        if (chipId === c.id) o.selected = true;
+                        sel.appendChild(o);
+                    });
+                    // Ao mudar seleção, atualiza lista para refletir disponibilidade
+                    sel.addEventListener('change', () => {
+                        lista[i] = sel.value;
+                        renderWppSelector(lista);
+                    });
                     const btnRem       = document.createElement('button');
                     btnRem.type        = 'button';
                     btnRem.textContent = '✕';
-                    btnRem.style.cssText = 'border:none;background:#fee2e2;color:#ef4444;border-radius:6px;padding:7px 10px;cursor:pointer;align-self:end;';
-                    btnRem.onclick     = () => { lista.splice(i, 1); renderWppList(lista); };
-
-                    row.appendChild(g1); row.appendChild(g2); row.appendChild(btnRem);
+                    btnRem.style.cssText = 'border:none;background:#fee2e2;color:#ef4444;border-radius:6px;padding:4px 8px;cursor:pointer;';
+                    btnRem.onclick     = () => { lista.splice(i, 1); renderWppSelector(lista); };
+                    row.appendChild(sel);
+                    row.appendChild(btnRem);
                     input.appendChild(row);
                 });
 
@@ -1210,12 +1239,23 @@ function renderFields(containerId, category, mode, prefillData = {}) {
                     btnAdd.type        = 'button';
                     btnAdd.textContent = '+ Adicionar Conta WhatsApp';
                     btnAdd.style.cssText = 'border:1px dashed #cbd5e1;background:transparent;border-radius:7px;padding:6px 12px;cursor:pointer;font-size:13px;color:var(--text-muted);';
-                    btnAdd.onclick     = () => { lista.push({numero:'',dono:''}); renderWppList(lista); };
+                    btnAdd.onclick     = () => {
+                        const atual = lerSelecionadosWpp();
+                        atual.push('');
+                        renderWppSelector(atual);
+                    };
                     input.appendChild(btnAdd);
                 }
             };
 
-            renderWppList([...wppInicial]);
+            // Sempre recarrega do banco para refletir celularIds atualizados
+            getChips().then(lista => {
+                window._chipsCache = lista || [];
+                renderWppSelector([...wppInicial]);
+            }).catch(() => {
+                window._chipsCache = [];
+                renderWppSelector([...wppInicial]);
+            });
 
         } else {
             // Input de texto, número, data — com máscara opcional
@@ -2336,6 +2376,7 @@ function mapFormToApi(categoria, form) {
         modelo: form.modelo, armazenamento: parseInt(form.armazenamento) || 0,
         memoriaRAM: parseInt(form.ram) || 0, conectividade: form.conectividade || undefined,
         setor: form.setor, usuario: form.usuario, status: form.status,
+        ativo: true,
         observacoes: form.observacoes || null,
         dataAquisicao:  form.data_aquisicao || new Date().toISOString(),
         precoAquisicao: parsePreco(form.preco_aquisicao),
@@ -2356,7 +2397,7 @@ function mapFormToApi(categoria, form) {
 
     if (categoria === 'chips') return {
         // Formata o número de telefone removendo não-dígitos e adicionando o +
-        numero:    (form.numero || '').replace(/\D/g, '').replace(/^(\d{2})(\d+)$/, '+$1$2') || form.numero,
+        numero:    form.numero || '',
         operadora: form.operadora || undefined,
         dono:      form.dono      || null,
         celularId: form.celularId || null,
@@ -2390,7 +2431,7 @@ function mapFormToApi(categoria, form) {
  * do formulário de celular (inputs indexados gerados pelos widgets).
  *
  * @param {string} containerId — ID do container do formulário
- * @returns {{chipIds: string[], contasWhatsapp: Array<{numero,dono}>}}
+ * @returns {{chipIds: string[], contasWhatsapp: string[]}}
  */
 function coletarDadosCelular(containerId) {
     // Chips: selects chip_id_0, chip_id_1…
@@ -2403,16 +2444,13 @@ function coletarDadosCelular(containerId) {
         i++;
     }
 
-    // WhatsApp: inputs wpp_numero_0 / wpp_dono_0…
+    // WhatsApp: selects wpp_chip_id_0, wpp_chip_id_1… — envia IDs de chips
     const contasWhatsapp = [];
     i = 0;
     while (true) {
-        const num = document.querySelector(`#${containerId} input[name="wpp_numero_${i}"]`);
-        if (!num) break;
-        const dono = document.querySelector(`#${containerId} input[name="wpp_dono_${i}"]`);
-        if (num.value.trim()) {
-            contasWhatsapp.push({ numero: num.value.trim(), dono: dono?.value.trim() || '' });
-        }
+        const sel = document.querySelector(`#${containerId} select[name="wpp_chip_id_${i}"]`);
+        if (!sel) break;
+        if (sel.value) contasWhatsapp.push(sel.value);
         i++;
     }
 
@@ -3182,6 +3220,7 @@ async function exportarDados(formato) {
         alert('Ocorreu um erro ao gerar o arquivo. Verifique o console para mais detalhes.');
     }
 }
+
 
 document.querySelectorAll('.inv-table').forEach(t => t.classList.remove('ativa'));
 const tabelaInicial = document.getElementById('computadores-gestao');

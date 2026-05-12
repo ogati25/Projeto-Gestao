@@ -24,14 +24,60 @@ public class CelularService
     public async Task<Celular?> GetByIdAsync(string id) =>
         await _celulares.Find(c => c.Id == id).FirstOrDefaultAsync();
 
-    public async Task CreateAsync(Celular celular) =>
+    public async Task CreateAsync(Celular celular)
+    {
         await _celulares.InsertOneAsync(celular);
+        await VincularChipsAsync(celular.Id!, celular.ChipIds, celular.ContasWhatsapp);
+    }
 
-    public async Task UpdateAsync(string id, Celular celular) =>
+    public async Task UpdateAsync(string id, Celular celular)
+    {
+        // Descobre quais chips estavam vinculados antes para desvincular os removidos
+        var anterior = await GetByIdAsync(id);
+        var antigos  = (anterior?.ChipIds ?? new()).Union(anterior?.ContasWhatsapp ?? new()).ToList();
+
         await _celulares.ReplaceOneAsync(c => c.Id == id, celular);
+        await VincularChipsAsync(id, celular.ChipIds, celular.ContasWhatsapp, antigos);
+    }
 
-    public async Task DeleteAsync(string id) =>
+    public async Task DeleteAsync(string id)
+    {
+        var celular = await GetByIdAsync(id);
+        if (celular != null)
+        {
+            var todos = celular.ChipIds.Union(celular.ContasWhatsapp).Distinct().ToList();
+            await DesvincularChipsAsync(todos);
+        }
         await _celulares.DeleteOneAsync(c => c.Id == id);
+    }
+
+    // ── helpers de vinculação ──────────────────────────────────
+
+    private async Task VincularChipsAsync(
+        string celularId,
+        List<string> chipIds,
+        List<string> contasWhatsapp,
+        List<string>? antigos = null)
+    {
+        var novos = chipIds.Union(contasWhatsapp).Where(id => !string.IsNullOrEmpty(id)).Distinct().ToList();
+
+        // Desvincular chips que saíram
+        if (antigos != null)
+        {
+            var removidos = antigos.Except(novos).ToList();
+            await DesvincularChipsAsync(removidos);
+        }
+
+        // Vincular chips novos/mantidos
+        foreach (var chipId in novos)
+            await _chipService.PatchCelularIdAsync(chipId, celularId);
+    }
+
+    private async Task DesvincularChipsAsync(List<string> chipIds)
+    {
+        foreach (var chipId in chipIds)
+            await _chipService.PatchCelularIdAsync(chipId, null);
+    }
 
     // busca o celular com chips e contas whatsapp resolvidos
     public async Task<object?> GetByIdComChipsAsync(string id)

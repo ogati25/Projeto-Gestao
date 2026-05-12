@@ -1586,6 +1586,9 @@
             const formId = id === 'modalAdd' ? 'formAddFields' : 'formEditFields';
             document.querySelectorAll(`#${formId} .field-error`)
                 .forEach(el => el.classList.remove('field-error'));
+
+            // Invalida cache de chips para sempre buscar dados frescos ao reabrir
+            window._chipsCache = null;
         }
 
         // Fecha qualquer modal ao clicar fora da área de conteúdo dele
@@ -1846,56 +1849,17 @@
          * @param {string} valorInicial — valor já existente para aplicar máscara ao carregar
          */
         function aplicarMascaraTelefone(inp, valorInicial = '') {
-            // Formata a parte local (DDD + número) no estilo (XX) XXXX-XXXX ou (XX) XXXXX-XXXX
-            function formatarParteLocal(digits) {
-                if (digits.length === 0)  return '';
-                if (digits.length <= 2)   return `(${digits}`;
-                if (digits.length <= 6)   return `(${digits.slice(0,2)}) ${digits.slice(2)}`;
-                const meio = digits.length >= 11 ? 5 : 4;
-                if (digits.length <= (2 + meio + 4)) {
-                    return `(${digits.slice(0,2)}) ${digits.slice(2, 2+meio)}-${digits.slice(2+meio)}`;
-                }
-                // Limita ao máximo de 11 dígitos locais (celular BR)
-                const d = digits.slice(0, 11);
-                return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
-            }
-
             const aplicar = () => {
-                const raw = inp.value;
-
-                // Usuário digitou "+" no início → inclui DDI do país
-                if (raw.startsWith('+')) {
-                    // Separa DDI e parte local pelo primeiro espaço ou "("
-                    const semPlus = raw.slice(1);
-                    const match = semPlus.match(/^(\d+)([\s(](.*))?$/);
-
-                    if (!match) return; // só "+" ainda, nada a formatar
-
-                    const ddiDigits  = match[1];
-                    const restoBruto = match[3] || '';
-                    const restoDigits = restoBruto.replace(/\D/g, '');
-
-                    const localFormatado = formatarParteLocal(restoDigits);
-                    inp.value = localFormatado
-                        ? `+${ddiDigits} ${localFormatado}`
-                        : `+${ddiDigits}`;
-
-                } else {
-                    // Sem "+" → número local sem DDI
-                    const digits = raw.replace(/\D/g, '');
-                    inp.value = digits.length > 0 ? formatarParteLocal(digits) : '';
-                }
+                const digits = inp.value.replace(/\D/g, '').slice(0, 11);
+                if (digits.length === 0)  { inp.value = ''; return; }
+                if (digits.length <= 2)   { inp.value = `(${digits}`; return; }
+                if (digits.length <= 6)   { inp.value = `(${digits.slice(0,2)}) ${digits.slice(2)}`; return; }
+                const meio = digits.length >= 11 ? 5 : 4;
+                inp.value = `(${digits.slice(0,2)}) ${digits.slice(2, 2+meio)}-${digits.slice(2+meio)}`;
             };
 
-            inp.addEventListener('input', function () {
-                // "+" só é permitido no início; remove se aparecer em outra posição
-                if (inp.value.indexOf('+') > 0) {
-                    inp.value = inp.value.replace(/\+/g, '');
-                }
-                aplicar();
-            });
+            inp.addEventListener('input', aplicar);
 
-            // Aplica máscara no valor já existente ao carregar o modal
             if (valorInicial) {
                 inp.value = valorInicial;
                 setTimeout(aplicar, 0);
