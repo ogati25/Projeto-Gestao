@@ -226,6 +226,448 @@
             font-size: 12px; font-weight: 700; cursor: pointer;
         }
         .save-strip button:hover { background: #2d4f7a; }
+
+        /* ---- Modal overlay (igual ao estoque) ---- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            z-index: 500;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 640px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            animation: modalIn 0.18s ease;
+        }
+        body.dark .modal { background: var(--secondary-color); }
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(-12px) scale(0.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px 14px;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        .modal-header h2 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .modal-header h2 i { color: var(--quinary-color); }
+        .modal-close {
+            width: 30px; height: 30px;
+            border: none;
+            background: var(--background-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-muted);
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.15s;
+        }
+        .modal-close:hover { background: #fee2e2; color: #ef4444; }
+        .modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 14px 22px;
+            border-top: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        /* ---- Export / Import modal ---- */
+        .modal-export { max-width: 420px; }
+        .modal-import { max-width: 460px; }
+        .export-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 22px;
+        }
+        .export-option-btn {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--secondary-color);
+            cursor: pointer;
+            transition: 0.18s;
+            text-align: left;
+            width: 100%;
+        }
+        .export-option-btn:hover {
+            border-color: var(--primary-color);
+            background: var(--background-color);
+        }
+        .export-option-btn:hover .export-icon { color: var(--primary-color); }
+        .export-icon {
+            font-size: 24px;
+            color: var(--text-muted);
+            width: 32px;
+            text-align: center;
+            flex-shrink: 0;
+            transition: 0.18s;
+        }
+        .export-icon.csv  { color: #2e7d32; }
+        .export-icon.xlsx { color: #1565c0; }
+        .export-option-btn:hover .export-icon.csv  { color: #2e7d32; }
+        .export-option-btn:hover .export-icon.xlsx { color: #1565c0; }
+        .export-info { display: flex; flex-direction: column; gap: 2px; }
+        .export-info strong { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+        .export-info span   { font-size: 12px; color: var(--text-muted); }
+
+        /* ---- Import body ---- */
+        .import-body { padding: 22px; display: flex; flex-direction: column; gap: 16px; }
+        .import-category-select {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .import-category-select label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+        .import-drop-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 10px;
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.18s;
+            background: var(--background-color);
+        }
+        .import-drop-zone:hover, .import-drop-zone.dragover {
+            border-color: var(--primary-color);
+            background: rgba(var(--primary-rgb, 99,102,241), 0.04);
+        }
+        .import-drop-zone i { font-size: 28px; color: var(--text-muted); margin-bottom: 8px; display: block; }
+        .import-drop-zone p { font-size: 13px; color: var(--text-muted); margin: 0; }
+        .import-drop-zone .file-name { font-size: 13px; font-weight: 600; color: var(--primary-color); margin-top: 6px; }
+        .import-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            background: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 14px;
+            line-height: 1.6;
+        }
+        .import-hint strong { color: var(--text-primary); }
+        .import-progress {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .import-progress.show { display: flex; }
+        .progress-bar-wrap {
+            width: 100%;
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--primary-color);
+            border-radius: 99px;
+            transition: width 0.3s;
+        }
+        .import-status { font-size: 12px; color: var(--text-muted); }
+        .import-result {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .import-result.show { display: flex; }
+        .import-result.success { background: #dcfce7; color: #166534; }
+        .import-result.error   { background: #fee2e2; color: #991b1b; }
+        body.dark .import-result.success { background: rgba(22,101,52,0.25); color: #4ade80; }
+        body.dark .import-result.error   { background: rgba(153,27,27,0.25); color: #f87171; }
+
+        /* ── Export multi-step modal ────────────────────────────────── */
+        .modal-export { max-width: 560px; }
+        .export-steps-header {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            padding: 0 22px 14px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .export-step-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            padding: 5px 10px;
+            border-radius: 99px;
+            transition: 0.2s;
+        }
+        .export-step-pill.active { background: var(--primary-color); color: #fff; }
+        .export-step-pill.done   { color: var(--primary-color); }
+        .export-step-sep { width: 24px; height: 1px; background: var(--border-color); flex-shrink: 0; }
+        .export-step-body { display: none; padding: 18px 22px; overflow-y: auto; max-height: 420px; }
+        .export-step-body.active { display: block; }
+
+        /* step 1 — tabelas */
+        .export-table-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .export-table-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 13px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 9px;
+            cursor: pointer;
+            transition: 0.15s;
+            background: var(--secondary-color);
+        }
+        .export-table-card:hover { border-color: var(--primary-color); }
+        .export-table-card.selected {
+            border-color: var(--primary-color);
+            background: color-mix(in srgb, var(--primary-color) 8%, transparent);
+        }
+        .export-table-card input[type=checkbox] { accent-color: var(--primary-color); width: 15px; height: 15px; flex-shrink: 0; }
+        .export-table-card-icon { font-size: 18px; color: var(--text-muted); width: 22px; text-align: center; }
+        .export-table-card.selected .export-table-card-icon { color: var(--primary-color); }
+        .export-table-card span { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+        .export-select-all-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .export-select-all-row button {
+            font-size: 12px;
+            color: var(--primary-color);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            font-weight: 600;
+        }
+
+        /* step 2 — campos */
+        .export-fields-section { margin-bottom: 18px; }
+        .export-fields-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            background: var(--background-color);
+            border-radius: 8px 8px 0 0;
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            cursor: pointer;
+            user-select: none;
+        }
+        .export-fields-section-header strong {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+        .export-fields-section-header .sect-toggle { font-size: 11px; color: var(--text-muted); }
+        .export-fields-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 0 0 8px 8px;
+            background: var(--secondary-color);
+        }
+        .export-field-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.15s;
+            background: var(--background-color);
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+        .export-field-chip:hover { border-color: var(--primary-color); color: var(--text-primary); }
+        .export-field-chip.selected {
+            border-color: var(--primary-color);
+            background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        .export-field-chip i { font-size: 10px; }
+
+        /* step 3 — formato */
+        .export-format-options { display: flex; flex-direction: column; gap: 10px; }
+
+        /* loading overlay dentro do modal */
+        .export-loading {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 40px 22px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .export-loading.show { display: flex; }
+        .export-loading i { font-size: 26px; color: var(--primary-color); animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Export step 3 — seleção de registros ──────────────────── */
+        .exp-records-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .exp-records-search {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--background-color);
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            padding: 6px 10px;
+            transition: 0.15s;
+        }
+        .exp-records-search:focus-within { border-color: var(--primary-color); }
+        .exp-records-search i { color: var(--text-muted); font-size: 12px; }
+        .exp-records-search input {
+            border: none; background: none; outline: none;
+            font-size: 13px; color: var(--text-primary); width: 100%;
+        }
+        .exp-records-search input::placeholder { color: var(--text-muted); }
+        .exp-records-count {
+            font-size: 12px; color: var(--text-muted); white-space: nowrap;
+        }
+        .exp-records-count strong { color: var(--primary-color); }
+        .exp-tab-bar {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .exp-tab-btn {
+            padding: 4px 10px;
+            border-radius: 99px;
+            border: 1.5px solid var(--border-color);
+            background: var(--secondary-color);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: 0.15s;
+            white-space: nowrap;
+        }
+        .exp-tab-btn.active {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background: color-mix(in srgb, var(--primary-color) 8%, transparent);
+        }
+        .exp-tab-btn .badge {
+            display: inline-block;
+            background: var(--primary-color);
+            color: #fff;
+            border-radius: 99px;
+            font-size: 10px;
+            padding: 0 5px;
+            margin-left: 3px;
+            min-width: 16px;
+            text-align: center;
+        }
+        .exp-records-list {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+        .exp-record-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background 0.12s;
+            font-size: 13px;
+        }
+        .exp-record-item:last-child { border-bottom: none; }
+        .exp-record-item:hover { background: var(--background-color); }
+        .exp-record-item.selected { background: color-mix(in srgb, var(--primary-color) 6%, transparent); }
+        .exp-record-item input[type=checkbox] { accent-color: var(--primary-color); flex-shrink: 0; }
+        .exp-record-main { flex: 1; min-width: 0; }
+        .exp-record-main strong { display: block; font-size: 13px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .exp-record-main span  { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .exp-record-badge {
+            font-size: 10px; font-weight: 700; padding: 2px 7px;
+            border-radius: 99px; white-space: nowrap; flex-shrink: 0;
+        }
+        .exp-record-badge.EmUso        { background:#dcfce7; color:#166534; }
+        .exp-record-badge.EmEstoque    { background:#dbeafe; color:#1e40af; }
+        .exp-record-badge.Desativado   { background:#f3f4f6; color:#6b7280; }
+        .exp-record-badge.EmManutenção { background:#fef9c3; color:#854d0e; }
+        .exp-record-badge.default      { background:#f3f4f6; color:#6b7280; }
+        body.dark .exp-record-badge.EmUso     { background:rgba(22,101,52,.3);  color:#4ade80; }
+        body.dark .exp-record-badge.EmEstoque { background:rgba(30,64,175,.3);  color:#93c5fd; }
+        body.dark .exp-record-badge.Desativado{ background:rgba(75,85,99,.3);   color:#9ca3af; }
+        .exp-record-empty {
+            padding: 28px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .exp-records-selbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 0 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .exp-records-selbar button {
+            font-size: 12px; font-weight: 600;
+            color: var(--primary-color);
+            background: none; border: none; cursor: pointer; padding: 0;
+        }
+        .exp-records-selbar .selbar-actions { display: flex; gap: 10px; }
     </style>
 </head>
 <body>
@@ -545,11 +987,11 @@
                             <div class="config-row">
                                 <div class="cr-info">
                                     <strong>Exportar dados do sistema</strong>
-                                    <span>Baixar backup de todos os registros em CSV</span>
+                                    <span>Baixar backup de todos os registros em CSV ou Excel (.xlsx)</span>
                                 </div>
                                 <div class="cr-control">
-                                    <button class="btn btn-outline" onclick="alert('Conecte ao endpoint /api/export para exportar os dados.')">
-                                        <i class="fa-solid fa-download"></i> Exportar
+                                    <button class="btn btn-outline" onclick="openModal('modalExport')">
+                                        <i class="fa-solid fa-file-export"></i> Exportar
                                     </button>
                                 </div>
                             </div>
@@ -557,11 +999,11 @@
                             <div class="config-row">
                                 <div class="cr-info">
                                     <strong>Importar dados</strong>
-                                    <span>Carregar registros a partir de um arquivo CSV</span>
+                                    <span>Carregar registros a partir de um arquivo CSV ou Excel (.xlsx)</span>
                                 </div>
                                 <div class="cr-control">
-                                    <button class="btn btn-outline" onclick="alert('Conecte ao endpoint /api/import para importar dados.')">
-                                        <i class="fa-solid fa-upload"></i> Importar
+                                    <button class="btn btn-outline" onclick="openModal('modalImport')">
+                                        <i class="fa-solid fa-file-import"></i> Importar
                                     </button>
                                 </div>
                             </div>
@@ -592,8 +1034,28 @@
         <button onclick="salvarConfiguracoes()"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
     </div>
 
+    <script src="js/api.js"></script>
+    <script src="js/configuracoes.js"></script>
     <script>
-        // ── TEMA persistente ─────────────────────────────────
+        // =====================================================================
+        // configuracoes.html — Script inline de UI
+        //
+        // Responsabilidade: APENAS o que é visual e interativo.
+        //   - Tema (dark/light), sidebar, avatar, menu ativo
+        //   - salvarConfiguracoes / carregarConfiguracoes (localStorage)
+        //   - limparPreferencias (localStorage)
+        //   - openModal / closeModal
+        //   - fecharModalImport — reseta estado visual do modal
+        //   - Drag & drop e seleção de arquivo (feedback visual)
+        //   - processarArquivoSelecionado — valida extensão e exibe nome
+        //   - mostrarProgressoImport / atualizarProgressoImport /
+        //     mostrarResultadoImport — helpers de UI chamados por configuracoes.js
+        //
+        // Lógica de backend (API, parse de arquivo, exportação):
+        //   → js/configuracoes.js
+        // =====================================================================
+
+        // ── TEMA persistente ─────────────────────────────────────────────────
         (function () {
             const saved = localStorage.getItem('tl_theme') || 'light';
             if (saved === 'dark') document.body.classList.add('dark');
@@ -607,7 +1069,7 @@
             });
         })();
 
-        // ── SIDEBAR ──────────────────────────────────────────
+        // ── SIDEBAR ──────────────────────────────────────────────────────────
         document.getElementById('toggleSidebar').addEventListener('click', () => {
             document.getElementById('sidebar').classList.toggle('closed');
         });
@@ -619,14 +1081,14 @@
             document.querySelector('.search-box input').value = '';
         });
 
-        // ── AVATAR ───────────────────────────────────────────
+        // ── AVATAR ───────────────────────────────────────────────────────────
         const userData = JSON.parse(localStorage.getItem('tl_user') || '{}');
         if (userData.nome) {
             const av = document.querySelector('.user-avatar');
             if (av) av.textContent = userData.nome.charAt(0).toUpperCase();
         }
 
-        // ── THEME OPTS ───────────────────────────────────────
+        // ── OPÇÕES DE TEMA ───────────────────────────────────────────────────
         function setTheme(mode) {
             if (mode === 'dark') {
                 document.body.classList.add('dark');
@@ -646,7 +1108,7 @@
         }
         syncThemeOpts();
 
-        // ── SHOW SAVE STRIP ao mudar qualquer controle ───────
+        // ── SAVE STRIP ───────────────────────────────────────────────────────
         function showSaveStrip() {
             document.getElementById('saveStrip').classList.add('show');
         }
@@ -654,7 +1116,7 @@
             el.addEventListener('change', showSaveStrip);
         });
 
-        // ── SALVAR configs no localStorage ──────────────────
+        // ── SALVAR configurações no localStorage ─────────────────────────────
         function salvarConfiguracoes() {
             const cfg = {
                 idioma:        document.getElementById('cfgIdioma').value,
@@ -671,10 +1133,9 @@
                 log:           document.getElementById('cfgLog').checked,
             };
             localStorage.setItem('tl_config', JSON.stringify(cfg));
-            document.getElementById('saveStrip').classList.remove('show');
 
-            // feedback rápido
             const strip = document.getElementById('saveStrip');
+            strip.classList.remove('show');
             strip.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#4ade80"></i> Salvo!';
             setTimeout(() => {
                 strip.classList.remove('show');
@@ -682,24 +1143,24 @@
             }, 1500);
         }
 
-        // ── CARREGAR configs salvas ───────────────────────────
+        // ── CARREGAR configurações do localStorage ────────────────────────────
         function carregarConfiguracoes() {
             const cfg = JSON.parse(localStorage.getItem('tl_config') || '{}');
-            if (cfg.idioma)        document.getElementById('cfgIdioma').value = cfg.idioma;
-            if (cfg.sidebarClosed !== undefined) document.getElementById('cfgSidebarClosed').checked = cfg.sidebarClosed;
-            if (cfg.animacoes     !== undefined) document.getElementById('cfgAnimacoes').checked     = cfg.animacoes;
-            if (cfg.alertaEstoque !== undefined) document.getElementById('cfgAlertaEstoque').checked = cfg.alertaEstoque;
-            if (cfg.alertaPedidos !== undefined) document.getElementById('cfgAlertaPedidos').checked = cfg.alertaPedidos;
-            if (cfg.emailNotif    !== undefined) document.getElementById('cfgEmailNotif').checked    = cfg.emailNotif;
-            if (cfg.freqEmail)     document.getElementById('cfgFreqEmail').value   = cfg.freqEmail;
-            if (cfg.itensPagina)   document.getElementById('cfgItensPagina').value = cfg.itensPagina;
-            if (cfg.formatoData)   document.getElementById('cfgFormatoData').value = cfg.formatoData;
-            if (cfg.sessao)        document.getElementById('cfgSessao').value       = cfg.sessao;
-            if (cfg.fa2  !== undefined) document.getElementById('cfg2FA').checked = cfg.fa2;
-            if (cfg.log  !== undefined) document.getElementById('cfgLog').checked  = cfg.log;
+            if (cfg.idioma)                      document.getElementById('cfgIdioma').value        = cfg.idioma;
+            if (cfg.sidebarClosed !== undefined)  document.getElementById('cfgSidebarClosed').checked = cfg.sidebarClosed;
+            if (cfg.animacoes     !== undefined)  document.getElementById('cfgAnimacoes').checked     = cfg.animacoes;
+            if (cfg.alertaEstoque !== undefined)  document.getElementById('cfgAlertaEstoque').checked = cfg.alertaEstoque;
+            if (cfg.alertaPedidos !== undefined)  document.getElementById('cfgAlertaPedidos').checked = cfg.alertaPedidos;
+            if (cfg.emailNotif    !== undefined)  document.getElementById('cfgEmailNotif').checked    = cfg.emailNotif;
+            if (cfg.freqEmail)                    document.getElementById('cfgFreqEmail').value        = cfg.freqEmail;
+            if (cfg.itensPagina)                  document.getElementById('cfgItensPagina').value      = cfg.itensPagina;
+            if (cfg.formatoData)                  document.getElementById('cfgFormatoData').value      = cfg.formatoData;
+            if (cfg.sessao)                       document.getElementById('cfgSessao').value           = cfg.sessao;
+            if (cfg.fa2 !== undefined)            document.getElementById('cfg2FA').checked            = cfg.fa2;
+            if (cfg.log !== undefined)            document.getElementById('cfgLog').checked             = cfg.log;
         }
 
-        // ── LIMPAR preferências ───────────────────────────────
+        // ── LIMPAR preferências locais ────────────────────────────────────────
         function limparPreferencias() {
             if (!confirm('Tem certeza? Isso vai apagar as configurações e preferências salvas neste navegador.')) return;
             localStorage.removeItem('tl_config');
@@ -707,8 +1168,1135 @@
             location.reload();
         }
 
+        // ── MODAIS ────────────────────────────────────────────────────────────
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+        }
+
+        // openModal intercepta o modal de exportação para iniciar o fluxo multi-step
+        function openModal(id) {
+            if (id === 'modalExport') { abrirModalExport(); return; }
+            document.getElementById(id).classList.add('open');
+        }
+
+        // ── EXPORT multi-step ─────────────────────────────────────────────────
+        let _exportCurrentStep = 1;
+
+        function abrirModalExport() {
+            _exportCurrentStep = 1;
+            // Reseta seleção de tabelas para "todas selecionadas"
+            EXPORT_CAMPOS.forEach(c => { c.selected = true; });
+            _renderExportTables();
+            _goExportStep(1);
+            document.getElementById('modalExport').classList.add('open');
+        }
+
+        function fecharModalExport() {
+            document.getElementById('modalExport').classList.remove('open');
+        }
+
+        function exportStep(dir) {
+            const next = _exportCurrentStep + dir;
+            if (next < 1 || next > 3) return;
+            if (next === 2) {
+                if (!EXPORT_CAMPOS.some(c => c.selected)) {
+                    alert('Selecione ao menos uma tabela.');
+                    return;
+                }
+                _renderExportFields();
+            }
+            _goExportStep(next);
+        }
+
+        function _goExportStep(n) {
+            _exportCurrentStep = n;
+            [1,2,3].forEach(i => {
+                document.getElementById(`expStep${i}`).classList.toggle('active', i === n);
+                const pill = document.getElementById(`expPill${i}`);
+                pill.classList.toggle('active', i === n);
+                pill.classList.toggle('done',   i < n);
+            });
+            document.getElementById('expBtnBack').style.display  = n > 1  ? '' : 'none';
+            document.getElementById('expBtnNext').style.display  = n < 3  ? '' : 'none';
+            document.getElementById('expBtnNext').disabled       = false;
+            document.getElementById('expLoading').classList.remove('show');
+            if (n === 1) _updateExportTableCount();
+        }
+
+        // ── Step 1: tabelas ───────────────────────────────────────────────────
+        function _renderExportTables() {
+            const grid = document.getElementById('expTableGrid');
+            grid.innerHTML = '';
+            EXPORT_CAMPOS.forEach(cat => {
+                const card = document.createElement('label');
+                card.className = 'export-table-card' + (cat.selected ? ' selected' : '');
+                card.innerHTML = `
+                    <input type="checkbox" ${cat.selected ? 'checked' : ''}
+                           onchange="exportToggleTable('${cat.key}', this.checked)">
+                    <i class="${cat.icon} export-table-card-icon"></i>
+                    <span>${cat.label}</span>`;
+                grid.appendChild(card);
+            });
+            _updateExportTableCount();
+        }
+
+        function exportToggleTable(key, checked) {
+            EXPORT_CAMPOS.find(c => c.key === key).selected = checked;
+            document.querySelectorAll('.export-table-card').forEach(card => {
+                const cb = card.querySelector('input');
+                if (cb) card.classList.toggle('selected', cb.checked);
+            });
+            _updateExportTableCount();
+        }
+
+        function exportSelectAll(v) {
+            EXPORT_CAMPOS.forEach(c => c.selected = v);
+            _renderExportTables();
+        }
+
+        function _updateExportTableCount() {
+            const n = EXPORT_CAMPOS.filter(c => c.selected).length;
+            document.getElementById('expTableCount').textContent =
+                n === 0 ? 'Nenhuma tabela selecionada' :
+                n === 1 ? '1 tabela selecionada' : `${n} tabelas selecionadas`;
+            document.getElementById('expBtnNext').disabled = n === 0;
+        }
+
+        // ── Step 2: campos ────────────────────────────────────────────────────
+        function _renderExportFields() {
+            const container = document.getElementById('expFieldsContainer');
+            container.innerHTML = '';
+            EXPORT_CAMPOS.filter(c => c.selected).forEach(cat => {
+                const section = document.createElement('div');
+                section.className = 'export-fields-section';
+                const nSel = cat.campos.filter(f => f.selected).length;
+                section.innerHTML = `
+                    <div class="export-fields-section-header"
+                         onclick="exportToggleSectionCollapse(this)">
+                        <strong>
+                            <i class="${cat.icon}"></i> ${cat.label}
+                            <span style="font-size:11px;font-weight:400;color:var(--text-muted)"
+                                  id="expFieldCount_${cat.key}">(${nSel}/${cat.campos.length})</span>
+                        </strong>
+                        <div style="display:flex;gap:8px;align-items:center">
+                            <button class="export-select-all-row" style="margin:0;"
+                                onclick="event.stopPropagation();exportToggleAllFields('${cat.key}',true)">Todos</button>
+                            <button class="export-select-all-row" style="margin:0;"
+                                onclick="event.stopPropagation();exportToggleAllFields('${cat.key}',false)">Nenhum</button>
+                            <i class="fa-solid fa-chevron-up sect-toggle"></i>
+                        </div>
+                    </div>
+                    <div class="export-fields-chips" id="expChips_${cat.key}"></div>`;
+                container.appendChild(section);
+                _renderChips(cat);
+            });
+        }
+
+        function _renderChips(cat) {
+            const chips = document.getElementById(`expChips_${cat.key}`);
+            if (!chips) return;
+            chips.innerHTML = '';
+            cat.campos.forEach(campo => {
+                const chip = document.createElement('span');
+                chip.className = 'export-field-chip' + (campo.selected ? ' selected' : '');
+                chip.innerHTML = campo.selected ? `<i class="fa-solid fa-check"></i> ${campo.label}` : campo.label;
+                chip.onclick = () => {
+                    campo.selected = !campo.selected;
+                    chip.className = 'export-field-chip' + (campo.selected ? ' selected' : '');
+                    chip.innerHTML = campo.selected ? `<i class="fa-solid fa-check"></i> ${campo.label}` : campo.label;
+                    const cnt = document.getElementById(`expFieldCount_${cat.key}`);
+                    if (cnt) cnt.textContent = `(${cat.campos.filter(f=>f.selected).length}/${cat.campos.length})`;
+                };
+                chips.appendChild(chip);
+            });
+        }
+
+        function exportToggleAllFields(key, v) {
+            const cat = EXPORT_CAMPOS.find(c => c.key === key);
+            if (!cat) return;
+            cat.campos.forEach(f => f.selected = v);
+            _renderChips(cat);
+            const cnt = document.getElementById(`expFieldCount_${cat.key}`);
+            if (cnt) cnt.textContent = `(${cat.campos.filter(f=>f.selected).length}/${cat.campos.length})`;
+        }
+
+        function exportToggleSectionCollapse(header) {
+            const chips = header.nextElementSibling;
+            const icon  = header.querySelector('.sect-toggle');
+            const collapsed = chips.style.display === 'none';
+            chips.style.display = collapsed ? '' : 'none';
+            icon.className = `fa-solid fa-chevron-${collapsed ? 'up' : 'down'} sect-toggle`;
+        }
+
+        // ── Step 3: execução ──────────────────────────────────────────────────
+        async function executarExportacao(formato) {
+            [1,2,3].forEach(i => document.getElementById(`expStep${i}`).classList.remove('active'));
+            document.getElementById('expBtnNext').style.display = 'none';
+            document.getElementById('expBtnBack').style.display = 'none';
+            document.getElementById('expLoading').classList.add('show');
+            document.getElementById('expLoadingMsg').textContent = 'Buscando dados da API…';
+            await exportarDadosFiltrado(formato, EXPORT_CAMPOS);
+            fecharModalExport();
+        }
+
+
+        /** Fecha o modal de importação e reseta todo o estado visual. */
+        function fecharModalImport() {
+            closeModal('modalImport');
+            document.getElementById('importFileName').style.display = 'none';
+            document.getElementById('importFileName').textContent   = '';
+            document.getElementById('importProgress').classList.remove('show');
+            document.getElementById('importProgressBar').style.width = '0%';
+            document.getElementById('importResult').classList.remove('show', 'success', 'error');
+            document.getElementById('importResult').textContent = '';
+            document.getElementById('btnConfirmarImport').disabled  = true;
+            document.getElementById('importFileInput').value        = '';
+            importArquivo = null;
+        }
+
+        // ── IMPORT — estado e event listeners de UI ───────────────────────────
+
+        /** Arquivo selecionado (lido por configuracoes.js na confirmação). */
+        let importArquivo = null;
+
+        // Os modais ficam depois deste <script> no DOM, por isso os listeners
+        // precisam ser registrados no DOMContentLoaded para os elementos existirem.
+        document.addEventListener('DOMContentLoaded', () => {
+            const dropZone  = document.getElementById('importDropZone');
+            const fileInput = document.getElementById('importFileInput');
+
+            // Drag & drop
+            dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+            dropZone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                if (file) processarArquivoSelecionado(file);
+            });
+
+            // Clique na drop zone abre o seletor de arquivo
+            dropZone.addEventListener('click', () => fileInput.click());
+
+            // Arquivo selecionado pelo input nativo
+            fileInput.addEventListener('change', e => {
+                const file = e.target.files[0];
+                if (file) processarArquivoSelecionado(file);
+            });
+        });
+
+        /** Valida a extensão e exibe o nome do arquivo na drop zone. */
+        function processarArquivoSelecionado(file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!['csv', 'xlsx', 'xls'].includes(ext)) {
+                alert('Formato não suportado. Use CSV ou Excel (.xlsx, .xls).');
+                return;
+            }
+            importArquivo = file;
+            const nameEl = document.getElementById('importFileName');
+            nameEl.textContent   = `📄 ${file.name}`;
+            nameEl.style.display = 'block';
+            document.getElementById('btnConfirmarImport').disabled = false;
+            document.getElementById('importResult').classList.remove('show', 'success', 'error');
+        }
+
+        // ── IMPORT — helpers de UI chamados por configuracoes.js ─────────────
+
+        /**
+         * Exibe a barra de progresso com uma mensagem e percentual iniciais.
+         * @param {string} msg    Texto de status
+         * @param {number} pct    Percentual inicial (0–100)
+         */
+        function mostrarProgressoImport(msg, pct) {
+            const progEl   = document.getElementById('importProgress');
+            const barEl    = document.getElementById('importProgressBar');
+            const statusEl = document.getElementById('importStatus');
+            progEl.classList.add('show');
+            document.getElementById('importResult').classList.remove('show', 'success', 'error');
+            barEl.style.width      = pct + '%';
+            statusEl.textContent   = msg;
+        }
+
+        /**
+         * Atualiza percentual (e opcionalmente o texto) da barra de progresso.
+         * @param {number}  pct  Percentual (0–100)
+         * @param {string=} msg  Texto opcional de status
+         */
+        function atualizarProgressoImport(pct, msg) {
+            document.getElementById('importProgressBar').style.width = pct + '%';
+            if (msg !== undefined) document.getElementById('importStatus').textContent = msg;
+        }
+
+        /**
+         * Exibe o resultado final da importação (sucesso ou erro).
+         * @param {'success'|'error'} tipo
+         * @param {string}            html  Conteúdo HTML da mensagem
+         */
+        function mostrarResultadoImport(tipo, html) {
+            const el = document.getElementById('importResult');
+            el.className  = `import-result show ${tipo}`;
+            el.innerHTML  = html;
+        }
+
+        // ── INICIALIZAÇÃO ────────────────────────────────────────────────────
         carregarConfiguracoes();
         syncThemeOpts();
     </script>
+
+    <!-- ══ MODAL EXPORTAR (multi-step) ══════════════════════════════ -->
+    <div class="modal-overlay" id="modalExport">
+        <div class="modal modal-export">
+
+            <!-- Cabeçalho fixo -->
+            <div class="modal-header" style="flex-direction:column; align-items:flex-start; gap:12px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+                    <h2><i class="fa-solid fa-file-export"></i> Exportar dados</h2>
+                    <button class="modal-close" onclick="fecharModalExport()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <!-- Stepper -->
+                <div class="export-steps-header" style="padding:0; border:none;">
+                    <div class="export-step-pill active" id="expPill1">
+                        <i class="fa-solid fa-table"></i> 1. Tabelas
+                    </div>
+                    <div class="export-step-sep"></div>
+                    <div class="export-step-pill" id="expPill2">
+                        <i class="fa-solid fa-list-check"></i> 2. Campos
+                    </div>
+                    <div class="export-step-sep"></div>
+                    <div class="export-step-pill" id="expPill3">
+                        <i class="fa-solid fa-magnifying-glass-check"></i> 3. Registros
+                    </div>
+                    <div class="export-step-sep"></div>
+                    <div class="export-step-pill" id="expPill4">
+                        <i class="fa-solid fa-file-arrow-down"></i> 4. Formato
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 1 — Tabelas -->
+            <div class="export-step-body active" id="expStep1">
+                <div class="export-select-all-row">
+                    <span id="expTableCount">0 tabelas selecionadas</span>
+                    <button onclick="exportSelectAll(true)">Selecionar todas</button>
+                    <button onclick="exportSelectAll(false)" style="margin-left:8px;">Limpar</button>
+                </div>
+                <div class="export-table-grid" id="expTableGrid">
+                    <!-- gerado por JS -->
+                </div>
+            </div>
+
+            <!-- Step 2 — Campos -->
+            <div class="export-step-body" id="expStep2">
+                <p style="font-size:12px;color:var(--text-muted);margin:0 0 14px;">
+                    Clique nos campos para incluir ou excluir da exportação.
+                    Campos em destaque serão exportados.
+                </p>
+                <div id="expFieldsContainer">
+                    <!-- seções geradas por JS -->
+                </div>
+            </div>
+
+            <!-- Step 3 — Registros -->
+            <div class="export-step-body" id="expStep3">
+                <!-- Tab bar por categoria -->
+                <div class="exp-tab-bar" id="expRecordsTabs"></div>
+
+                <!-- Toolbar: busca + contador -->
+                <div class="exp-records-toolbar">
+                    <div class="exp-records-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="expRecordsSearch"
+                               placeholder="Buscar por código, modelo, usuário, setor…"
+                               oninput="expFiltrarRegistros()">
+                    </div>
+                    <span class="exp-records-count" id="expRecordsCount"></span>
+                </div>
+
+                <!-- Barra de seleção rápida -->
+                <div class="exp-records-selbar">
+                    <span id="expRecordsSelCount">0 selecionados</span>
+                    <div class="selbar-actions">
+                        <button onclick="expSelecionarTodos(true)">Selecionar todos</button>
+                        <button onclick="expSelecionarTodos(false)">Limpar</button>
+                    </div>
+                </div>
+
+                <!-- Lista de registros -->
+                <div class="exp-records-list" id="expRecordsList"></div>
+            </div>
+
+            <!-- Step 4 — Formato -->
+            <div class="export-step-body" id="expStep4">
+                <p style="font-size:12px;color:var(--text-muted);margin:0 0 14px;">
+                    Escolha o formato do arquivo gerado.
+                </p>
+                <div class="export-format-options">
+                    <button class="export-option-btn" onclick="executarExportacao('csv')">
+                        <i class="fa-solid fa-file-csv export-icon csv"></i>
+                        <div class="export-info">
+                            <strong>CSV</strong>
+                            <span>Um arquivo por tabela — compatível com qualquer planilha</span>
+                        </div>
+                    </button>
+                    <button class="export-option-btn" onclick="executarExportacao('xlsx')">
+                        <i class="fa-solid fa-file-excel export-icon xlsx"></i>
+                        <div class="export-info">
+                            <strong>Excel (.xlsx)</strong>
+                            <span>Um arquivo por tabela — formatado para Microsoft Excel</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div class="export-loading" id="expLoading">
+                <i class="fa-solid fa-circle-notch"></i>
+                <span id="expLoadingMsg">Buscando dados…</span>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="fecharModalExport()" style="font-size:13px;">
+                    <i class="fa-solid fa-xmark"></i> Cancelar
+                </button>
+                <button class="btn btn-outline" id="expBtnBack" onclick="exportStep(-1)"
+                        style="font-size:13px; display:none;">
+                    <i class="fa-solid fa-chevron-left"></i> Voltar
+                </button>
+                <button class="btn btn-primary" id="expBtnNext" onclick="exportStep(1)"
+                        style="font-size:13px;">
+                    Próximo <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ MODAL IMPORTAR ══════════════════════════════════════════ -->
+    <div class="modal-overlay" id="modalImport">
+        <div class="modal modal-import">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-file-import"></i> Importar dados</h2>
+                <button class="modal-close" onclick="fecharModalImport()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="import-body">
+
+                <!-- Seleção de categoria -->
+                <div class="import-category-select">
+                    <label for="importCategoria">Categoria de destino</label>
+                    <select id="importCategoria" class="cr-select" style="width:100%;">
+                        <option value="computadores">Computadores</option>
+                        <option value="celulares">Celulares</option>
+                        <option value="monitores">Monitores</option>
+                        <option value="mouses">Mouses</option>
+                        <option value="teclados">Teclados</option>
+                        <option value="fones">Fones</option>
+                        <option value="ramais">Ramais</option>
+                        <option value="extras">Extras</option>
+                    </select>
+                </div>
+
+                <!-- Drop zone -->
+                <div class="import-drop-zone" id="importDropZone">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <p>Clique ou arraste um arquivo aqui</p>
+                    <p style="font-size:11px; margin-top:4px;">CSV ou Excel (.xlsx)</p>
+                    <div class="file-name" id="importFileName" style="display:none;"></div>
+                </div>
+                <input type="file" id="importFileInput" accept=".csv,.xlsx,.xls" style="display:none;">
+
+                <!-- Progresso -->
+                <div class="import-progress" id="importProgress">
+                    <div class="progress-bar-wrap">
+                        <div class="progress-bar-fill" id="importProgressBar" style="width:0%"></div>
+                    </div>
+                    <span class="import-status" id="importStatus">Processando…</span>
+                </div>
+
+                <!-- Resultado -->
+                <div class="import-result" id="importResult"></div>
+
+                <!-- Dica -->
+                <div class="import-hint">
+                    <strong>Dica:</strong> use a função <em>Exportar</em> para obter um arquivo modelo com as colunas corretas.
+                    A primeira linha deve ser o cabeçalho. Campos obrigatórios variam por categoria.
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="fecharModalImport()" style="font-size:13px;">
+                    <i class="fa-solid fa-xmark"></i> Cancelar
+                </button>
+                <button class="btn btn-primary" id="btnConfirmarImport" onclick="confirmarImport()" disabled style="font-size:13px;">
+                    <i class="fa-solid fa-upload"></i> Importar
+                </button>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>        // ── EXPORT multi-step ─────────────────────────────────────────────────────────────
+        let _exportCurrentStep = 1;
+
+        // Cache de dados por categoria (preenchido ao entrar no step 3)
+        // { key: { dados: [...], selecionados: Set<id> } }
+        let _expCache = {};
+        let _expTabAtiva = null;
+
+        function abrirModalExport() {
+            _exportCurrentStep = 1;
+            _expCache = {};
+            _expTabAtiva = null;
+            EXPORT_CAMPOS.forEach(c => { c.selected = true; });
+            _renderExportTables();
+            _goExportStep(1);
+            document.getElementById('modalExport').classList.add('open');
+        }
+
+        function fecharModalExport() {
+            document.getElementById('modalExport').classList.remove('open');
+        }
+
+        async function exportStep(dir) {
+            const next = _exportCurrentStep + dir;
+            if (next < 1 || next > 4) return;
+
+            if (next === 2) {
+                if (!EXPORT_CAMPOS.some(c => c.selected)) {
+                    alert('Selecione ao menos uma tabela.');
+                    return;
+                }
+                _renderExportFields();
+            }
+
+            if (next === 3) {
+                await _carregarDadosRegistros();
+            }
+
+            _goExportStep(next);
+        }
+
+        function _goExportStep(n) {
+            _exportCurrentStep = n;
+            [1,2,3,4].forEach(i => {
+                document.getElementById(`expStep${i}`).classList.toggle('active', i === n);
+                const pill = document.getElementById(`expPill${i}`);
+                pill.classList.toggle('active', i === n);
+                pill.classList.toggle('done',   i < n);
+            });
+            document.getElementById('expBtnBack').style.display  = n > 1 ? '' : 'none';
+            document.getElementById('expBtnNext').style.display  = n < 4 ? '' : 'none';
+            document.getElementById('expBtnNext').disabled       = false;
+            document.getElementById('expLoading').classList.remove('show');
+            if (n === 1) _updateExportTableCount();
+        }
+
+        // ── Step 1: tabelas ───────────────────────────────────────────────────
+        function _renderExportTables() {
+            const grid = document.getElementById('expTableGrid');
+            grid.innerHTML = '';
+            EXPORT_CAMPOS.forEach(cat => {
+                const card = document.createElement('label');
+                card.className = 'export-table-card' + (cat.selected ? ' selected' : '');
+                card.innerHTML = `
+                    <input type="checkbox" ${cat.selected ? 'checked' : ''}
+                           onchange="exportToggleTable('${cat.key}', this.checked)">
+                    <i class="${cat.icon} export-table-card-icon"></i>
+                    <span>${cat.label}</span>`;
+                grid.appendChild(card);
+            });
+            _updateExportTableCount();
+        }
+
+        function exportToggleTable(key, checked) {
+            EXPORT_CAMPOS.find(c => c.key === key).selected = checked;
+            document.querySelectorAll('.export-table-card').forEach(card => {
+                const cb = card.querySelector('input');
+                if (cb) card.classList.toggle('selected', cb.checked);
+            });
+            _updateExportTableCount();
+        }
+
+        function exportSelectAll(v) {
+            EXPORT_CAMPOS.forEach(c => c.selected = v);
+            _renderExportTables();
+        }
+
+        function _updateExportTableCount() {
+            const n = EXPORT_CAMPOS.filter(c => c.selected).length;
+            document.getElementById('expTableCount').textContent =
+                n === 0 ? 'Nenhuma tabela selecionada' :
+                n === 1 ? '1 tabela selecionada' : `${n} tabelas selecionadas`;
+            document.getElementById('expBtnNext').disabled = n === 0;
+        }
+
+        // ── Step 2: campos ────────────────────────────────────────────────────
+        function _renderExportFields() {
+            const container = document.getElementById('expFieldsContainer');
+            container.innerHTML = '';
+            EXPORT_CAMPOS.filter(c => c.selected).forEach(cat => {
+                const section = document.createElement('div');
+                section.className = 'export-fields-section';
+                const nSel = cat.campos.filter(f => f.selected).length;
+                section.innerHTML = `
+                    <div class="export-fields-section-header"
+                         onclick="exportToggleSectionCollapse(this)">
+                        <strong>
+                            <i class="${cat.icon}"></i> ${cat.label}
+                            <span style="font-size:11px;font-weight:400;color:var(--text-muted)"
+                                  id="expFieldCount_${cat.key}">(${nSel}/${cat.campos.length})</span>
+                        </strong>
+                        <div style="display:flex;gap:8px;align-items:center">
+                            <button class="export-select-all-row" style="margin:0;"
+                                onclick="event.stopPropagation();exportToggleAllFields('${cat.key}',true)">Todos</button>
+                            <button class="export-select-all-row" style="margin:0;"
+                                onclick="event.stopPropagation();exportToggleAllFields('${cat.key}',false)">Nenhum</button>
+                            <i class="fa-solid fa-chevron-up sect-toggle"></i>
+                        </div>
+                    </div>
+                    <div class="export-fields-chips" id="expChips_${cat.key}"></div>`;
+                container.appendChild(section);
+                _renderChips(cat);
+            });
+        }
+
+        function _renderChips(cat) {
+            const chips = document.getElementById(`expChips_${cat.key}`);
+            if (!chips) return;
+            chips.innerHTML = '';
+            cat.campos.forEach(campo => {
+                const chip = document.createElement('span');
+                chip.className = 'export-field-chip' + (campo.selected ? ' selected' : '');
+                chip.innerHTML = campo.selected ? `<i class="fa-solid fa-check"></i> ${campo.label}` : campo.label;
+                chip.onclick = () => {
+                    campo.selected = !campo.selected;
+                    chip.className = 'export-field-chip' + (campo.selected ? ' selected' : '');
+                    chip.innerHTML = campo.selected ? `<i class="fa-solid fa-check"></i> ${campo.label}` : campo.label;
+                    const cnt = document.getElementById(`expFieldCount_${cat.key}`);
+                    if (cnt) cnt.textContent = `(${cat.campos.filter(f=>f.selected).length}/${cat.campos.length})`;
+                };
+                chips.appendChild(chip);
+            });
+        }
+
+        function exportToggleAllFields(key, v) {
+            const cat = EXPORT_CAMPOS.find(c => c.key === key);
+            if (!cat) return;
+            cat.campos.forEach(f => f.selected = v);
+            _renderChips(cat);
+            const cnt = document.getElementById(`expFieldCount_${cat.key}`);
+            if (cnt) cnt.textContent = `(${cat.campos.filter(f=>f.selected).length}/${cat.campos.length})`;
+        }
+
+        function exportToggleSectionCollapse(header) {
+            const chips = header.nextElementSibling;
+            const icon  = header.querySelector('.sect-toggle');
+            const collapsed = chips.style.display === 'none';
+            chips.style.display = collapsed ? '' : 'none';
+            icon.className = `fa-solid fa-chevron-${collapsed ? 'up' : 'down'} sect-toggle`;
+        }
+
+        // ── Step 3: registros ─────────────────────────────────────────────────
+
+        // Retorna o label de identificação principal de um item (codigo > modelo > id)
+        function _expItemLabel(item) {
+            return item.codigo || item.numero || item.descricao || item.id || '(sem código)';
+        }
+        function _expItemSub(item) {
+            const parts = [];
+            if (item.modelo)  parts.push(item.modelo);
+            if (item.usuario) parts.push(item.usuario);
+            if (item.setor)   parts.push(item.setor);
+            return parts.join(' · ') || '';
+        }
+
+        async function _carregarDadosRegistros() {
+            // Mostra loading no step body
+            document.getElementById('expStep3').innerHTML =
+                '<div class="export-loading show" style="display:flex"><i class="fa-solid fa-circle-notch"></i><span>Carregando registros…</span></div>';
+            document.getElementById('expBtnNext').disabled = true;
+
+            const selecionadas = EXPORT_CAMPOS.filter(c => c.selected);
+            const resultados   = await Promise.allSettled(selecionadas.map(c => c.fn()));
+
+            // Popula cache
+            _expCache = {};
+            selecionadas.forEach((cat, i) => {
+                const dados = resultados[i].status === 'fulfilled' ? (resultados[i].value || []) : [];
+                _expCache[cat.key] = {
+                    dados,
+                    // Por padrão todos selecionados
+                    selecionados: new Set(dados.map(d => d.id || d._id)),
+                };
+            });
+
+            // Restaura o HTML do step 3
+            document.getElementById('expStep3').innerHTML = `
+                <div class="exp-tab-bar" id="expRecordsTabs"></div>
+                <div class="exp-records-toolbar">
+                    <div class="exp-records-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="expRecordsSearch"
+                               placeholder="Buscar por código, modelo, usuário, setor…"
+                               oninput="expFiltrarRegistros()">
+                    </div>
+                    <span class="exp-records-count" id="expRecordsCount"></span>
+                </div>
+                <div class="exp-records-selbar">
+                    <span id="expRecordsSelCount">0 selecionados</span>
+                    <div class="selbar-actions">
+                        <button onclick="expSelecionarTodos(true)">Selecionar todos</button>
+                        <button onclick="expSelecionarTodos(false)">Limpar seleção</button>
+                    </div>
+                </div>
+                <div class="exp-records-list" id="expRecordsList"></div>`;
+
+            // Renderiza tabs
+            const tabBar = document.getElementById('expRecordsTabs');
+            selecionadas.forEach((cat, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'exp-tab-btn' + (i === 0 ? ' active' : '');
+                btn.id = `expTab_${cat.key}`;
+                const n = _expCache[cat.key].dados.length;
+                btn.innerHTML = `<i class="${cat.icon}"></i> ${cat.label} <span class="badge">${n}</span>`;
+                btn.onclick = () => expMudarTab(cat.key);
+                tabBar.appendChild(btn);
+            });
+
+            // Ativa primeira tab
+            _expTabAtiva = selecionadas[0]?.key || null;
+            if (_expTabAtiva) expRenderizarLista();
+
+            document.getElementById('expBtnNext').disabled = false;
+            _expAtualizarSelCount();
+        }
+
+        function expMudarTab(key) {
+            _expTabAtiva = key;
+            document.querySelectorAll('.exp-tab-btn').forEach(b =>
+                b.classList.toggle('active', b.id === `expTab_${key}`)
+            );
+            document.getElementById('expRecordsSearch').value = '';
+            expRenderizarLista();
+        }
+
+        function expRenderizarLista(busca) {
+            const list  = document.getElementById('expRecordsList');
+            const cache = _expCache[_expTabAtiva];
+            if (!list || !cache) return;
+
+            const termo = (busca ?? document.getElementById('expRecordsSearch')?.value ?? '').toLowerCase().trim();
+
+            const filtrados = cache.dados.filter(item => {
+                if (!termo) return true;
+                const haystack = [
+                    item.codigo, item.modelo, item.usuario, item.setor,
+                    item.status, item.ip, item.numero, item.descricao,
+                    item.categoria, item.linha,
+                ].filter(Boolean).join(' ').toLowerCase();
+                return haystack.includes(termo);
+            });
+
+            // Contador visível vs total
+            const countEl = document.getElementById('expRecordsCount');
+            if (countEl) {
+                countEl.innerHTML = termo
+                    ? `<strong>${filtrados.length}</strong> de ${cache.dados.length}`
+                    : `<strong>${cache.dados.length}</strong> registros`;
+            }
+
+            if (!filtrados.length) {
+                list.innerHTML = `<div class="exp-record-empty">
+                    <i class="fa-solid fa-inbox" style="font-size:20px;display:block;margin-bottom:6px;"></i>
+                    Nenhum registro encontrado.</div>`;
+                return;
+            }
+
+            list.innerHTML = '';
+            filtrados.forEach(item => {
+                const id        = item.id || item._id;
+                const selected  = cache.selecionados.has(id);
+                const statusCls = (item.status || 'default').replace(/[^a-zA-Z]/g, '');
+
+                const row = document.createElement('div');
+                row.className = 'exp-record-item' + (selected ? ' selected' : '');
+                row.dataset.id = id;
+                row.innerHTML = `
+                    <input type="checkbox" ${selected ? 'checked' : ''}
+                           onchange="expToggleItem('${_expTabAtiva}', '${id}', this.checked); event.stopPropagation();">
+                    <div class="exp-record-main">
+                        <strong>${_expItemLabel(item)}</strong>
+                        <span>${_expItemSub(item)}</span>
+                    </div>
+                    ${item.status ? `<span class="exp-record-badge ${statusCls}">${item.status}</span>` : ''}`;
+                row.onclick = (e) => {
+                    if (e.target.tagName === 'INPUT') return;
+                    const cb = row.querySelector('input');
+                    cb.checked = !cb.checked;
+                    expToggleItem(_expTabAtiva, id, cb.checked);
+                };
+                list.appendChild(row);
+            });
+        }
+
+        function expFiltrarRegistros() {
+            expRenderizarLista();
+        }
+
+        function expToggleItem(catKey, id, checked) {
+            const cache = _expCache[catKey];
+            if (!cache) return;
+            if (checked) cache.selecionados.add(id);
+            else         cache.selecionados.delete(id);
+
+            // Atualiza visual da linha
+            const row = document.querySelector(`.exp-record-item[data-id="${id}"]`);
+            if (row) row.classList.toggle('selected', checked);
+
+            // Atualiza badge da tab
+            _expAtualizarBadge(catKey);
+            _expAtualizarSelCount();
+        }
+
+        function expSelecionarTodos(v) {
+            const cache = _expCache[_expTabAtiva];
+            if (!cache) return;
+            if (v) cache.dados.forEach(d => cache.selecionados.add(d.id || d._id));
+            else   cache.selecionados.clear();
+            expRenderizarLista();
+            _expAtualizarBadge(_expTabAtiva);
+            _expAtualizarSelCount();
+        }
+
+        function _expAtualizarBadge(catKey) {
+            const cache = _expCache[catKey];
+            const btn   = document.getElementById(`expTab_${catKey}`);
+            if (!btn || !cache) return;
+            const cat = EXPORT_CAMPOS.find(c => c.key === catKey);
+            const n   = cache.selecionados.size;
+            btn.innerHTML = `<i class="${cat.icon}"></i> ${cat.label} <span class="badge">${n}</span>`;
+        }
+
+        function _expAtualizarSelCount() {
+            const total = Object.values(_expCache).reduce((s, c) => s + c.selecionados.size, 0);
+            const el = document.getElementById('expRecordsSelCount');
+            if (el) el.textContent = total === 1 ? '1 selecionado' : `${total} selecionados`;
+        }
+
+        // ── Step 4: execução ──────────────────────────────────────────────────
+        async function executarExportacao(formato) {
+            [1,2,3,4].forEach(i => document.getElementById(`expStep${i}`).classList.remove('active'));
+            document.getElementById('expBtnNext').style.display = 'none';
+            document.getElementById('expBtnBack').style.display = 'none';
+            document.getElementById('expLoading').classList.add('show');
+            document.getElementById('expLoadingMsg').textContent = 'Gerando arquivo…';
+            await exportarDadosFiltrado(formato, EXPORT_CAMPOS, _expCache);
+            fecharModalExport();
+        }
+
+
+
+        /** Fecha o modal de importação e reseta todo o estado visual. */
+        function fecharModalImport() {
+            closeModal('modalImport');
+            document.getElementById('importFileName').style.display = 'none';
+            document.getElementById('importFileName').textContent   = '';
+            document.getElementById('importProgress').classList.remove('show');
+            document.getElementById('importProgressBar').style.width = '0%';
+            document.getElementById('importResult').classList.remove('show', 'success', 'error');
+            document.getElementById('importResult').textContent = '';
+            document.getElementById('btnConfirmarImport').disabled  = true;
+            document.getElementById('importFileInput').value        = '';
+            importArquivo = null;
+        }
+
+        // ── IMPORT — estado e event listeners de UI ───────────────────────────
+
+        /** Arquivo selecionado (lido por configuracoes.js na confirmação). */
+        let importArquivo = null;
+
+        // Os modais ficam depois deste <script> no DOM, por isso os listeners
+        // precisam ser registrados no DOMContentLoaded para os elementos existirem.
+        document.addEventListener('DOMContentLoaded', () => {
+            const dropZone  = document.getElementById('importDropZone');
+            const fileInput = document.getElementById('importFileInput');
+
+            // Drag & drop
+            dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+            dropZone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                if (file) processarArquivoSelecionado(file);
+            });
+
+            // Clique na drop zone abre o seletor de arquivo
+            dropZone.addEventListener('click', () => fileInput.click());
+
+            // Arquivo selecionado pelo input nativo
+            fileInput.addEventListener('change', e => {
+                const file = e.target.files[0];
+                if (file) processarArquivoSelecionado(file);
+            });
+        });
+
+        /** Valida a extensão e exibe o nome do arquivo na drop zone. */
+        function processarArquivoSelecionado(file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!['csv', 'xlsx', 'xls'].includes(ext)) {
+                alert('Formato não suportado. Use CSV ou Excel (.xlsx, .xls).');
+                return;
+            }
+            importArquivo = file;
+            const nameEl = document.getElementById('importFileName');
+            nameEl.textContent   = `📄 ${file.name}`;
+            nameEl.style.display = 'block';
+            document.getElementById('btnConfirmarImport').disabled = false;
+            document.getElementById('importResult').classList.remove('show', 'success', 'error');
+        }
+
+        // ── IMPORT — helpers de UI chamados por configuracoes.js ─────────────
+
+        /**
+         * Exibe a barra de progresso com uma mensagem e percentual iniciais.
+         * @param {string} msg    Texto de status
+         * @param {number} pct    Percentual inicial (0–100)
+         */
+        function mostrarProgressoImport(msg, pct) {
+            const progEl   = document.getElementById('importProgress');
+            const barEl    = document.getElementById('importProgressBar');
+            const statusEl = document.getElementById('importStatus');
+            progEl.classList.add('show');
+            document.getElementById('importResult').classList.remove('show', 'success', 'error');
+            barEl.style.width      = pct + '%';
+            statusEl.textContent   = msg;
+        }
+
+        /**
+         * Atualiza percentual (e opcionalmente o texto) da barra de progresso.
+         * @param {number}  pct  Percentual (0–100)
+         * @param {string=} msg  Texto opcional de status
+         */
+        function atualizarProgressoImport(pct, msg) {
+            document.getElementById('importProgressBar').style.width = pct + '%';
+            if (msg !== undefined) document.getElementById('importStatus').textContent = msg;
+        }
+
+        /**
+         * Exibe o resultado final da importação (sucesso ou erro).
+         * @param {'success'|'error'} tipo
+         * @param {string}            html  Conteúdo HTML da mensagem
+         */
+        function mostrarResultadoImport(tipo, html) {
+            const el = document.getElementById('importResult');
+            el.className  = `import-result show ${tipo}`;
+            el.innerHTML  = html;
+        }
+
+        // ── INICIALIZAÇÃO ────────────────────────────────────────────────────
+        carregarConfiguracoes();
+        syncThemeOpts();
+    </script>
+
+    <!-- ══ MODAL EXPORTAR (multi-step) ══════════════════════════════ -->
+    <div class="modal-overlay" id="modalExport">
+        <div class="modal modal-export">
+
+            <!-- Cabeçalho fixo -->
+            <div class="modal-header" style="flex-direction:column; align-items:flex-start; gap:12px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+                    <h2><i class="fa-solid fa-file-export"></i> Exportar dados</h2>
+                    <button class="modal-close" onclick="fecharModalExport()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <!-- Stepper -->
+                <div class="export-steps-header" style="padding:0; border:none;">
+                    <div class="export-step-pill active" id="expPill1">
+                        <i class="fa-solid fa-table"></i> 1. Tabelas
+                    </div>
+                    <div class="export-step-sep"></div>
+                    <div class="export-step-pill" id="expPill2">
+                        <i class="fa-solid fa-list-check"></i> 2. Campos
+                    </div>
+                    <div class="export-step-sep"></div>
+                    <div class="export-step-pill" id="expPill3">
+                        <i class="fa-solid fa-magnifying-glass-check"></i> 3. Registros
+                    </div>
+                    <div class="export-step-sep"></div>
+                    <div class="export-step-pill" id="expPill4">
+                        <i class="fa-solid fa-file-arrow-down"></i> 4. Formato
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 1 — Tabelas -->
+            <div class="export-step-body active" id="expStep1">
+                <div class="export-select-all-row">
+                    <span id="expTableCount">0 tabelas selecionadas</span>
+                    <button onclick="exportSelectAll(true)">Selecionar todas</button>
+                    <button onclick="exportSelectAll(false)" style="margin-left:8px;">Limpar</button>
+                </div>
+                <div class="export-table-grid" id="expTableGrid">
+                    <!-- gerado por JS -->
+                </div>
+            </div>
+
+            <!-- Step 2 — Campos -->
+            <div class="export-step-body" id="expStep2">
+                <p style="font-size:12px;color:var(--text-muted);margin:0 0 14px;">
+                    Clique nos campos para incluir ou excluir da exportação.
+                    Campos em destaque serão exportados.
+                </p>
+                <div id="expFieldsContainer">
+                    <!-- seções geradas por JS -->
+                </div>
+            </div>
+
+            <!-- Step 3 — Registros -->
+            <div class="export-step-body" id="expStep3">
+                <!-- Tab bar por categoria -->
+                <div class="exp-tab-bar" id="expRecordsTabs"></div>
+
+                <!-- Toolbar: busca + contador -->
+                <div class="exp-records-toolbar">
+                    <div class="exp-records-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="expRecordsSearch"
+                               placeholder="Buscar por código, modelo, usuário, setor…"
+                               oninput="expFiltrarRegistros()">
+                    </div>
+                    <span class="exp-records-count" id="expRecordsCount"></span>
+                </div>
+
+                <!-- Barra de seleção rápida -->
+                <div class="exp-records-selbar">
+                    <span id="expRecordsSelCount">0 selecionados</span>
+                    <div class="selbar-actions">
+                        <button onclick="expSelecionarTodos(true)">Selecionar todos</button>
+                        <button onclick="expSelecionarTodos(false)">Limpar</button>
+                    </div>
+                </div>
+
+                <!-- Lista de registros -->
+                <div class="exp-records-list" id="expRecordsList"></div>
+            </div>
+
+            <!-- Step 4 — Formato -->
+            <div class="export-step-body" id="expStep4">
+                <p style="font-size:12px;color:var(--text-muted);margin:0 0 14px;">
+                    Escolha o formato do arquivo gerado.
+                </p>
+                <div class="export-format-options">
+                    <button class="export-option-btn" onclick="executarExportacao('csv')">
+                        <i class="fa-solid fa-file-csv export-icon csv"></i>
+                        <div class="export-info">
+                            <strong>CSV</strong>
+                            <span>Um arquivo por tabela — compatível com qualquer planilha</span>
+                        </div>
+                    </button>
+                    <button class="export-option-btn" onclick="executarExportacao('xlsx')">
+                        <i class="fa-solid fa-file-excel export-icon xlsx"></i>
+                        <div class="export-info">
+                            <strong>Excel (.xlsx)</strong>
+                            <span>Um arquivo por tabela — formatado para Microsoft Excel</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div class="export-loading" id="expLoading">
+                <i class="fa-solid fa-circle-notch"></i>
+                <span id="expLoadingMsg">Buscando dados…</span>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="fecharModalExport()" style="font-size:13px;">
+                    <i class="fa-solid fa-xmark"></i> Cancelar
+                </button>
+                <button class="btn btn-outline" id="expBtnBack" onclick="exportStep(-1)"
+                        style="font-size:13px; display:none;">
+                    <i class="fa-solid fa-chevron-left"></i> Voltar
+                </button>
+                <button class="btn btn-primary" id="expBtnNext" onclick="exportStep(1)"
+                        style="font-size:13px;">
+                    Próximo <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ MODAL IMPORTAR ══════════════════════════════════════════ -->
+    <div class="modal-overlay" id="modalImport">
+        <div class="modal modal-import">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-file-import"></i> Importar dados</h2>
+                <button class="modal-close" onclick="fecharModalImport()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="import-body">
+
+                <!-- Seleção de categoria -->
+                <div class="import-category-select">
+                    <label for="importCategoria">Categoria de destino</label>
+                    <select id="importCategoria" class="cr-select" style="width:100%;">
+                        <option value="computadores">Computadores</option>
+                        <option value="celulares">Celulares</option>
+                        <option value="monitores">Monitores</option>
+                        <option value="mouses">Mouses</option>
+                        <option value="teclados">Teclados</option>
+                        <option value="fones">Fones</option>
+                        <option value="ramais">Ramais</option>
+                        <option value="extras">Extras</option>
+                    </select>
+                </div>
+
+                <!-- Drop zone -->
+                <div class="import-drop-zone" id="importDropZone">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <p>Clique ou arraste um arquivo aqui</p>
+                    <p style="font-size:11px; margin-top:4px;">CSV ou Excel (.xlsx)</p>
+                    <div class="file-name" id="importFileName" style="display:none;"></div>
+                </div>
+                <input type="file" id="importFileInput" accept=".csv,.xlsx,.xls" style="display:none;">
+
+                <!-- Progresso -->
+                <div class="import-progress" id="importProgress">
+                    <div class="progress-bar-wrap">
+                        <div class="progress-bar-fill" id="importProgressBar" style="width:0%"></div>
+                    </div>
+                    <span class="import-status" id="importStatus">Processando…</span>
+                </div>
+
+                <!-- Resultado -->
+                <div class="import-result" id="importResult"></div>
+
+                <!-- Dica -->
+                <div class="import-hint">
+                    <strong>Dica:</strong> use a função <em>Exportar</em> para obter um arquivo modelo com as colunas corretas.
+                    A primeira linha deve ser o cabeçalho. Campos obrigatórios variam por categoria.
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="fecharModalImport()" style="font-size:13px;">
+                    <i class="fa-solid fa-xmark"></i> Cancelar
+                </button>
+                <button class="btn btn-primary" id="btnConfirmarImport" onclick="confirmarImport()" disabled style="font-size:13px;">
+                    <i class="fa-solid fa-upload"></i> Importar
+                </button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
