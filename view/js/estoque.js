@@ -1573,7 +1573,7 @@ function renderRow(categoria, item, modo) {
                 vram:       vramDetail.data,
                 so:         soDetail.data,
                 office:     officeDetail.data,
-                conectores: conectores.length ? conectores.join(', ') : '—',
+                conectores: conectores,
                 ip:         item.ip || '—',
             }
         };
