@@ -1790,7 +1790,7 @@ function renderRow(categoria, item, modo) {
                 <td>${item.modelo || '—'}</td>
                 <td>${item.tipo || '—'}</td>
                 <td>${item.conectividade || '—'}</td>
-                <td>—</td>
+                <td>${item.microfone ? 'Sim' : 'Não'}</td>
                 <td>${item.status || '—'}</td>
                 <td>${item.setor || '—'}</td>
                 <td>${item.usuario || '—'}</td>
@@ -1939,8 +1939,8 @@ function renderRow(categoria, item, modo) {
             cells = `
                 <td>${item.codigo || '—'}</td>
                 <td>${item.modelo || '—'}</td>
-                <td>${item.linha || '—'}</td>
-                <td>—</td>
+                <td>${item.linha   || '—'}</td>
+                <td>${item.numero || '—'}</td>
                 <td>${data}</td>
                 <td>${preco}</td>
                 <td>${item.status || '—'}</td>
