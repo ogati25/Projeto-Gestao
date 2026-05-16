@@ -430,7 +430,7 @@
         .export-step-pill.done   { color: var(--primary-color); }
         .export-step-sep { width: 24px; height: 1px; background: var(--border-color); flex-shrink: 0; }
         .export-step-body { display: none; padding: 18px 22px; overflow-y: auto; flex: 1; min-height: 0; }
-        .export-step-body.active { display: flex; flex-direction: column; }
+        .export-step-body.active { display: block; }
 
         /* step 1 — tabelas */
         .export-table-grid {
@@ -616,9 +616,8 @@
         .exp-records-list {
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            overflow: hidden;
-            max-height: 280px;
             overflow-y: auto;
+            max-height: 240px;
         }
         .exp-record-item {
             display: flex;
