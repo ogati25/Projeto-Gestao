@@ -1742,7 +1742,6 @@ function renderRow(categoria, item, modo) {
             cells = `
                 <td>${item.codigo || '—'}</td>
                 <td>${item.modelo || '—'}</td>
-                <td>—</td>
                 <td>${data}</td>
                 <td>${preco}</td>
                 <td>${item.status || '—'}</td>
