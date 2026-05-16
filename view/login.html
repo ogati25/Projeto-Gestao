@@ -3,10 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Ícones Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Estilos base compartilhados por todas as telas -->
     <link rel="stylesheet" href="style.css">
+
     <title>Login — Tech Logistics</title>
+
     <style>
+        /* ================================================================
+           ESTILOS EXCLUSIVOS DA TELA DE LOGIN
+           Complementam o style.css base sem sobrescrever variáveis globais.
+        ================================================================ */
+
+        /* Centraliza o card de login na tela */
         body {
             display: flex;
             align-items: center;
@@ -16,6 +28,7 @@
             overflow: auto;
         }
 
+        /* Container principal dividido em dois painéis (brand | formulário) */
         .login-wrapper {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -29,7 +42,7 @@
             overflow: hidden;
         }
 
-        /* ---- Painel esquerdo (brand) ---- */
+        /* ---- Painel esquerdo — identidade visual / brand ---- */
         .login-brand {
             background: var(--primary-color);
             padding: 48px 40px;
@@ -37,6 +50,8 @@
             flex-direction: column;
             justify-content: space-between;
         }
+
+        /* Logotipo + nome do sistema */
         .login-brand-top {
             display: flex;
             align-items: center;
@@ -54,7 +69,14 @@
         .login-brand-top .brand-icon i { font-size: 20px; color: #fff; }
         .login-brand-top h2 { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: 0.3px; }
 
-        .login-brand-body { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 40px 0 20px; }
+        /* Título e descrição do painel brand */
+        .login-brand-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 40px 0 20px;
+        }
         .login-brand-body h1 {
             font-size: 26px;
             font-weight: 700;
@@ -64,11 +86,8 @@
         }
         .login-brand-body p { font-size: 13px; color: #94a3b8; line-height: 1.6; }
 
-        .login-stats {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        /* Cards de features exibidos no rodapé do painel brand */
+        .login-stats { display: flex; flex-direction: column; gap: 10px; }
         .login-stat {
             display: flex;
             align-items: center;
@@ -81,7 +100,7 @@
         .login-stat i { font-size: 15px; color: var(--quinary-hover); width: 18px; text-align: center; }
         .login-stat span { font-size: 12px; color: #cbd5e1; }
 
-        /* ---- Painel direito (formulário) ---- */
+        /* ---- Painel direito — formulário de login ---- */
         .login-form-panel {
             padding: 48px 44px;
             display: flex;
@@ -100,7 +119,7 @@
             margin-bottom: 28px;
         }
 
-        /* ---- Campos ---- */
+        /* ---- Campos do formulário ---- */
         .field {
             display: flex;
             flex-direction: column;
@@ -113,9 +132,9 @@
             color: var(--text-primary);
             letter-spacing: 0.3px;
         }
-        .field-input-wrap {
-            position: relative;
-        }
+
+        /* Posicionamento do ícone interno e botão de toggle de senha */
+        .field-input-wrap { position: relative; }
         .field-input-wrap i {
             position: absolute;
             left: 12px;
@@ -123,11 +142,13 @@
             transform: translateY(-50%);
             font-size: 14px;
             color: var(--text-muted);
-            pointer-events: none;
+            pointer-events: none; /* ícone decorativo, não interativo */
         }
+
+        /* Estilo dos inputs */
         .field-input-wrap input {
             width: 100%;
-            padding: 10px 12px 10px 36px;
+            padding: 10px 12px 10px 36px; /* espaço à esquerda para o ícone */
             border: 1px solid var(--border-color);
             border-radius: 8px;
             font-size: 14px;
@@ -141,6 +162,8 @@
             box-shadow: 0 0 0 3px rgba(62,96,143,0.15);
             background: var(--secondary-color);
         }
+
+        /* Botão que alterna visibilidade do campo de senha */
         .field-input-wrap .toggle-pass {
             position: absolute;
             right: 12px;
@@ -156,9 +179,10 @@
         }
         .field-input-wrap .toggle-pass:hover { color: var(--text-primary); }
 
+        /* Input com toggle precisa de padding extra à direita */
         .field-input-wrap input.has-toggle { padding-right: 38px; }
 
-        /* ---- Lembrar / Esqueci ---- */
+        /* ---- Linha "Lembrar-me" + "Esqueci a senha" ---- */
         .form-row {
             display: flex;
             align-items: center;
@@ -173,7 +197,12 @@
             color: var(--text-muted);
             cursor: pointer;
         }
-        .checkbox-label input[type="checkbox"] { accent-color: var(--quinary-color); width: 15px; height: 15px; cursor: pointer; }
+        .checkbox-label input[type="checkbox"] {
+            accent-color: var(--quinary-color);
+            width: 15px;
+            height: 15px;
+            cursor: pointer;
+        }
         .forgot-link {
             font-size: 12px;
             color: var(--quinary-color);
@@ -183,7 +212,7 @@
         }
         .forgot-link:hover { color: var(--quinary-hover); }
 
-        /* ---- Botão entrar ---- */
+        /* ---- Botão de submissão ---- */
         .btn-login {
             width: 100%;
             padding: 11px;
@@ -200,10 +229,10 @@
             justify-content: center;
             gap: 8px;
         }
-        .btn-login:hover { background: #2d4f7a; }
+        .btn-login:hover  { background: #2d4f7a; }
         .btn-login:active { transform: scale(0.98); }
 
-        /* ---- Rodapé do formulário ---- */
+        /* ---- Rodapé do formulário (link para cadastro) ---- */
         .form-footer {
             margin-top: 20px;
             text-align: center;
@@ -217,7 +246,8 @@
         }
         .form-footer a:hover { color: var(--quinary-hover); }
 
-        /* ---- Mensagem de erro ---- */
+        /* ---- Caixa de alerta de erro ---- */
+        /* Oculta por padrão; exibida via classe .show adicionada pelo JS */
         .alert-error {
             display: none;
             align-items: center;
@@ -232,10 +262,10 @@
         }
         .alert-error.show { display: flex; }
 
-        /* ---- Responsivo ---- */
+        /* ---- Responsivo: esconde o painel brand em telas pequenas ---- */
         @media (max-width: 680px) {
-            .login-wrapper { grid-template-columns: 1fr; min-height: unset; }
-            .login-brand { display: none; }
+            .login-wrapper    { grid-template-columns: 1fr; min-height: unset; }
+            .login-brand      { display: none; }
             .login-form-panel { padding: 32px 24px; }
         }
     </style>
@@ -244,16 +274,27 @@
 
 <div class="login-wrapper">
 
-    <!-- Painel esquerdo -->
+    <!-- =====================================================================
+         PAINEL ESQUERDO — Brand / identidade visual
+         Decorativo, sem interação JS.
+    ====================================================================== -->
     <div class="login-brand">
+
+        <!-- Logotipo + nome -->
         <div class="login-brand-top">
-            <div class="brand-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+            <div class="brand-icon">
+                <i class="fa-solid fa-boxes-stacked"></i>
+            </div>
             <h2>Tech Logistics</h2>
         </div>
+
+        <!-- Título e descrição -->
         <div class="login-brand-body">
             <h1>Gestão de Ativos<br>Tecnológicos</h1>
             <p>Controle completo do inventário de TI da sua empresa em um único lugar.</p>
         </div>
+
+        <!-- Cards de features -->
         <div class="login-stats">
             <div class="login-stat">
                 <i class="fa-solid fa-shield-halved"></i>
@@ -268,18 +309,28 @@
                 <span>Controle multiusuário</span>
             </div>
         </div>
-    </div>
 
-    <!-- Painel direito -->
+    </div><!-- /login-brand -->
+
+
+    <!-- =====================================================================
+         PAINEL DIREITO — Formulário de login
+         Todos os campos são acessados pelo JS via ID.
+         Nenhum atributo de evento (onclick, oninput etc.) nos elementos HTML.
+    ====================================================================== -->
     <div class="login-form-panel">
+
         <h2>Bem-vindo de volta</h2>
         <p class="subtitle">Faça login para acessar o painel</p>
 
+        <!-- Alerta de erro — oculto por padrão, exibido pelo JS via .show -->
         <div class="alert-error" id="alertError">
             <i class="fa-solid fa-circle-exclamation"></i>
+            <!-- Mensagem de erro dinâmica, substituída pelo JS -->
             <span id="alertErrorMsg">Usuário ou senha incorretos.</span>
         </div>
 
+        <!-- Campo de e-mail -->
         <div class="field">
             <label for="email">E-mail</label>
             <div class="field-input-wrap">
@@ -288,17 +339,26 @@
             </div>
         </div>
 
+        <!-- Campo de senha com botão de toggle visibilidade -->
         <div class="field">
             <label for="senha">Senha</label>
             <div class="field-input-wrap">
                 <i class="fa-solid fa-lock"></i>
-                <input type="password" id="senha" class="has-toggle" placeholder="••••••••" autocomplete="current-password">
+                <input
+                    type="password"
+                    id="senha"
+                    class="has-toggle"
+                    placeholder="••••••••"
+                    autocomplete="current-password"
+                >
+                <!-- Botão olho aberto/fechado — JS acessa via id -->
                 <button type="button" class="toggle-pass" id="togglePass" tabindex="-1">
                     <i class="fa-solid fa-eye" id="eyeIcon"></i>
                 </button>
             </div>
         </div>
 
+        <!-- Linha "Lembrar-me" + link "Esqueci a senha" -->
         <div class="form-row">
             <label class="checkbox-label">
                 <input type="checkbox" id="lembrar"> Lembrar-me
@@ -306,91 +366,27 @@
             <a href="esqueci-senha.html" class="forgot-link">Esqueci a senha</a>
         </div>
 
+        <!-- Botão de submissão — estado de loading controlado pelo JS -->
         <button class="btn-login" id="btnLogin">
-            <i class="fa-solid fa-right-to-bracket"></i> Entrar
+            <i class="fa-solid fa-right-to-bracket" id="btnLoginIcon"></i>
+            <span id="btnLoginLabel">Entrar</span>
         </button>
 
+        <!-- Link de cadastro -->
         <div class="form-footer">
             Não tem conta? <a href="cadastro.html">Criar conta</a>
         </div>
-    </div>
-</div>
 
-<script>
-    // Toggle senha visível
-    document.getElementById('togglePass').addEventListener('click', () => {
-        const input = document.getElementById('senha');
-        const icon  = document.getElementById('eyeIcon');
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.className = 'fa-solid fa-eye-slash';
-        } else {
-            input.type = 'password';
-            icon.className = 'fa-solid fa-eye';
-        }
-    });
+    </div><!-- /login-form-panel -->
 
-    // Login
-    document.getElementById('btnLogin').addEventListener('click', async () => {
-        const email = document.getElementById('email').value.trim();
-        const senha = document.getElementById('senha').value;
-        const alert = document.getElementById('alertError');
-        const msg   = document.getElementById('alertErrorMsg');
-        const btn   = document.getElementById('btnLogin');
+</div><!-- /login-wrapper -->
 
-        alert.classList.remove('show');
 
-        if (!email || !senha) {
-            msg.textContent = 'Preencha o e-mail e a senha.';
-            alert.classList.add('show');
-            return;
-        }
+<!-- api.js — funções de comunicação com o backend (compartilhado por todas as telas) -->
+<script src="js/api.js"></script>
 
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Entrando...';
+<!-- login.js — lógica de frontend + chamadas à API específicas desta tela -->
+<script src="js/login.js"></script>
 
-        try {
-            // Substitua pela chamada real à sua API de autenticação
-            // const resp = await request('auth/login', 'POST', { email, senha });
-            // localStorage.setItem('token', resp.token);
-
-            // Simulação: salva dados do usuário e redireciona
-            // Na integração real: const resp = await request('auth/login', 'POST', { email, senha });
-            await new Promise(r => setTimeout(r, 800));
-
-            // Salva dados do usuário no localStorage para usar no Perfil
-            const nomeSimulado = email.split('@')[0].replace('.', ' ');
-            const nomeFormatado = nomeSimulado.split(' ')
-                .map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
-            const partes = nomeFormatado.split(' ');
-
-            const userData = {
-                nome:            partes[0] || 'Usuário',
-                sobrenome:       partes.slice(1).join(' ') || '',
-                email:           email,
-                cargo:           'Administrador de TI',
-                setor:           'Tecnologia da Informação',
-                nivel:           'Administrador',
-                membroDesde:     new Date().toLocaleDateString('pt-BR'),
-                ultimaAtualizacao: null
-            };
-            localStorage.setItem('tl_user', JSON.stringify(userData));
-            // Tema padrão se não existir
-            if (!localStorage.getItem('tl_theme')) localStorage.setItem('tl_theme', 'light');
-
-            window.location.href = 'dashboard.html';
-        } catch (err) {
-            msg.textContent = err.message || 'Usuário ou senha incorretos.';
-            alert.classList.add('show');
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Entrar';
-        }
-    });
-
-    // Enter para login
-    document.addEventListener('keydown', e => {
-        if (e.key === 'Enter') document.getElementById('btnLogin').click();
-    });
-</script>
 </body>
 </html>
