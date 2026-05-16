@@ -55,6 +55,7 @@ let SO       = [];
 let ATIV_SO  = [];
 let OFFICE   = [];
 let ATIV_OFF = [];
+let OPERADORA   = [];
 let GERACAO_RAM = [];
 let TIPO_DISCO  = [];
 let TIPO_GPU    = [];
@@ -91,6 +92,7 @@ async function carregarOpcoesDinamicas() {
         ATIV_SO.length  = 0; ATIV_SO.push(...get('AtivacaoSO'));
         OFFICE.length   = 0; OFFICE.push(...get('TipoOffice'));
         ATIV_OFF.length = 0; ATIV_OFF.push(...get('AtivacaoOffice'));
+        OPERADORA.length    = 0; OPERADORA.push(...get('Operadora'));
         GERACAO_RAM.length  = 0; GERACAO_RAM.push(...get('GeracaoRAM'));
         TIPO_DISCO.length   = 0; TIPO_DISCO.push(...get('TipoDisco'));
         TIPO_GPU.length     = 0; TIPO_GPU.push(...get('TipoPlacaVideo'));
@@ -416,6 +418,7 @@ const formFields = {
     chips: [
         { section: 'Dados do Chip' },
         { label: 'Número',               key: 'numero',    type: 'text',   placeholder: '+55 (11) 99999-9999', mask: 'phone', required: true },
+        { label: 'Operadora',            key: 'operadora', type: 'select', options: OPERADORA, required: true },
         { label: 'Dono',                 key: 'dono',      type: 'text',   maxlen: 80 },
         { label: 'Celular Vinculado',    key: 'celularId', type: 'celular_selector' },
 
@@ -675,6 +678,7 @@ const filterDefs = {
         suporte: [
             { label: 'ID',               key: 'codigo'                                },
             { label: 'Número',           key: 'numero'                                },
+            { label: 'Operadora', key: 'operadora', values: OPERADORA },
             { label: 'Dono',             key: 'dono'                                  },
             { label: 'Plano (R$)',       key: 'plano'                                 },
             { label: 'Celular Vinculado',key: 'celularId'                             },
@@ -689,6 +693,7 @@ const filterDefs = {
         gestao: [
             { label: 'ID',               key: 'codigo'                                },
             { label: 'Número',           key: 'numero'                                },
+            { label: 'Operadora', key: 'operadora', values: OPERADORA },
             { label: 'Status',    key: 'status',    values: STATUS    },
             { label: 'Setor',     key: 'setor',     values: SETOR     },
             { label: 'Usuário',          key: 'usuario'                               },
@@ -1737,6 +1742,7 @@ function renderRow(categoria, item, modo) {
             cells = `
                 <td>${item.codigo || '—'}</td>
                 <td>${item.modelo || '—'}</td>
+                <td>—</td>
                 <td>${data}</td>
                 <td>${preco}</td>
                 <td>${item.status || '—'}</td>
@@ -1806,11 +1812,11 @@ function renderRow(categoria, item, modo) {
 
     // ── Celulares ─────────────────────────────────────────────────────
     else if (categoria === 'celulares') {
-        // Resolve IDs de chips para objetos {numero, dono} usando o cache
+        // Resolve IDs de chips para objetos {numero, operadora, dono} usando o cache
         const resolverChip = (entry) => {
             if (typeof entry === 'object' && entry.numero) return entry;
             const chip = (window._chipsCache || []).find(c => c.id === entry);
-            return chip ? chip : { id: entry, numero: entry, dono: '—' };
+            return chip ? chip : { id: entry, numero: entry, operadora: '—', dono: '—' };
         };
 
         const chipsLista = item.chips?.length
@@ -1838,10 +1844,11 @@ function renderRow(categoria, item, modo) {
             title: 'Chips / SIM Cards',
             subtitle: `${item.codigo || ''} · ${item.modelo || ''}`,
             data: chipsLista.map((c, i) => ({
-                num:    i + 1,
-                numero: c.numero || c,
-                dono:   c.dono || '—',
-                status: c.status || 'ativo',
+                num:      i + 1,
+                operadora: c.operadora || '—',
+                numero:    c.numero || c,
+                dono:      c.dono || '—',
+                status:    c.status || 'ativo',
             }))
         };
 
@@ -1918,10 +1925,10 @@ function renderRow(categoria, item, modo) {
                 <td>${item.modelo || '—'}</td>
                 <td>${item.cor || '—'}</td>
                 <td>${item.tipo || '—'}</td>
-                <td>—</td>
-                <td>—</td>
-                <td>${item.linha || '—'}</td>
-                <td>—</td>
+                <td>${item.ip        || '—'}</td>
+                <td>${item.mac       || '—'}</td>
+                <td>${item.linha     || '—'}</td>
+                <td>${item.numero    || '—'}</td>
                 <td>${item.configurado ? 'Sim' : 'Não'}</td>
                 <td>${item.status || '—'}</td>
                 <td>${item.setor || '—'}</td>
@@ -1950,6 +1957,7 @@ function renderRow(categoria, item, modo) {
             cells = `
                 <td>${item.codigo || '—'}</td>
                 <td>${item.numero || '—'}</td>
+                <td>${item.operadora || '—'}</td>
                 <td>${item.dono || '—'}</td>
                 <td>${(() => {
                     if (!item.celularId) return '—';
@@ -1965,6 +1973,7 @@ function renderRow(categoria, item, modo) {
             cells = `
                 <td>${item.codigo || '—'}</td>
                 <td>${item.numero || '—'}</td>
+                <td>${item.operadora || '—'}</td>
                 <td>${item.plano || '—'}</td>
                 <td>${item.status || '—'}</td>
                 <td>${item.setor || '—'}</td>
@@ -2069,6 +2078,7 @@ function extrairValorFiltro(item, key) {
         mac:             item.mac,
         configurado:     item.configurado === true ? 'Sim' : (item.configurado === false ? 'Não' : ''),
         // Chip
+        operadora:       item.operadora,
         dono:            item.dono,
         plano:           item.plano != null ? String(item.plano) : '',
         celularId:       item.celularId,
@@ -2387,7 +2397,7 @@ function mapItemToForm(categoria, item) {
         preco_aquisicao: item.precoAquisicao,
     };
     if (categoria === 'chips') return {
-        numero: item.numero, dono: item.dono,
+        numero: item.numero, operadora: item.operadora, dono: item.dono,
         celularId: item.celularId, plano: item.plano,
         setor: item.setor, usuario: item.usuario, status: item.status,
         observacoes: item.observacoes,
@@ -2565,7 +2575,9 @@ function mapFormToApi(categoria, form) {
     };
 
     if (categoria === 'chips') return {
+        // Formata o número de telefone removendo não-dígitos e adicionando o +
         numero:    form.numero || '',
+        operadora: form.operadora || '',
         dono:      form.dono      || null,
         celularId: form.celularId || null,
         plano:     parsePreco(form.plano),

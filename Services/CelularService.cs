@@ -36,7 +36,24 @@ public class CelularService
         var anterior = await GetByIdAsync(id);
         var antigos  = (anterior?.ChipIds ?? new()).Union(anterior?.ContasWhatsapp ?? new()).ToList();
 
-        await _celulares.ReplaceOneAsync(c => c.Id == id, celular);
+        var filtro = Builders<Celular>.Filter.Eq(c => c.Id, id);
+        var update = Builders<Celular>.Update
+            .Set(c => c.Codigo,         celular.Codigo)
+            .Set(c => c.Usuario,        celular.Usuario)
+            .Set(c => c.Setor,          celular.Setor)
+            .Set(c => c.Status,         celular.Status)
+            .Set(c => c.Ativo,          celular.Ativo)
+            .Set(c => c.Observacoes,    celular.Observacoes)
+            .Set(c => c.DataAquisicao,  celular.DataAquisicao)
+            .Set(c => c.PrecoAquisicao, celular.PrecoAquisicao)
+            .Set(c => c.Modelo,         celular.Modelo)
+            .Set(c => c.MemoriaRAM,     celular.MemoriaRAM)
+            .Set(c => c.Armazenamento,  celular.Armazenamento)
+            .Set(c => c.Conectividade,  celular.Conectividade)
+            .Set(c => c.ChipIds,        celular.ChipIds)
+            .Set(c => c.ContasWhatsapp, celular.ContasWhatsapp);
+        await _celulares.UpdateOneAsync(filtro, update);
+
         await VincularChipsAsync(id, celular.ChipIds, celular.ContasWhatsapp, antigos);
     }
 
