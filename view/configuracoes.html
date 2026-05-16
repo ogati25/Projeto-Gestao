@@ -1225,6 +1225,9 @@
     <!-- api.js — funções de comunicação com o backend (compartilhado por todas as telas) -->
     <script src="js/api.js"></script>
 
+    <!-- login.js — disponibiliza logout() e getUsuarioLogado() usados nesta tela -->
+    <script src="js/login.js"></script>
+
     <!-- configuracoes.js — lógica de dados: exportação, importação e parse de arquivo -->
     <script src="js/configuracoes.js"></script>
 
@@ -1246,7 +1249,7 @@
         //     (o envio à API fica em configuracoes.js via confirmarImport())
         //
         // Dependências:
-        //   - js/configuracoes.js (EXPORT_CAMPOS, exportarDadosFiltrado,
+        //   - configuracoes.js (EXPORT_CAMPOS, exportarDadosFiltrado,
         //     confirmarImport, _FILTROS_DEF) — carregado antes deste script
         //   - login.js (logout, getUsuarioLogado) — carregado antes, disponível globalmente
         // =====================================================================
