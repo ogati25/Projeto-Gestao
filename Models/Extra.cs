@@ -9,4 +9,7 @@ public class Extra : Equipamento
     public string Categoria { get; set; } = null!;
 
     public string? Descricao { get; set; }
+
+    [Range(0, int.MaxValue, ErrorMessage = "Quantidade inválida.")]
+    public int Quantidade { get; set; }
 }

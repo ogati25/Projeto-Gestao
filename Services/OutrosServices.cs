@@ -261,7 +261,8 @@ public class ExtraService
             .Set(e => e.DataAquisicao,  extra.DataAquisicao)
             .Set(e => e.PrecoAquisicao, extra.PrecoAquisicao)
             .Set(e => e.Categoria,      extra.Categoria)
-            .Set(e => e.Descricao,      extra.Descricao);
+            .Set(e => e.Descricao,      extra.Descricao)
+            .Set(e => e.Quantidade,     extra.Quantidade);
         await _extras.UpdateOneAsync(filtro, update);
     }
 

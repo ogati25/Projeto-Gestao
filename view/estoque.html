@@ -1119,6 +1119,7 @@
                         <thead><tr>
                             <th class="col-id">ID</th>
                             <th>Modelo</th>
+                            <th>Marca</th>
                             <th>Data Aquisição</th>
                             <th>Preço Aquisição</th>
                             <th>Status</th>
@@ -1127,7 +1128,7 @@
                             <th>Ativo</th>
                             <th class="col-acoes">Ações</th>
                         </tr></thead>
-                        <tbody><tr class="empty-row"><td colspan="9">
+                        <tbody><tr class="empty-row"><td colspan="10">
                             <i class="fa-solid fa-computer-mouse"></i>Aguardando dados da API...
                         </td></tr></tbody>
                     </table>
@@ -1295,7 +1296,7 @@
                             <th>Ativo</th>
                             <th class="col-acoes">Ações</th>
                         </tr></thead>
-                        <tbody><tr class="empty-row"><td colspan="9">
+                        <tbody><tr class="empty-row"><td colspan="10">
                             <i class="fa-solid fa-sim-card"></i>Aguardando dados da API...
                         </td></tr></tbody>
                     </table>
@@ -1311,7 +1312,7 @@
                             <th>Ativo</th>
                             <th class="col-acoes">Ações</th>
                         </tr></thead>
-                        <tbody><tr class="empty-row"><td colspan="8">
+                        <tbody><tr class="empty-row"><td colspan="9">
                             <i class="fa-solid fa-sim-card"></i>Aguardando dados da API...
                         </td></tr></tbody>
                     </table>
@@ -2278,7 +2279,7 @@
                         <div class="detail-chip-item">
                             <div class="detail-chip-num">${c.num}</div>
                             <div class="detail-chip-info">
-                                <div class="detail-chip-title">${c.numero}</div>
+                                <div class="detail-chip-title">${c.operadora} — ${c.numero}</div>
                                 <div class="detail-chip-sub">Dono: ${c.dono}</div>
                             </div>
                             <div class="detail-chip-badge">${detailStatusBadge(c.status)}</div>
@@ -2503,6 +2504,31 @@
                                 <div class="detail-field-value" style="white-space:pre-wrap;font-size:13px;font-weight:500;line-height:1.6;">
                                     ${d.observacoes && d.observacoes.trim() ? d.observacoes : '<span style="color:var(--text-muted);font-style:italic;">Nenhuma observação registrada.</span>'}
                                 </div>
+                            </div>
+                        </div>`;
+                }
+
+                /* ── Entradas do Monitor ── */
+                case 'monitor_entradas': {
+                    const lista = detail.data?.entradas || [];
+                    const badges = {
+                        'HDMI':        { color: '#3b82f6', icon: 'fa-plug' },
+                        'DisplayPort': { color: '#8b5cf6', icon: 'fa-plug' },
+                        'VGA':         { color: '#f59e0b', icon: 'fa-plug' },
+                        'DVI':         { color: '#10b981', icon: 'fa-plug' },
+                    };
+                    return `
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label">
+                                <i class="fa-solid fa-plug"></i> Entradas de Vídeo
+                            </div>
+                            <div style="display:flex;flex-wrap:wrap;gap:10px;padding:4px 0;">
+                                ${lista.length ? lista.map(e => `
+                                    <div style="display:flex;align-items:center;gap:8px;background:var(--background-color);border:1px solid var(--border-color);border-radius:8px;padding:10px 16px;">
+                                        <span style="width:10px;height:10px;border-radius:50%;background:${badges[e]?.color || '#64748b'};flex-shrink:0;"></span>
+                                        <span style="font-size:14px;font-weight:600;color:var(--text-primary);">${e}</span>
+                                    </div>`).join('')
+                                : '<span style="color:var(--text-muted);font-style:italic;">Nenhuma entrada registrada.</span>'}
                             </div>
                         </div>`;
                 }

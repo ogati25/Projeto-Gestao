@@ -439,8 +439,9 @@ const formFields = {
     // ----------------------------------------------------------
     extras: [
         { section: 'Geral' },
-        { label: 'Categoria', key: 'categoria', type: 'text', placeholder: 'Ex: Adaptador, Hub, Cabo...', required: true },
-        { label: 'Descrição', key: 'descricao', type: 'textarea', span2: true },
+        { label: 'Categoria',  key: 'categoria',  type: 'text',   placeholder: 'Ex: Adaptador, Hub, Cabo...', required: true },
+        { label: 'Quantidade', key: 'quantidade', type: 'number', placeholder: '0', min: 0 },
+        { label: 'Descrição',  key: 'descricao',  type: 'textarea', span2: true },
 
         { section: 'Dados Administrativos', mode: 'gestao' },
         { label: 'Data Aquisição',  key: 'data_aquisicao',  type: 'date', mode: 'gestao' },
@@ -708,6 +709,7 @@ const filterDefs = {
             { label: 'ID',               key: 'codigo'                                },
             { label: 'Categoria',        key: 'categoria'                             },
             { label: 'Descrição',        key: 'descricao'                             },
+            { label: 'Quantidade',       key: 'quantidade'                            },
             { label: 'Status', key: 'status', values: STATUS },
             { label: 'Setor',  key: 'setor',  values: SETOR  },
             { label: 'Usuário',          key: 'usuario'                               },
@@ -720,6 +722,7 @@ const filterDefs = {
             { label: 'ID',               key: 'codigo'                                },
             { label: 'Categoria',        key: 'categoria'                             },
             { label: 'Descrição',        key: 'descricao'                             },
+            { label: 'Quantidade',       key: 'quantidade'                            },
             { label: 'Status', key: 'status', values: STATUS },
             { label: 'Setor',  key: 'setor',  values: SETOR  },
             { label: 'Usuário',          key: 'usuario'                               },
@@ -1691,12 +1694,27 @@ function renderRow(categoria, item, modo) {
 
     // ── Monitores ─────────────────────────────────────────────────────
     else if (categoria === 'monitores') {
-        const entradas = [
+        const entradasLista = [
             item.hdmi        ? 'HDMI'        : null,
             item.displayPort ? 'DisplayPort' : null,
             item.vga         ? 'VGA'         : null,
             item.dvi         ? 'DVI'         : null,
-        ].filter(Boolean).join(', ') || '—';
+        ].filter(Boolean);
+        const qtdEntradas = entradasLista.length;
+
+        const monitorDetail = {
+            type:     'monitor_entradas',
+            icon:     'fa-display',
+            title:    'Entradas do Monitor',
+            subtitle: `${item.codigo || ''} · ${item.modelo || ''}`,
+            data:     { entradas: entradasLista },
+        };
+        const btnInfoMonitor = `
+            <button class="expand-btn"
+                data-detail='${JSON.stringify(monitorDetail)}'
+                title="Ver entradas">
+                <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+            </button>`;
 
         if (modo === 'suporte') {
             cells = `
@@ -1705,7 +1723,12 @@ function renderRow(categoria, item, modo) {
                 <td>${item.tamanho ? item.tamanho + '"' : '—'}</td>
                 <td>${item.resolucao || '—'}</td>
                 <td>${item.frequencia ? item.frequencia + 'Hz' : '—'}</td>
-                <td>${entradas}</td>
+                <td>
+                    <div class="cell-preview">
+                        <span class="cell-preview-value">${qtdEntradas > 0 ? `${qtdEntradas} entrada${qtdEntradas > 1 ? 's' : ''}` : '—'}</span>
+                        ${qtdEntradas > 0 ? btnInfoMonitor : ''}
+                    </div>
+                </td>
                 <td>${item.status || '—'}</td>
                 <td>${item.setor || '—'}</td>
                 <td>${item.usuario || '—'}</td>
@@ -1986,9 +2009,9 @@ function renderRow(categoria, item, modo) {
     else if (categoria === 'extras') {
         cells = `
             <td>${item.codigo || '—'}</td>
-            <td>—</td>
-            <td>${item.caracteristicas || item.modelo || '—'}</td>
-            <td>—</td>
+            <td>${item.categoria || '—'}</td>
+            <td>${item.descricao || '—'}</td>
+            <td>${item.quantidade ?? '—'}</td>
             <td>${item.status || '—'}</td>
             <td>${item.setor || '—'}</td>
             <td>${item.usuario || '—'}</td>
@@ -2084,6 +2107,7 @@ function extrairValorFiltro(item, key) {
         // Extra
         categoria:       item.categoria,
         descricao:       item.descricao,
+        quantidade:      item.quantidade,
     };
     return mapa[key] !== undefined ? mapa[key] : item[key];
 }
@@ -2405,6 +2429,7 @@ function mapItemToForm(categoria, item) {
     };
     if (categoria === 'extras') return {
         categoria: item.categoria, descricao: item.descricao,
+        quantidade: item.quantidade ?? 0,
         setor: item.setor, usuario: item.usuario, status: item.status,
         observacoes: item.observacoes,
         data_aquisicao:  item.dataAquisicao?.split('T')[0],
@@ -2587,10 +2612,11 @@ function mapFormToApi(categoria, form) {
     };
 
     if (categoria === 'extras') return {
-        categoria: form.categoria,
-        descricao: form.descricao || null,
+        categoria:      form.categoria,
+        descricao:      form.descricao  || null,
+        quantidade:     parseInt(form.quantidade) || 0,
         setor: form.setor, usuario: form.usuario, status: form.status,
-        observacoes: form.observacoes || null,
+        observacoes:    form.observacoes || null,
         dataAquisicao:  form.data_aquisicao || new Date().toISOString(),
         precoAquisicao: parsePreco(form.preco_aquisicao),
     };
