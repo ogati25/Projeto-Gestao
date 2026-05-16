@@ -1119,7 +1119,6 @@
                         <thead><tr>
                             <th class="col-id">ID</th>
                             <th>Modelo</th>
-                            <th>Marca</th>
                             <th>Data Aquisição</th>
                             <th>Preço Aquisição</th>
                             <th>Status</th>
@@ -1128,7 +1127,7 @@
                             <th>Ativo</th>
                             <th class="col-acoes">Ações</th>
                         </tr></thead>
-                        <tbody><tr class="empty-row"><td colspan="10">
+                        <tbody><tr class="empty-row"><td colspan="9">
                             <i class="fa-solid fa-computer-mouse"></i>Aguardando dados da API...
                         </td></tr></tbody>
                     </table>
@@ -1306,13 +1305,15 @@
                             <th>Número</th>
                             <th>Operadora</th>
                             <th>Plano</th>
+                            <th>Data Aquisição</th>
+                            <th>Preço Aquisição</th>
                             <th>Status</th>
                             <th>Setor</th>
                             <th>Usuário</th>
                             <th>Ativo</th>
                             <th class="col-acoes">Ações</th>
                         </tr></thead>
-                        <tbody><tr class="empty-row"><td colspan="9">
+                        <tbody><tr class="empty-row"><td colspan="11">
                             <i class="fa-solid fa-sim-card"></i>Aguardando dados da API...
                         </td></tr></tbody>
                     </table>
@@ -1338,15 +1339,16 @@
                         <thead><tr>
                             <th class="col-id">ID</th>
                             <th>Categoria</th>
-                            <th>Descrição</th>
                             <th>Quantidade</th>
+                            <th>Data Aquisição</th>
+                            <th>Preço Aquisição</th>
                             <th>Status</th>
                             <th>Setor</th>
                             <th>Usuário</th>
                             <th>Ativo</th>
                             <th class="col-acoes">Ações</th>
                         </tr></thead>
-                        <tbody><tr class="empty-row"><td colspan="9">
+                        <tbody><tr class="empty-row"><td colspan="10">
                             <i class="fa-solid fa-ellipsis"></i>Aguardando dados da API...
                         </td></tr></tbody>
                     </table>
@@ -2503,6 +2505,80 @@
                             <div class="detail-field full" style="grid-column:1/-1;">
                                 <div class="detail-field-value" style="white-space:pre-wrap;font-size:13px;font-weight:500;line-height:1.6;">
                                     ${d.observacoes && d.observacoes.trim() ? d.observacoes : '<span style="color:var(--text-muted);font-style:italic;">Nenhuma observação registrada.</span>'}
+                                </div>
+                            </div>
+                        </div>`;
+                }
+
+                /* ── Monitor completo ── */
+                case 'info_monitor': {
+                    const d = detail.data;
+                    const badges = { 'HDMI':'#3b82f6','DisplayPort':'#8b5cf6','VGA':'#f59e0b','DVI':'#10b981' };
+                    return `
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label"><i class="fa-solid fa-plug"></i> Entradas de Vídeo</div>
+                            <div style="display:flex;flex-wrap:wrap;gap:10px;padding:4px 0;">
+                                ${d.entradas?.length ? d.entradas.map(e => `
+                                    <div style="display:flex;align-items:center;gap:8px;background:var(--background-color);border:1px solid var(--border-color);border-radius:8px;padding:10px 16px;">
+                                        <span style="width:10px;height:10px;border-radius:50%;background:${badges[e]||'#64748b'};flex-shrink:0;"></span>
+                                        <span style="font-size:14px;font-weight:600;color:var(--text-primary);">${e}</span>
+                                    </div>`).join('')
+                                : '<span style="color:var(--text-muted);font-style:italic;">Nenhuma entrada registrada.</span>'}
+                            </div>
+                        </div>
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label"><i class="fa-solid fa-note-sticky"></i> Observações</div>
+                            <div class="detail-field full" style="background:var(--background-color);border:1px solid var(--border-color);border-radius:8px;padding:14px 16px;">
+                                <div style="white-space:pre-wrap;font-size:13px;font-weight:500;line-height:1.7;">
+                                    ${d.observacoes?.trim() ? d.observacoes : '<span style="color:var(--text-muted);font-style:italic;">Nenhuma observação registrada.</span>'}
+                                </div>
+                            </div>
+                        </div>`;
+                }
+
+                /* ── Genérico (mouse, teclado, fone, ramal, chip, extra) — só observações ── */
+                case 'info_generico': {
+                    const d = detail.data;
+                    return `
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label"><i class="fa-solid fa-note-sticky"></i> Observações</div>
+                            <div class="detail-field full" style="background:var(--background-color);border:1px solid var(--border-color);border-radius:8px;padding:14px 16px;">
+                                <div style="white-space:pre-wrap;font-size:13px;font-weight:500;line-height:1.7;">
+                                    ${d.observacoes?.trim() ? d.observacoes : '<span style="color:var(--text-muted);font-style:italic;">Nenhuma observação registrada.</span>'}
+                                </div>
+                            </div>
+                        </div>`;
+                }
+
+                /* ── Celular — chips + whatsapp + observações ── */
+                case 'info_celular': {
+                    const d = detail.data;
+                    const chips = Array.isArray(d.chips) ? d.chips : [];
+                    const wpp   = Array.isArray(d.whatsapp) ? d.whatsapp : [];
+                    return `
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label"><i class="fa-solid fa-sim-card"></i> Chips</div>
+                            ${chips.length ? chips.map(c => `
+                                <div class="detail-chip-item">
+                                    <div class="detail-chip-title">${c.numero || c}</div>
+                                    <div class="detail-chip-sub">${c.dono || '—'}</div>
+                                </div>`).join('')
+                            : '<span style="color:var(--text-muted);font-style:italic;font-size:13px;">Nenhum chip vinculado.</span>'}
+                        </div>
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label"><i class="fa-brands fa-whatsapp"></i> Contas WhatsApp</div>
+                            ${wpp.length ? wpp.map(w => `
+                                <div class="detail-chip-item">
+                                    <div class="detail-chip-title">${w.numero || w}</div>
+                                    <div class="detail-chip-sub">${w.dono || w.nome || '—'}</div>
+                                </div>`).join('')
+                            : '<span style="color:var(--text-muted);font-style:italic;font-size:13px;">Nenhuma conta vinculada.</span>'}
+                        </div>
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label"><i class="fa-solid fa-note-sticky"></i> Observações</div>
+                            <div class="detail-field full" style="background:var(--background-color);border:1px solid var(--border-color);border-radius:8px;padding:14px 16px;">
+                                <div style="white-space:pre-wrap;font-size:13px;font-weight:500;line-height:1.7;">
+                                    ${d.observacoes?.trim() ? d.observacoes : '<span style="color:var(--text-muted);font-style:italic;">Nenhuma observação registrada.</span>'}
                                 </div>
                             </div>
                         </div>`;

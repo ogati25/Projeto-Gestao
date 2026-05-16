@@ -1716,6 +1716,27 @@ function renderRow(categoria, item, modo) {
                 <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
             </button>`;
 
+        const monitorInfoDetail = {
+            type:     'info_monitor',
+            icon:     'fa-display',
+            title:    'Detalhes Completos',
+            subtitle: `${item.codigo || ''} · ${item.modelo || ''}`,
+            data: {
+                tamanho:     item.tamanho     || '—',
+                resolucao:   item.resolucao   || '—',
+                frequencia:  item.frequencia  || '—',
+                entradas:    entradasLista,
+                observacoes: item.observacoes || '',
+            },
+        };
+        const btnInfoMonitorAcoes = `
+            <button class="btn-action info"
+                data-detail='${JSON.stringify(monitorInfoDetail)}'
+                title="Ver todos os detalhes">
+                <i class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">info</i>
+            </button>`;
+        const acoesMonitorInfo = acoes.replace('</div>', `${btnInfoMonitorAcoes}</div>`);
+
         if (modo === 'suporte') {
             cells = `
                 <td>${item.codigo || '—'}</td>
@@ -1733,7 +1754,7 @@ function renderRow(categoria, item, modo) {
                 <td>${item.setor || '—'}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
-                <td class="col-acoes">${acoes}</td>`;
+                <td class="col-acoes">${acoesMonitorInfo}</td>`;
         } else {
             cells = `
                 <td>${item.codigo || '—'}</td>
@@ -1750,6 +1771,17 @@ function renderRow(categoria, item, modo) {
 
     // ── Mouses ────────────────────────────────────────────────────────
     else if (categoria === 'mouses') {
+        const mouseInfo = {
+            type: 'info_generico', icon: 'fa-computer-mouse', title: 'Detalhes Completos',
+            subtitle: `${item.codigo || ''} · ${item.modelo || ''}`,
+            data: { campos: [
+                { label: 'Modelo',        value: item.modelo        || '—' },
+                { label: 'Tipo',          value: item.tipo          || '—' },
+                { label: 'Conectividade', value: item.conectividade || '—' },
+            ], observacoes: item.observacoes || '' },
+        };
+        const acoesMouseInfo = acoes.replace('</div>', `<button class="btn-action info" data-detail='${JSON.stringify(mouseInfo)}' title="Ver detalhes"><i class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">info</i></button></div>`);
+
         if (modo === 'suporte') {
             cells = `
                 <td>${item.codigo || '—'}</td>
@@ -1760,7 +1792,7 @@ function renderRow(categoria, item, modo) {
                 <td>${item.setor || '—'}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
-                <td class="col-acoes">${acoes}</td>`;
+                <td class="col-acoes">${acoesMouseInfo}</td>`;
         } else {
             cells = `
                 <td>${item.codigo || '—'}</td>
@@ -1777,6 +1809,19 @@ function renderRow(categoria, item, modo) {
 
     // ── Teclados ──────────────────────────────────────────────────────
     else if (categoria === 'teclados') {
+        const tecladoInfo = {
+            type: 'info_generico', icon: 'fa-keyboard', title: 'Detalhes Completos',
+            subtitle: `${item.codigo || ''} · ${item.modelo || ''}`,
+            data: { campos: [
+                { label: 'Modelo',        value: item.modelo        || '—' },
+                { label: 'Tipo',          value: item.tipo          || '—' },
+                { label: 'Conectividade', value: item.conectividade || '—' },
+                { label: 'Switch',        value: item.switch        || '—' },
+                { label: 'Tamanho',       value: item.tamanho ? item.tamanho + '%' : '—' },
+            ], observacoes: item.observacoes || '' },
+        };
+        const acoesTecladoInfo = acoes.replace('</div>', `<button class="btn-action info" data-detail='${JSON.stringify(tecladoInfo)}' title="Ver detalhes"><i class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">info</i></button></div>`);
+
         if (modo === 'suporte') {
             cells = `
                 <td>${item.codigo || '—'}</td>
@@ -1789,7 +1834,7 @@ function renderRow(categoria, item, modo) {
                 <td>${item.setor || '—'}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
-                <td class="col-acoes">${acoes}</td>`;
+                <td class="col-acoes">${acoesTecladoInfo}</td>`;
         } else {
             cells = `
                 <td>${item.codigo || '—'}</td>
@@ -1806,6 +1851,18 @@ function renderRow(categoria, item, modo) {
 
     // ── Fones ─────────────────────────────────────────────────────────
     else if (categoria === 'fones') {
+        const foneInfo = {
+            type: 'info_generico', icon: 'fa-headphones', title: 'Detalhes Completos',
+            subtitle: `${item.codigo || ''} · ${item.modelo || ''}`,
+            data: { campos: [
+                { label: 'Modelo',        value: item.modelo                        || '—' },
+                { label: 'Tipo',          value: item.tipo                          || '—' },
+                { label: 'Conectividade', value: item.conectividade                 || '—' },
+                { label: 'Microfone',     value: item.microfone ? 'Sim' : 'Não'           },
+            ], observacoes: item.observacoes || '' },
+        };
+        const acoesFoneInfo = acoes.replace('</div>', `<button class="btn-action info" data-detail='${JSON.stringify(foneInfo)}' title="Ver detalhes"><i class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">info</i></button></div>`);
+
         if (modo === 'suporte') {
             cells = `
                 <td>${item.codigo || '—'}</td>
@@ -1817,7 +1874,7 @@ function renderRow(categoria, item, modo) {
                 <td>${item.setor || '—'}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
-                <td class="col-acoes">${acoes}</td>`;
+                <td class="col-acoes">${acoesFoneInfo}</td>`;
         } else {
             cells = `
                 <td>${item.codigo || '—'}</td>
@@ -1892,6 +1949,21 @@ function renderRow(categoria, item, modo) {
         const wppCounterHtml = wppCount > 1
             ? `<span class="chip-counter">+${wppCount}</span>` : '';
 
+        const celularInfoDetail = {
+            type: 'info_celular', icon: 'fa-mobile-screen', title: 'Detalhes Completos',
+            subtitle: `${item.codigo || ''} · ${item.modelo || ''}`,
+            data: {
+                modelo:        item.modelo        || '—',
+                memoriaRAM:    item.memoriaRAM ? item.memoriaRAM + ' GB' : '—',
+                armazenamento: item.armazenamento ? item.armazenamento + ' GB' : '—',
+                conectividade: item.conectividade  || '—',
+                chips:         chipsLista,
+                whatsapp:      wppLista,
+                observacoes:   item.observacoes    || '',
+            },
+        };
+        const acoesCelularInfo = acoes.replace('</div>', `<button class="btn-action info" data-detail='${JSON.stringify(celularInfoDetail)}' title="Ver detalhes"><i class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">info</i></button></div>`);
+
         if (modo === 'suporte') {
             cells = `
                 <td>${item.codigo || '—'}</td>
@@ -1924,7 +1996,7 @@ function renderRow(categoria, item, modo) {
                 <td>${item.setor || '—'}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
-                <td class="col-acoes">${acoes}</td>`;
+                <td class="col-acoes">${acoesCelularInfo}</td>`;
         } else {
             cells = `
                 <td>${item.codigo || '—'}</td>
@@ -1941,6 +2013,22 @@ function renderRow(categoria, item, modo) {
 
     // ── Ramais ────────────────────────────────────────────────────────
     else if (categoria === 'ramais') {
+        const ramalInfo = {
+            type: 'info_generico', icon: 'fa-phone', title: 'Detalhes Completos',
+            subtitle: `${item.codigo || ''} · ${item.modelo || ''}`,
+            data: { campos: [
+                { label: 'Modelo',      value: item.modelo                      || '—' },
+                { label: 'Cor',         value: item.cor                         || '—' },
+                { label: 'Tipo',        value: item.tipo                        || '—' },
+                { label: 'IP',          value: item.ip                          || '—' },
+                { label: 'MAC',         value: item.mac                         || '—' },
+                { label: 'Linha',       value: item.linha                       || '—' },
+                { label: 'Número',      value: item.numero                      || '—' },
+                { label: 'Configurado', value: item.configurado ? 'Sim' : 'Não'        },
+            ], observacoes: item.observacoes || '' },
+        };
+        const acoesRamalInfo = acoes.replace('</div>', `<button class="btn-action info" data-detail='${JSON.stringify(ramalInfo)}' title="Ver detalhes"><i class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">info</i></button></div>`);
+
         if (modo === 'suporte') {
             cells = `
                 <td>${item.codigo || '—'}</td>
@@ -1956,7 +2044,7 @@ function renderRow(categoria, item, modo) {
                 <td>${item.setor || '—'}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
-                <td class="col-acoes">${acoes}</td>`;
+                <td class="col-acoes">${acoesRamalInfo}</td>`;
         } else {
             cells = `
                 <td>${item.codigo || '—'}</td>
@@ -1975,6 +2063,18 @@ function renderRow(categoria, item, modo) {
 
     // ── Chips / Números ───────────────────────────────────────────────
     else if (categoria === 'chips') {
+        const chipInfo = {
+            type: 'info_generico', icon: 'fa-sim-card', title: 'Detalhes Completos',
+            subtitle: `${item.codigo || ''} · ${item.numero || ''}`,
+            data: { campos: [
+                { label: 'Número',   value: item.numero   || '—' },
+                { label: 'Operadora',value: item.operadora|| '—' },
+                { label: 'Plano',    value: item.plano    || '—' },
+                { label: 'Dono',     value: item.dono     || '—' },
+            ], observacoes: item.observacoes || '' },
+        };
+        const acoesChipInfo = acoes.replace('</div>', `<button class="btn-action info" data-detail='${JSON.stringify(chipInfo)}' title="Ver detalhes"><i class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">info</i></button></div>`);
+
         if (modo === 'suporte') {
             cells = `
                 <td>${item.codigo || '—'}</td>
@@ -1990,13 +2090,15 @@ function renderRow(categoria, item, modo) {
                 <td>${item.setor || '—'}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
-                <td class="col-acoes">${acoes}</td>`;
+                <td class="col-acoes">${acoesChipInfo}</td>`;
         } else {
             cells = `
                 <td>${item.codigo || '—'}</td>
                 <td>${item.numero || '—'}</td>
                 <td>${item.operadora || '—'}</td>
                 <td>${item.plano || '—'}</td>
+                <td>${data}</td>
+                <td>${preco}</td>
                 <td>${item.status || '—'}</td>
                 <td>${item.setor || '—'}</td>
                 <td>${item.usuario || '—'}</td>
@@ -2007,16 +2109,41 @@ function renderRow(categoria, item, modo) {
 
     // ── Extras ────────────────────────────────────────────────────────
     else if (categoria === 'extras') {
-        cells = `
-            <td>${item.codigo || '—'}</td>
-            <td>${item.categoria || '—'}</td>
-            <td>${item.descricao || '—'}</td>
-            <td>${item.quantidade ?? '—'}</td>
-            <td>${item.status || '—'}</td>
-            <td>${item.setor || '—'}</td>
-            <td>${item.usuario || '—'}</td>
-            <td class="cell-ativo">${ativoBadge}</td>
-            <td class="col-acoes">${_acoesComObs}</td>`;
+        const extraInfo = {
+            type: 'info_generico', icon: 'fa-ellipsis', title: 'Detalhes Completos',
+            subtitle: `${item.codigo || ''} · ${item.categoria || ''}`,
+            data: { campos: [
+                { label: 'Categoria',  value: item.categoria  || '—' },
+                { label: 'Descrição',  value: item.descricao  || '—' },
+                { label: 'Quantidade', value: item.quantidade != null ? String(item.quantidade) : '—' },
+            ], observacoes: item.observacoes || '' },
+        };
+        const acoesExtraInfo = acoes.replace('</div>', `<button class="btn-action info" data-detail='${JSON.stringify(extraInfo)}' title="Ver detalhes"><i class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">info</i></button></div>`);
+
+        if (modo === 'suporte') {
+            cells = `
+                <td>${item.codigo || '—'}</td>
+                <td>${item.categoria || '—'}</td>
+                <td>${item.descricao || '—'}</td>
+                <td>${item.quantidade ?? '—'}</td>
+                <td>${item.status || '—'}</td>
+                <td>${item.setor || '—'}</td>
+                <td>${item.usuario || '—'}</td>
+                <td class="cell-ativo">${ativoBadge}</td>
+                <td class="col-acoes">${acoesExtraInfo}</td>`;
+        } else {
+            cells = `
+                <td>${item.codigo || '—'}</td>
+                <td>${item.categoria || '—'}</td>
+                <td>${item.quantidade ?? '—'}</td>
+                <td>${data}</td>
+                <td>${preco}</td>
+                <td>${item.status || '—'}</td>
+                <td>${item.setor || '—'}</td>
+                <td>${item.usuario || '—'}</td>
+                <td class="cell-ativo">${ativoBadge}</td>
+                <td class="col-acoes">${_acoesComObs}</td>`;
+        }
     }
 
     tr.innerHTML      = cells;
