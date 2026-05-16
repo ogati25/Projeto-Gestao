@@ -3,32 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Ícones Font Awesome e Material Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Estilos base compartilhados por todas as telas -->
     <link rel="stylesheet" href="style.css">
+
     <title>Configurações — Tech Logistics</title>
+
     <style>
-        /* ---- padrão sidebar/avatar ---- */
+        /* ================================================================
+           ESTILOS EXCLUSIVOS DA TELA DE CONFIGURAÇÕES
+           Complementam o style.css base sem sobrescrever variáveis globais.
+        ================================================================ */
+
+        /* ---- Sidebar footer com botão de logout ---- */
         .sidebar-footer {
-            display: flex; align-items: center; justify-content: space-between;
-            padding-top: 12px; border-top: 1px solid #2d3f55;
-            font-size: 11px; color: #475569;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 12px;
+            border-top: 1px solid #2d3f55;
+            font-size: 11px;
+            color: #475569;
         }
         .btn-logout {
-            display: flex; align-items: center; gap: 6px; padding: 5px 10px;
+            display: flex; align-items: center; gap: 6px;
+            padding: 5px 10px;
             background: rgba(239,68,68,0.12); color: #f87171;
             border: 1px solid rgba(239,68,68,0.2); border-radius: 6px;
-            font-size: 11px; font-weight: 700; cursor: pointer; transition: 0.2s; text-decoration: none;
+            font-size: 11px; font-weight: 700; cursor: pointer;
+            transition: 0.2s; text-decoration: none;
         }
         .btn-logout:hover { background: rgba(239,68,68,0.22); color: #fca5a5; }
+
+        /* ---- Avatar do usuário no header ---- */
         .header-user { display: flex; align-items: center; gap: 10px; }
         .user-avatar {
-            width: 34px; height: 34px; background: var(--quinary-color);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 13px; font-weight: 700; color: #fff; cursor: pointer; flex-shrink: 0;
+            width: 34px; height: 34px;
+            background: var(--quinary-color);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 700; color: #fff;
+            cursor: pointer; flex-shrink: 0;
         }
 
-        /* ==================== CONFIGURAÇÕES ==================== */
+        /* ================================================================
+           LAYOUT PRINCIPAL — duas colunas: nav lateral + painel de seções
+        ================================================================ */
         .config-layout {
             display: grid;
             grid-template-columns: 220px 1fr;
@@ -36,7 +60,7 @@
             align-items: start;
         }
 
-        /* ---- Menu lateral de configurações ---- */
+        /* ---- Menu de navegação lateral das categorias ---- */
         .config-nav {
             background: var(--secondary-color);
             border: 1px solid var(--border-color);
@@ -47,10 +71,8 @@
         .config-nav-header {
             padding: 14px 16px;
             border-bottom: 1px solid var(--border-color);
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px;
             color: var(--text-muted);
         }
         .config-nav-list { list-style: none; padding: 6px; }
@@ -65,12 +87,10 @@
         .config-nav-list li a:hover { background: var(--background-color); color: var(--text-primary); }
         .config-nav-list li.active a { background: var(--quinary-color); color: #fff; }
 
-        /* ---- Painel de configurações ---- */
-        .config-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
+        /* ---- Painel de seções de configuração ---- */
+        .config-panel { display: flex; flex-direction: column; gap: 16px; }
+
+        /* Card de seção (ex: Aparência, Notificações…) */
         .config-section {
             background: var(--secondary-color);
             border: 1px solid var(--border-color);
@@ -78,34 +98,32 @@
             box-shadow: var(--card-shadow);
             overflow: hidden;
         }
+
+        /* Cabeçalho de cada seção com ícone colorido */
         .cs-header {
             padding: 16px 22px;
             border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            display: flex; align-items: center; gap: 12px;
         }
         .cs-header-icon {
-            width: 34px; height: 34px;
-            border-radius: 8px;
+            width: 34px; height: 34px; border-radius: 8px;
             display: flex; align-items: center; justify-content: center;
             font-size: 15px; color: #fff; flex-shrink: 0;
         }
-        .cs-header-icon.blue   { background: var(--info-color); }
-        .cs-header-icon.purple { background: #8b5cf6; }
+        .cs-header-icon.blue   { background: var(--info-color);    }
+        .cs-header-icon.purple { background: #8b5cf6;              }
         .cs-header-icon.green  { background: var(--success-color); }
         .cs-header-icon.orange { background: var(--warning-color); }
-        .cs-header-icon.red    { background: var(--danger-color); }
+        .cs-header-icon.red    { background: var(--danger-color);  }
 
         .cs-header h3 { font-size: 14px; font-weight: 700; color: var(--text-primary); }
         .cs-header p  { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
 
         .cs-body { padding: 20px 22px; display: flex; flex-direction: column; gap: 0; }
 
-        /* ---- Item de configuração ---- */
+        /* ---- Linha de configuração individual ---- */
         .config-row {
-            display: flex;
-            align-items: center;
+            display: flex; align-items: center;
             justify-content: space-between;
             padding: 14px 0;
             border-bottom: 1px solid var(--border-color);
@@ -117,7 +135,7 @@
         .cr-info span   { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
         .cr-control { flex-shrink: 0; }
 
-        /* ---- Toggle switch ---- */
+        /* ---- Toggle switch (checkbox estilizado) ---- */
         .toggle-switch {
             position: relative;
             width: 44px; height: 24px;
@@ -128,22 +146,19 @@
             position: absolute; cursor: pointer;
             top: 0; left: 0; right: 0; bottom: 0;
             background: var(--border-color);
-            border-radius: 24px;
-            transition: 0.2s;
+            border-radius: 24px; transition: 0.2s;
         }
         .toggle-slider::before {
             content: '';
             position: absolute;
             width: 18px; height: 18px;
             left: 3px; bottom: 3px;
-            background: #fff;
-            border-radius: 50%;
-            transition: 0.2s;
+            background: #fff; border-radius: 50%; transition: 0.2s;
         }
         .toggle-switch input:checked + .toggle-slider { background: var(--quinary-color); }
         .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
 
-        /* ---- Select inline ---- */
+        /* ---- Select inline nas linhas de configuração ---- */
         .cr-select {
             padding: 7px 12px;
             border: 1px solid var(--border-color);
@@ -151,24 +166,17 @@
             font-size: 13px;
             background: var(--background-color);
             color: var(--text-primary);
-            outline: none;
-            cursor: pointer;
-            font-family: inherit;
-            transition: border 0.2s;
+            outline: none; cursor: pointer;
+            font-family: inherit; transition: border 0.2s;
         }
         .cr-select:focus { border-color: var(--quinary-color); box-shadow: 0 0 0 2px rgba(62,96,143,0.12); }
 
-        /* ---- Tema picker ---- */
-        .theme-picker {
-            display: flex;
-            gap: 8px;
-        }
+        /* ---- Picker de tema (botões claro/escuro) ---- */
+        .theme-picker { display: flex; gap: 8px; }
         .theme-opt {
-            width: 36px; height: 36px;
-            border-radius: 8px;
+            width: 36px; height: 36px; border-radius: 8px;
             border: 2px solid var(--border-color);
-            cursor: pointer;
-            transition: 0.15s;
+            cursor: pointer; transition: 0.15s;
             display: flex; align-items: center; justify-content: center;
             font-size: 16px;
         }
@@ -177,7 +185,7 @@
         .theme-opt.light-opt { background: #f0f2f5; }
         .theme-opt.dark-opt  { background: #0f1117; }
 
-        /* ---- Botão de perigo ---- */
+        /* ---- Botão de ação destrutiva ---- */
         .btn-danger {
             background: #fee2e2; color: #991b1b;
             border: 1px solid #fecaca;
@@ -188,7 +196,7 @@
         }
         .btn-danger:hover { background: #fecaca; }
 
-        /* ---- Tag de status ---- */
+        /* ---- Tag de status (Ex: "localhost:5085 ✔", "v1.0.0") ---- */
         .status-tag {
             display: inline-flex; align-items: center; gap: 5px;
             padding: 3px 10px; border-radius: 20px;
@@ -197,21 +205,16 @@
         .tag-green { background: #d1fae5; color: #065f46; }
         .tag-gray  { background: #f1f5f9; color: #475569; }
 
-        /* ---- Salvar strip ---- */
+        /* ---- Strip de "Salvar configurações" (fixo no rodapé) ---- */
+        /* Oculta por padrão; exibido via .show pelo JS quando algo muda */
         .save-strip {
             display: none;
-            position: fixed;
-            bottom: 24px;
-            right: 28px;
-            background: var(--primary-color);
-            color: #fff;
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
+            position: fixed; bottom: 24px; right: 28px;
+            background: var(--primary-color); color: #fff;
+            padding: 12px 20px; border-radius: 10px;
+            font-size: 13px; font-weight: 600;
             box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-            align-items: center;
-            gap: 12px;
+            align-items: center; gap: 12px;
             z-index: 999;
             animation: slideUp 0.2s ease;
         }
@@ -227,15 +230,16 @@
         }
         .save-strip button:hover { background: #2d4f7a; }
 
-        /* ---- Modal overlay (igual ao estoque) ---- */
+        /* ================================================================
+           MODAIS — overlay, container, header, footer
+           Usados tanto no modal de Exportar quanto no de Importar.
+        ================================================================ */
         .modal-overlay {
             display: none;
-            position: fixed;
-            inset: 0;
+            position: fixed; inset: 0;
             background: rgba(15, 23, 42, 0.55);
             z-index: 500;
-            align-items: center;
-            justify-content: center;
+            align-items: center; justify-content: center;
             padding: 20px;
         }
         .modal-overlay.open { display: flex; }
@@ -243,11 +247,9 @@
             background: #fff;
             border-radius: 14px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-            width: 100%;
-            max-width: 640px;
+            width: 100%; max-width: 640px;
             max-height: 90vh;
-            display: flex;
-            flex-direction: column;
+            display: flex; flex-direction: column;
             animation: modalIn 0.18s ease;
         }
         body.dark .modal { background: var(--secondary-color); }
@@ -256,199 +258,63 @@
             to   { opacity: 1; transform: translateY(0) scale(1); }
         }
         .modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            display: flex; align-items: center; justify-content: space-between;
             padding: 18px 22px 14px;
             border-bottom: 1px solid var(--border-color);
             flex-shrink: 0;
         }
         .modal-header h2 {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-size: 16px; font-weight: 700; color: var(--text-primary);
+            display: flex; align-items: center; gap: 8px;
         }
         .modal-header h2 i { color: var(--quinary-color); }
         .modal-close {
-            width: 30px; height: 30px;
-            border: none;
-            background: var(--background-color);
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            color: var(--text-muted);
+            width: 30px; height: 30px; border: none;
+            background: var(--background-color); border-radius: 8px;
+            cursor: pointer; font-size: 14px; color: var(--text-muted);
             display: flex; align-items: center; justify-content: center;
             transition: 0.15s;
         }
         .modal-close:hover { background: #fee2e2; color: #ef4444; }
         .modal-footer {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 10px;
-            padding: 14px 22px;
-            border-top: 1px solid var(--border-color);
-            flex-shrink: 0;
+            display: flex; align-items: center; justify-content: flex-end;
+            gap: 10px; padding: 14px 22px;
+            border-top: 1px solid var(--border-color); flex-shrink: 0;
         }
 
-        /* ---- Export / Import modal ---- */
-        .modal-export { max-width: 420px; }
-        .modal-import { max-width: 460px; }
-        .export-options {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            padding: 22px;
-        }
-        .export-option-btn {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 14px 18px;
-            border: 1.5px solid var(--border-color);
-            border-radius: 10px;
-            background: var(--secondary-color);
-            cursor: pointer;
-            transition: 0.18s;
-            text-align: left;
-            width: 100%;
-        }
-        .export-option-btn:hover {
-            border-color: var(--primary-color);
-            background: var(--background-color);
-        }
-        .export-option-btn:hover .export-icon { color: var(--primary-color); }
-        .export-icon {
-            font-size: 24px;
-            color: var(--text-muted);
-            width: 32px;
-            text-align: center;
-            flex-shrink: 0;
-            transition: 0.18s;
-        }
-        .export-icon.csv  { color: #2e7d32; }
-        .export-icon.xlsx { color: #1565c0; }
-        .export-option-btn:hover .export-icon.csv  { color: #2e7d32; }
-        .export-option-btn:hover .export-icon.xlsx { color: #1565c0; }
-        .export-info { display: flex; flex-direction: column; gap: 2px; }
-        .export-info strong { font-size: 14px; font-weight: 700; color: var(--text-primary); }
-        .export-info span   { font-size: 12px; color: var(--text-muted); }
-
-        /* ---- Import body ---- */
-        .import-body { padding: 22px; display: flex; flex-direction: column; gap: 16px; }
-        .import-category-select {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .import-category-select label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
-        .import-drop-zone {
-            border: 2px dashed var(--border-color);
-            border-radius: 10px;
-            padding: 30px 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.18s;
-            background: var(--background-color);
-        }
-        .import-drop-zone:hover, .import-drop-zone.dragover {
-            border-color: var(--primary-color);
-            background: rgba(var(--primary-rgb, 99,102,241), 0.04);
-        }
-        .import-drop-zone i { font-size: 28px; color: var(--text-muted); margin-bottom: 8px; display: block; }
-        .import-drop-zone p { font-size: 13px; color: var(--text-muted); margin: 0; }
-        .import-drop-zone .file-name { font-size: 13px; font-weight: 600; color: var(--primary-color); margin-top: 6px; }
-        .import-hint {
-            font-size: 12px;
-            color: var(--text-muted);
-            background: var(--background-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 10px 14px;
-            line-height: 1.6;
-        }
-        .import-hint strong { color: var(--text-primary); }
-        .import-progress {
-            display: none;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .import-progress.show { display: flex; }
-        .progress-bar-wrap {
-            width: 100%;
-            height: 6px;
-            background: var(--border-color);
-            border-radius: 99px;
-            overflow: hidden;
-        }
-        .progress-bar-fill {
-            height: 100%;
-            background: var(--primary-color);
-            border-radius: 99px;
-            transition: width 0.3s;
-        }
-        .import-status { font-size: 12px; color: var(--text-muted); }
-        .import-result {
-            display: none;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-        .import-result.show { display: flex; }
-        .import-result.success { background: #dcfce7; color: #166534; }
-        .import-result.error   { background: #fee2e2; color: #991b1b; }
-        body.dark .import-result.success { background: rgba(22,101,52,0.25); color: #4ade80; }
-        body.dark .import-result.error   { background: rgba(153,27,27,0.25); color: #f87171; }
-
-        /* ── Export multi-step modal ────────────────────────────────── */
+        /* ================================================================
+           MODAL EXPORTAR — multi-step (Tabelas → Campos → Registros → Formato)
+        ================================================================ */
         .modal-export { max-width: 560px; height: min(680px, 90vh); }
+
+        /* Cabeçalho com os pills de passos */
         .export-steps-header {
-            display: flex;
-            align-items: center;
-            gap: 0;
+            display: flex; align-items: center; gap: 0;
             padding: 0 22px 14px;
             border-bottom: 1px solid var(--border-color);
         }
         .export-step-pill {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-muted);
-            padding: 5px 10px;
-            border-radius: 99px;
-            transition: 0.2s;
+            display: flex; align-items: center; gap: 6px;
+            font-size: 12px; font-weight: 600; color: var(--text-muted);
+            padding: 5px 10px; border-radius: 99px; transition: 0.2s;
         }
         .export-step-pill.active { background: var(--primary-color); color: #fff; }
         .export-step-pill.done   { color: var(--primary-color); }
         .export-step-sep { width: 24px; height: 1px; background: var(--border-color); flex-shrink: 0; }
+
+        /* Corpo de cada step — oculto por padrão, exibido via .active pelo JS */
         .export-step-body { display: none; padding: 18px 22px; overflow-y: auto; flex: 1; min-height: 0; }
         .export-step-body.active { display: block; }
 
-        /* step 1 — tabelas */
+        /* Step 1 — grade de seleção de tabelas */
         .export-table-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            overflow-y: auto;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; overflow-y: auto;
         }
         .export-table-card {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            display: flex; align-items: center; gap: 10px;
             padding: 11px 13px;
-            border: 1.5px solid var(--border-color);
-            border-radius: 9px;
-            cursor: pointer;
-            transition: 0.15s;
-            background: var(--secondary-color);
+            border: 1.5px solid var(--border-color); border-radius: 9px;
+            cursor: pointer; transition: 0.15s; background: var(--secondary-color);
         }
         .export-table-card:hover { border-color: var(--primary-color); }
         .export-table-card.selected {
@@ -459,114 +325,62 @@
         .export-table-card-icon { font-size: 18px; color: var(--text-muted); width: 22px; text-align: center; }
         .export-table-card.selected .export-table-card-icon { color: var(--primary-color); }
         .export-table-card span { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+
+        /* Linha "Selecionar todas / Limpar" acima da grade */
         .export-select-all-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            font-size: 12px;
-            color: var(--text-muted);
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 12px; font-size: 12px; color: var(--text-muted);
         }
         .export-select-all-row button {
-            font-size: 12px;
-            color: var(--primary-color);
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            font-weight: 600;
+            font-size: 12px; color: var(--primary-color);
+            background: none; border: none; cursor: pointer; padding: 0; font-weight: 600;
         }
 
-        /* step 2 — campos */
+        /* Step 2 — chips de campos por tabela */
         .export-fields-section { margin-bottom: 18px; }
         .export-fields-section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            display: flex; align-items: center; justify-content: space-between;
             padding: 8px 10px;
-            background: var(--background-color);
-            border-radius: 8px 8px 0 0;
-            border: 1px solid var(--border-color);
-            border-bottom: none;
-            cursor: pointer;
-            user-select: none;
+            background: var(--background-color); border-radius: 8px 8px 0 0;
+            border: 1px solid var(--border-color); border-bottom: none;
+            cursor: pointer; user-select: none;
         }
         .export-fields-section-header strong {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            font-size: 13px;
-            color: var(--text-primary);
+            display: flex; align-items: center; gap: 7px;
+            font-size: 13px; color: var(--text-primary);
         }
         .export-fields-section-header .sect-toggle { font-size: 11px; color: var(--text-muted); }
         .export-fields-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 0 0 8px 8px;
+            display: flex; flex-wrap: wrap; gap: 6px; padding: 10px;
+            border: 1px solid var(--border-color); border-radius: 0 0 8px 8px;
             background: var(--secondary-color);
         }
+        /* Chip individual de campo — .selected quando marcado para exportar */
         .export-field-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
+            display: inline-flex; align-items: center; gap: 5px;
             padding: 4px 10px;
-            border: 1.5px solid var(--border-color);
-            border-radius: 99px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.15s;
-            background: var(--background-color);
-            color: var(--text-muted);
+            border: 1.5px solid var(--border-color); border-radius: 99px;
+            font-size: 12px; font-weight: 500; cursor: pointer; transition: 0.15s;
+            background: var(--background-color); color: var(--text-muted);
             white-space: nowrap;
         }
         .export-field-chip:hover { border-color: var(--primary-color); color: var(--text-primary); }
         .export-field-chip.selected {
             border-color: var(--primary-color);
             background: color-mix(in srgb, var(--primary-color) 10%, transparent);
-            color: var(--primary-color);
-            font-weight: 600;
+            color: var(--primary-color); font-weight: 600;
         }
         .export-field-chip i { font-size: 10px; }
 
-        /* step 3 — formato */
-        .export-format-options { display: flex; flex-direction: column; gap: 10px; }
-
-        /* loading overlay dentro do modal */
-        .export-loading {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            padding: 40px 22px;
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-        .export-loading.show { display: flex; }
-        .export-loading i { font-size: 26px; color: var(--primary-color); animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* ── Export step 3 — seleção de registros ──────────────────── */
+        /* Step 3 — seleção de registros */
         .exp-records-toolbar {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
+            display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
         }
         .exp-records-search {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            flex: 1; display: flex; align-items: center; gap: 6px;
             background: var(--background-color);
-            border: 1.5px solid var(--border-color);
-            border-radius: 8px;
-            padding: 6px 10px;
-            transition: 0.15s;
+            border: 1.5px solid var(--border-color); border-radius: 8px;
+            padding: 6px 10px; transition: 0.15s;
         }
         .exp-records-search:focus-within { border-color: var(--primary-color); }
         .exp-records-search i { color: var(--text-muted); font-size: 12px; }
@@ -575,59 +389,35 @@
             font-size: 13px; color: var(--text-primary); width: 100%;
         }
         .exp-records-search input::placeholder { color: var(--text-muted); }
-        .exp-records-count {
-            font-size: 12px; color: var(--text-muted); white-space: nowrap;
-        }
+        .exp-records-count { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
         .exp-records-count strong { color: var(--primary-color); }
-        .exp-tab-bar {
-            display: flex;
-            gap: 4px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-        }
+
+        /* Tab bar de categorias dentro do step 3 */
+        .exp-tab-bar { display: flex; gap: 4px; margin-bottom: 10px; flex-wrap: wrap; }
         .exp-tab-btn {
-            padding: 4px 10px;
-            border-radius: 99px;
+            padding: 4px 10px; border-radius: 99px;
             border: 1.5px solid var(--border-color);
             background: var(--secondary-color);
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            color: var(--text-muted);
-            transition: 0.15s;
-            white-space: nowrap;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            color: var(--text-muted); transition: 0.15s; white-space: nowrap;
         }
         .exp-tab-btn.active {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
+            border-color: var(--primary-color); color: var(--primary-color);
             background: color-mix(in srgb, var(--primary-color) 8%, transparent);
         }
         .exp-tab-btn .badge {
-            display: inline-block;
-            background: var(--primary-color);
-            color: #fff;
-            border-radius: 99px;
-            font-size: 10px;
-            padding: 0 5px;
-            margin-left: 3px;
-            min-width: 16px;
-            text-align: center;
+            display: inline-block; background: var(--primary-color); color: #fff;
+            border-radius: 99px; font-size: 10px; padding: 0 5px;
+            margin-left: 3px; min-width: 16px; text-align: center;
         }
-        .exp-records-list {
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            overflow-y: auto;
-            max-height: 240px;
-        }
+
+        /* Lista de registros no step 3 */
+        .exp-records-list { border: 1px solid var(--border-color); border-radius: 8px; overflow-y: auto; max-height: 240px; }
         .exp-record-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            display: flex; align-items: center; gap: 10px;
             padding: 8px 12px;
             border-bottom: 1px solid var(--border-color);
-            cursor: pointer;
-            transition: background 0.12s;
-            font-size: 13px;
+            cursor: pointer; transition: background 0.12s; font-size: 13px;
         }
         .exp-record-item:last-child { border-bottom: none; }
         .exp-record-item:hover { background: var(--background-color); }
@@ -636,55 +426,37 @@
         .exp-record-main { flex: 1; min-width: 0; }
         .exp-record-main strong { display: block; font-size: 13px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .exp-record-main span  { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
-        .exp-record-badge {
-            font-size: 10px; font-weight: 700; padding: 2px 7px;
-            border-radius: 99px; white-space: nowrap; flex-shrink: 0;
-        }
+        .exp-record-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 99px; white-space: nowrap; flex-shrink: 0; }
         .exp-record-badge.EmUso        { background:#dcfce7; color:#166534; }
         .exp-record-badge.EmEstoque    { background:#dbeafe; color:#1e40af; }
         .exp-record-badge.Desativado   { background:#f3f4f6; color:#6b7280; }
         .exp-record-badge.EmManutenção { background:#fef9c3; color:#854d0e; }
         .exp-record-badge.default      { background:#f3f4f6; color:#6b7280; }
-        body.dark .exp-record-badge.EmUso     { background:rgba(22,101,52,.3);  color:#4ade80; }
-        body.dark .exp-record-badge.EmEstoque { background:rgba(30,64,175,.3);  color:#93c5fd; }
-        body.dark .exp-record-badge.Desativado{ background:rgba(75,85,99,.3);   color:#9ca3af; }
-        .exp-record-empty {
-            padding: 28px;
-            text-align: center;
-            font-size: 13px;
-            color: var(--text-muted);
-        }
+        body.dark .exp-record-badge.EmUso      { background:rgba(22,101,52,.3);  color:#4ade80; }
+        body.dark .exp-record-badge.EmEstoque  { background:rgba(30,64,175,.3);  color:#93c5fd; }
+        body.dark .exp-record-badge.Desativado { background:rgba(75,85,99,.3);   color:#9ca3af; }
+        .exp-record-empty { padding: 28px; text-align: center; font-size: 13px; color: var(--text-muted); }
+
+        /* Barra de seleção rápida (total selecionados + botões) */
         .exp-records-selbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 6px 0 8px;
-            font-size: 12px;
-            color: var(--text-muted);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 6px 0 8px; font-size: 12px; color: var(--text-muted);
         }
         .exp-records-selbar button {
-            font-size: 12px; font-weight: 600;
-            color: var(--primary-color);
+            font-size: 12px; font-weight: 600; color: var(--primary-color);
             background: none; border: none; cursor: pointer; padding: 0;
         }
         .exp-records-selbar .selbar-actions { display: flex; gap: 10px; }
-        /* ── Export step 3 — filtro por tabela ─────────────────────── */
+
+        /* Bloco de filtro por tabela (step 3) */
         .exp-filter-block {
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            margin-bottom: 12px;
-            overflow: visible;
-            background: var(--secondary-color);
+            border: 1px solid var(--border-color); border-radius: 10px;
+            margin-bottom: 12px; overflow: visible; background: var(--secondary-color);
         }
         .exp-filter-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 9px 12px;
-            cursor: pointer;
-            user-select: none;
-            border-bottom: 1px solid transparent;
-            transition: border-color 0.15s;
+            display: flex; align-items: center; gap: 8px;
+            padding: 9px 12px; cursor: pointer; user-select: none;
+            border-bottom: 1px solid transparent; transition: border-color 0.15s;
         }
         .exp-filter-header.open { border-bottom-color: var(--border-color); }
         .exp-filter-header-icon { font-size: 14px; color: var(--primary-color); width: 18px; text-align:center; }
@@ -693,47 +465,24 @@
         .exp-filter-body { display: none; padding: 12px; }
         .exp-filter-body.open { display: block; }
 
-        /* linha de seleção do campo */
-        .exp-filter-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
+        /* Linha de seleção do campo a filtrar */
+        .exp-filter-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .exp-filter-prop-select {
-            flex: 1;
-            min-width: 160px;
-            padding: 7px 10px;
-            border: 1.5px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--background-color);
-            color: var(--text-primary);
-            font-size: 13px;
-            outline: none;
-            cursor: pointer;
-            transition: border-color 0.15s;
+            flex: 1; min-width: 160px; padding: 7px 10px;
+            border: 1.5px solid var(--border-color); border-radius: 8px;
+            background: var(--background-color); color: var(--text-primary);
+            font-size: 13px; outline: none; cursor: pointer; transition: border-color 0.15s;
         }
         .exp-filter-prop-select:focus { border-color: var(--primary-color); }
 
-        /* chip de filtro ativo */
-        .exp-filter-active {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-            margin-top: 8px;
-        }
+        /* Chip de filtro ativo */
+        .exp-filter-active { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
         .exp-filter-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 3px 10px 3px 10px;
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 3px 10px;
             background: color-mix(in srgb, var(--primary-color) 12%, transparent);
-            border: 1.5px solid var(--primary-color);
-            border-radius: 99px;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--primary-color);
+            border: 1.5px solid var(--primary-color); border-radius: 99px;
+            font-size: 12px; font-weight: 600; color: var(--primary-color);
         }
         .exp-filter-chip button {
             background: none; border: none; cursor: pointer;
@@ -741,82 +490,140 @@
         }
         .exp-filter-chip button:hover { color: #ef4444; }
 
-        /* dropdown de valores (igual ao estoque) */
+        /* Dropdown de seleção de valores para filtro */
         .exp-filter-dropdown-wrap { position: relative; display: inline-block; }
         .exp-filter-value-btn {
             display: flex; align-items: center; gap: 6px;
             padding: 7px 10px;
-            border: 1.5px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--background-color);
-            color: var(--text-primary);
-            font-size: 13px;
-            cursor: pointer;
-            min-width: 200px;
-            transition: border-color 0.15s;
-            white-space: nowrap;
+            border: 1.5px solid var(--border-color); border-radius: 8px;
+            background: var(--background-color); color: var(--text-primary);
+            font-size: 13px; cursor: pointer; min-width: 200px;
+            transition: border-color 0.15s; white-space: nowrap;
         }
         .exp-filter-value-btn:hover { border-color: var(--primary-color); }
         .exp-filter-value-btn span { flex: 1; overflow: hidden; text-overflow: ellipsis; text-align: left; }
         .exp-filter-value-panel {
             display: none;
-            position: absolute;
-            top: calc(100% + 4px);
-            left: 0;
-            min-width: 270px;
-            max-width: 360px;
+            position: absolute; top: calc(100% + 4px); left: 0;
+            min-width: 270px; max-width: 360px;
             background: var(--secondary-color);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
+            border: 1px solid var(--border-color); border-radius: 10px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.14);
-            z-index: 9999;
-            overflow: hidden;
+            z-index: 9999; overflow: hidden;
         }
         .exp-filter-value-panel.open { display: block; }
         .exp-filter-value-search {
             display: flex; gap: 6px; align-items: center;
-            padding: 8px 10px;
-            border-bottom: 1px solid var(--border-color);
+            padding: 8px 10px; border-bottom: 1px solid var(--border-color);
         }
         .exp-filter-value-search input {
             flex: 1; padding: 6px 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 13px;
-            background: var(--background-color);
-            color: var(--text-primary);
-            outline: none;
+            border: 1px solid var(--border-color); border-radius: 6px;
+            font-size: 13px; background: var(--background-color);
+            color: var(--text-primary); outline: none;
         }
         .exp-filter-value-list { max-height: 200px; overflow-y: auto; padding: 6px 0; }
         .exp-filter-value-item {
-            display: flex; align-items: center; gap: 8px;
-            padding: 7px 14px;
-            cursor: pointer; font-size: 13px;
-            color: var(--text-primary);
+            display: flex; align-items: center; gap: 8px; padding: 7px 14px;
+            cursor: pointer; font-size: 13px; color: var(--text-primary);
             transition: background 0.1s;
         }
         .exp-filter-value-item:hover { background: var(--background-color); }
-        .exp-filter-value-item input[type=checkbox] {
-            accent-color: var(--primary-color);
-            width: 14px; height: 14px; cursor: pointer; flex-shrink: 0;
-        }
+        .exp-filter-value-item input[type=checkbox] { accent-color: var(--primary-color); width: 14px; height: 14px; cursor: pointer; flex-shrink: 0; }
         .exp-filter-apply-btn {
-            display: block; width: 100%;
-            padding: 8px;
+            display: block; width: 100%; padding: 8px;
             border: none; border-top: 1px solid var(--border-color);
-            background: var(--primary-color);
-            color: #fff;
-            font-size: 13px; font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.15s;
+            background: var(--primary-color); color: #fff;
+            font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.15s;
         }
         .exp-filter-apply-btn:hover { opacity: 0.88; }
+
+        /* Step 4 — botões de formato */
+        .export-format-options { display: flex; flex-direction: column; gap: 10px; }
+        .export-option-btn {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px 18px;
+            border: 1.5px solid var(--border-color); border-radius: 10px;
+            background: var(--secondary-color); cursor: pointer; transition: 0.18s;
+            text-align: left; width: 100%;
+        }
+        .export-option-btn:hover { border-color: var(--primary-color); background: var(--background-color); }
+        .export-icon { font-size: 24px; color: var(--text-muted); width: 32px; text-align: center; flex-shrink: 0; transition: 0.18s; }
+        .export-icon.csv  { color: #2e7d32; }
+        .export-icon.xlsx { color: #1565c0; }
+        .export-info { display: flex; flex-direction: column; gap: 2px; }
+        .export-info strong { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+        .export-info span   { font-size: 12px; color: var(--text-muted); }
+
+        /* Loading overlay dentro do modal de exportação */
+        .export-loading {
+            display: none; flex-direction: column; align-items: center;
+            justify-content: center; gap: 12px; padding: 40px 22px;
+            font-size: 13px; color: var(--text-muted);
+        }
+        .export-loading.show { display: flex; }
+        .export-loading i { font-size: 26px; color: var(--primary-color); animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ================================================================
+           MODAL IMPORTAR
+        ================================================================ */
+        .modal-import { max-width: 460px; }
+        .import-body { padding: 22px; display: flex; flex-direction: column; gap: 16px; }
+
+        /* Seletor de categoria de destino */
+        .import-category-select { display: flex; flex-direction: column; gap: 6px; }
+        .import-category-select label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+
+        /* Drop zone de arquivo */
+        .import-drop-zone {
+            border: 2px dashed var(--border-color); border-radius: 10px;
+            padding: 30px 20px; text-align: center;
+            cursor: pointer; transition: 0.18s; background: var(--background-color);
+        }
+        .import-drop-zone:hover,
+        .import-drop-zone.dragover {
+            border-color: var(--primary-color);
+            background: rgba(var(--primary-rgb, 99,102,241), 0.04);
+        }
+        .import-drop-zone i { font-size: 28px; color: var(--text-muted); margin-bottom: 8px; display: block; }
+        .import-drop-zone p { font-size: 13px; color: var(--text-muted); margin: 0; }
+        .import-drop-zone .file-name { font-size: 13px; font-weight: 600; color: var(--primary-color); margin-top: 6px; }
+
+        /* Barra de progresso da importação */
+        .import-progress { display: none; flex-direction: column; gap: 8px; }
+        .import-progress.show { display: flex; }
+        .progress-bar-wrap { width: 100%; height: 6px; background: var(--border-color); border-radius: 99px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--primary-color); border-radius: 99px; transition: width 0.3s; }
+        .import-status { font-size: 12px; color: var(--text-muted); }
+
+        /* Resultado da importação (sucesso ou erro) */
+        .import-result { display: none; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; }
+        .import-result.show    { display: flex; }
+        .import-result.success { background: #dcfce7; color: #166534; }
+        .import-result.error   { background: #fee2e2; color: #991b1b; }
+        body.dark .import-result.success { background: rgba(22,101,52,0.25);  color: #4ade80; }
+        body.dark .import-result.error   { background: rgba(153,27,27,0.25); color: #f87171; }
+
+        /* Dica de uso exibida no rodapé do modal */
+        .import-hint {
+            font-size: 12px; color: var(--text-muted);
+            background: var(--background-color);
+            border: 1px solid var(--border-color); border-radius: 8px;
+            padding: 10px 14px; line-height: 1.6;
+        }
+        .import-hint strong { color: var(--text-primary); }
     </style>
 </head>
 <body>
 
-    <!-- SIDEBAR -->
+    <!-- =====================================================================
+         SIDEBAR — menu lateral compartilhado por todas as telas internas
+         Navegação, busca e botão de logout.
+         Link ativo é marcado pelo JS via comparação com window.location.
+    ====================================================================== -->
     <div class="sidebar" id="sidebar">
+        <!-- Botão de recolher/expandir a sidebar -->
         <button id="toggleSidebar" class="toggle-btn">
             <i class="fa-solid fa-angles-left icon-close"></i>
             <i class="fa-solid fa-angles-right icon-open"></i>
@@ -831,7 +638,7 @@
             <i class="fa-solid fa-xmark clear-btn"></i>
         </div>
         <ul class="menu">
-            <li><a href="dashboard.html"><i class="material-icons" style="font-size:18px">dashboard</i><span>Dashboard</span></a></li>
+            <li><a href="dashboard.html"><i class="material-icons">dashboard</i><span>Dashboard</span></a></li>
             <li><a href="estoque.html"><i class="fa-solid fa-box-archive"></i><span>Inventário</span></a></li>
             <li><a href="produtos.html"><i class="fa-solid fa-tag"></i><span>Produtos</span></a></li>
             <li><a href="relatorios.html"><i class="fa-solid fa-file-lines"></i><span>Relatórios</span></a></li>
@@ -839,21 +646,26 @@
         </ul>
         <div class="sidebar-footer">
             <span>v1.0</span>
-            <a href="login.html" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
+            <!-- Logout — chama logout() de login.js que está carregado no projeto -->
+            <a id="btnLogout" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
         </div>
     </div>
 
-    <!-- MAIN -->
+    <!-- =====================================================================
+         MAIN — cabeçalho + conteúdo scrollável
+    ====================================================================== -->
     <main>
         <header>
             <h1>Configurações</h1>
             <div class="header-buttons">
                 <div class="header-user">
+                    <!-- Toggle de tema claro/escuro -->
                     <button class="theme-toggle" id="themeToggle">
                         <i class="fa-solid fa-sun icon-sun"></i>
                         <i class="fa-solid fa-moon icon-moon"></i>
                     </button>
-                    <div class="user-avatar" title="Meu Perfil" onclick="window.location.href='perfil.html'" style="cursor:pointer">U</div>
+                    <!-- Avatar com inicial do nome do usuário logado — preenchido pelo JS -->
+                    <div class="user-avatar" id="userAvatar" title="Meu Perfil">U</div>
                 </div>
             </div>
         </header>
@@ -861,30 +673,36 @@
         <div class="main">
             <div class="config-layout">
 
-                <!-- Nav lateral -->
+                <!-- =========================================================
+                     NAV LATERAL — âncoras de navegação para cada seção
+                     Os links usam scrollIntoView, vinculados pelo JS via id.
+                ========================================================== -->
                 <div class="config-nav">
                     <div class="config-nav-header">Categorias</div>
-                    <ul class="config-nav-list">
-                        <li class="active"><a onclick="scrollTo(0,0)"><i class="fa-solid fa-palette"></i> Aparência</a></li>
-                        <li><a onclick="document.getElementById('sec-notif').scrollIntoView({behavior:'smooth'})"><i class="fa-solid fa-bell"></i> Notificações</a></li>
-                        <li><a onclick="document.getElementById('sec-sistema').scrollIntoView({behavior:'smooth'})"><i class="fa-solid fa-sliders"></i> Sistema</a></li>
-                        <li><a onclick="document.getElementById('sec-seguranca').scrollIntoView({behavior:'smooth'})"><i class="fa-solid fa-shield-halved"></i> Segurança</a></li>
-                        <li><a onclick="document.getElementById('sec-dados').scrollIntoView({behavior:'smooth'})"><i class="fa-solid fa-database"></i> Dados</a></li>
-                        <li><a onclick="window.location.href='perfil.html'"><i class="fa-solid fa-user"></i> Meu Perfil</a></li>
+                    <ul class="config-nav-list" id="configNavList">
+                        <li class="active"><a id="navAparencia"><i class="fa-solid fa-palette"></i> Aparência</a></li>
+                        <li><a id="navNotif"><i class="fa-solid fa-bell"></i> Notificações</a></li>
+                        <li><a id="navSistema"><i class="fa-solid fa-sliders"></i> Sistema</a></li>
+                        <li><a id="navSeguranca"><i class="fa-solid fa-shield-halved"></i> Segurança</a></li>
+                        <li><a id="navDados"><i class="fa-solid fa-database"></i> Dados</a></li>
+                        <li><a id="navPerfil"><i class="fa-solid fa-user"></i> Meu Perfil</a></li>
                     </ul>
                 </div>
 
-                <!-- Painel -->
+                <!-- =========================================================
+                     PAINEL DE SEÇÕES
+                ========================================================== -->
                 <div class="config-panel">
 
                     <!-- APARÊNCIA -->
-                    <div class="config-section">
+                    <div class="config-section" id="sec-aparencia">
                         <div class="cs-header">
                             <div class="cs-header-icon purple"><i class="fa-solid fa-palette"></i></div>
                             <div><h3>Aparência</h3><p>Personalize a interface do sistema</p></div>
                         </div>
                         <div class="cs-body">
 
+                            <!-- Tema claro/escuro via picker -->
                             <div class="config-row">
                                 <div class="cr-info">
                                     <strong>Tema</strong>
@@ -892,12 +710,14 @@
                                 </div>
                                 <div class="cr-control">
                                     <div class="theme-picker">
-                                        <div class="theme-opt light-opt" id="themeOptLight" title="Claro" onclick="setTheme('light')">☀️</div>
-                                        <div class="theme-opt dark-opt"  id="themeOptDark"  title="Escuro" onclick="setTheme('dark')">🌙</div>
+                                        <!-- Cliques vinculados pelo JS via id -->
+                                        <div class="theme-opt light-opt" id="themeOptLight" title="Claro">☀️</div>
+                                        <div class="theme-opt dark-opt"  id="themeOptDark"  title="Escuro">🌙</div>
                                     </div>
                                 </div>
                             </div>
 
+                            <!-- Idioma da interface -->
                             <div class="config-row">
                                 <div class="cr-info">
                                     <strong>Idioma</strong>
@@ -912,6 +732,7 @@
                                 </div>
                             </div>
 
+                            <!-- Sidebar recolhida por padrão -->
                             <div class="config-row">
                                 <div class="cr-info">
                                     <strong>Sidebar recolhida por padrão</strong>
@@ -925,6 +746,7 @@
                                 </div>
                             </div>
 
+                            <!-- Animações da interface -->
                             <div class="config-row">
                                 <div class="cr-info">
                                     <strong>Animações</strong>
@@ -1049,7 +871,10 @@
                                     <span>Endpoint atual do backend</span>
                                 </div>
                                 <div class="cr-control">
-                                    <span class="status-tag tag-green"><i class="fa-solid fa-circle" style="font-size:7px"></i> localhost:5085</span>
+                                    <!-- Status estático — apenas exibição -->
+                                    <span class="status-tag tag-green">
+                                        <i class="fa-solid fa-circle" style="font-size:7px"></i> localhost:5085
+                                    </span>
                                 </div>
                             </div>
 
@@ -1133,7 +958,8 @@
                                     <span>Baixar backup de todos os registros em CSV ou Excel (.xlsx)</span>
                                 </div>
                                 <div class="cr-control">
-                                    <button class="btn btn-outline" onclick="openModal('modalExport')">
+                                    <!-- Clique vinculado pelo JS via id -->
+                                    <button class="btn btn-outline" id="btnAbrirExport">
                                         <i class="fa-solid fa-file-export"></i> Exportar
                                     </button>
                                 </div>
@@ -1145,7 +971,7 @@
                                     <span>Carregar registros a partir de um arquivo CSV ou Excel (.xlsx)</span>
                                 </div>
                                 <div class="cr-control">
-                                    <button class="btn btn-outline" onclick="openModal('modalImport')">
+                                    <button class="btn btn-outline" id="btnAbrirImport">
                                         <i class="fa-solid fa-file-import"></i> Importar
                                     </button>
                                 </div>
@@ -1157,7 +983,7 @@
                                     <span>Apagar configurações salvas neste navegador</span>
                                 </div>
                                 <div class="cr-control">
-                                    <button class="btn-danger" onclick="limparPreferencias()">
+                                    <button class="btn-danger" id="btnLimparPrefs">
                                         <i class="fa-solid fa-trash"></i> Limpar
                                     </button>
                                 </div>
@@ -1171,43 +997,274 @@
         </div>
     </main>
 
-    <!-- Strip de salvar -->
+    <!-- =====================================================================
+         SAVE STRIP — barra flutuante que aparece ao alterar qualquer config
+         Exibida via .show; botão salvar vinculado pelo JS via id.
+    ====================================================================== -->
     <div class="save-strip" id="saveStrip">
-        <span>Configurações alteradas</span>
-        <button onclick="salvarConfiguracoes()"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
+        <span id="saveStripMsg">Configurações alteradas</span>
+        <button id="btnSalvar"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
     </div>
 
+
+    <!-- =====================================================================
+         MODAL EXPORTAR — fluxo multi-step
+         Steps: 1. Tabelas → 2. Campos → 3. Registros → 4. Formato
+         Toda a lógica de navegação entre steps é frontend (configuracoes.html).
+         A busca de dados (step 3) e a geração do arquivo (step 4) são backend
+         (configuracoes.js via _carregarDadosRegistros e exportarDadosFiltrado).
+    ====================================================================== -->
+    <div class="modal-overlay" id="modalExport">
+        <div class="modal modal-export">
+
+            <!-- Cabeçalho com título e stepper de pills -->
+            <div class="modal-header" style="flex-direction:column; align-items:flex-start; gap:12px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+                    <h2><i class="fa-solid fa-file-export"></i> Exportar dados</h2>
+                    <button class="modal-close" id="btnFecharExport">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <!-- Pills de passo — estado controlado pelo JS -->
+                <div class="export-steps-header" style="padding:0; border:none;">
+                    <div class="export-step-pill active" id="expPill1">
+                        <i class="fa-solid fa-table"></i> 1. Tabelas
+                    </div>
+                    <div class="export-step-sep"></div>
+                    <div class="export-step-pill" id="expPill2">
+                        <i class="fa-solid fa-list-check"></i> 2. Campos
+                    </div>
+                    <div class="export-step-sep"></div>
+                    <div class="export-step-pill" id="expPill3">
+                        <i class="fa-solid fa-magnifying-glass-check"></i> 3. Registros
+                    </div>
+                    <div class="export-step-sep"></div>
+                    <div class="export-step-pill" id="expPill4">
+                        <i class="fa-solid fa-file-arrow-down"></i> 4. Formato
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 1 — Seleção de tabelas -->
+            <div class="export-step-body active" id="expStep1">
+                <div class="export-select-all-row">
+                    <span id="expTableCount">0 tabelas selecionadas</span>
+                    <div>
+                        <!-- Botões vinculados pelo JS via id -->
+                        <button id="btnExportSelecionarTodas">Selecionar todas</button>
+                        <button id="btnExportLimparTodas" style="margin-left:8px;">Limpar</button>
+                    </div>
+                </div>
+                <!-- Cards de tabelas gerados pelo JS -->
+                <div class="export-table-grid" id="expTableGrid"></div>
+            </div>
+
+            <!-- Step 2 — Seleção de campos por tabela -->
+            <div class="export-step-body" id="expStep2">
+                <p style="font-size:12px;color:var(--text-muted);margin:0 0 14px;">
+                    Clique nos campos para incluir ou excluir da exportação.
+                    Campos em destaque serão exportados.
+                </p>
+                <!-- Seções de chips geradas pelo JS -->
+                <div id="expFieldsContainer"></div>
+            </div>
+
+            <!-- Step 3 — Seleção de registros -->
+            <div class="export-step-body" id="expStep3">
+                <!-- Blocos de filtro por tabela — gerados pelo JS -->
+                <div id="expFiltrosContainer"></div>
+
+                <!-- Tab bar por categoria — gerada pelo JS -->
+                <div class="exp-tab-bar" id="expRecordsTabs"></div>
+
+                <!-- Toolbar: busca + contador -->
+                <div class="exp-records-toolbar">
+                    <div class="exp-records-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <!-- Input vinculado pelo JS para filtrar a lista ao digitar -->
+                        <input type="text" id="expRecordsSearch"
+                               placeholder="Buscar por código, modelo, usuário, setor…">
+                    </div>
+                    <!-- Contador preenchido pelo JS -->
+                    <span class="exp-records-count" id="expRecordsCount"></span>
+                </div>
+
+                <!-- Barra de seleção rápida -->
+                <div class="exp-records-selbar">
+                    <span id="expRecordsSelCount">0 selecionados</span>
+                    <div class="selbar-actions">
+                        <!-- Botões vinculados pelo JS via id -->
+                        <button id="btnExpSelTodos">Selecionar todos</button>
+                        <button id="btnExpLimparSel">Limpar</button>
+                    </div>
+                </div>
+
+                <!-- Lista de registros — preenchida pelo JS -->
+                <div class="exp-records-list" id="expRecordsList"></div>
+            </div>
+
+            <!-- Step 4 — Escolha do formato de exportação -->
+            <div class="export-step-body" id="expStep4">
+                <p style="font-size:12px;color:var(--text-muted);margin:0 0 14px;">
+                    Escolha o formato do arquivo gerado.
+                </p>
+                <div class="export-format-options">
+                    <!-- Cliques vinculados pelo JS via id -->
+                    <button class="export-option-btn" id="btnExportCSV">
+                        <i class="fa-solid fa-file-csv export-icon csv"></i>
+                        <div class="export-info">
+                            <strong>CSV</strong>
+                            <span>Um arquivo por tabela — compatível com qualquer planilha</span>
+                        </div>
+                    </button>
+                    <button class="export-option-btn" id="btnExportXLSX">
+                        <i class="fa-solid fa-file-excel export-icon xlsx"></i>
+                        <div class="export-info">
+                            <strong>Excel (.xlsx)</strong>
+                            <span>Um arquivo por tabela — formatado para Microsoft Excel</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Overlay de loading durante geração do arquivo -->
+            <div class="export-loading" id="expLoading">
+                <i class="fa-solid fa-circle-notch"></i>
+                <span id="expLoadingMsg">Buscando dados…</span>
+            </div>
+
+            <!-- Footer com botões de navegação entre steps -->
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="btnExportCancelar" style="font-size:13px;">
+                    <i class="fa-solid fa-xmark"></i> Cancelar
+                </button>
+                <button class="btn btn-outline" id="expBtnBack" style="font-size:13px; display:none;">
+                    <i class="fa-solid fa-chevron-left"></i> Voltar
+                </button>
+                <button class="btn btn-primary" id="expBtnNext" style="font-size:13px;">
+                    Próximo <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- =====================================================================
+         MODAL IMPORTAR
+    ====================================================================== -->
+    <div class="modal-overlay" id="modalImport">
+        <div class="modal modal-import">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-file-import"></i> Importar dados</h2>
+                <button class="modal-close" id="btnFecharImport">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="import-body">
+
+                <!-- Seleção de categoria de destino -->
+                <div class="import-category-select">
+                    <label for="importCategoria">Categoria de destino</label>
+                    <select id="importCategoria" class="cr-select" style="width:100%;">
+                        <option value="computadores">Computadores</option>
+                        <option value="celulares">Celulares</option>
+                        <option value="monitores">Monitores</option>
+                        <option value="mouses">Mouses</option>
+                        <option value="teclados">Teclados</option>
+                        <option value="fones">Fones</option>
+                        <option value="ramais">Ramais</option>
+                        <option value="chips">Chips</option>
+                        <option value="extras">Extras</option>
+                    </select>
+                </div>
+
+                <!-- Drop zone — eventos vinculados pelo JS (dragover, drop, click) -->
+                <div class="import-drop-zone" id="importDropZone">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <p>Clique ou arraste um arquivo aqui</p>
+                    <p style="font-size:11px; margin-top:4px;">CSV ou Excel (.xlsx)</p>
+                    <!-- Nome do arquivo selecionado — exibido/ocultado pelo JS -->
+                    <div class="file-name" id="importFileName" style="display:none;"></div>
+                </div>
+                <!-- Input nativo de arquivo — oculto, acionado pelo JS -->
+                <input type="file" id="importFileInput" accept=".csv,.xlsx,.xls" style="display:none;">
+
+                <!-- Barra de progresso — exibida durante o envio à API -->
+                <div class="import-progress" id="importProgress">
+                    <div class="progress-bar-wrap">
+                        <!-- Largura controlada pelo JS (0–100%) -->
+                        <div class="progress-bar-fill" id="importProgressBar" style="width:0%"></div>
+                    </div>
+                    <span class="import-status" id="importStatus">Processando…</span>
+                </div>
+
+                <!-- Resultado da importação — preenchido pelo JS -->
+                <div class="import-result" id="importResult"></div>
+
+                <!-- Dica estática para o usuário -->
+                <div class="import-hint">
+                    <strong>Dica:</strong> use a função <em>Exportar</em> para obter um arquivo modelo com as colunas corretas.
+                    A primeira linha deve ser o cabeçalho. Campos obrigatórios variam por categoria.
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="btnCancelarImport" style="font-size:13px;">
+                    <i class="fa-solid fa-xmark"></i> Cancelar
+                </button>
+                <!-- Desabilitado até um arquivo ser selecionado -->
+                <button class="btn btn-primary" id="btnConfirmarImport" disabled style="font-size:13px;">
+                    <i class="fa-solid fa-upload"></i> Importar
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- api.js — funções de comunicação com o backend (compartilhado por todas as telas) -->
     <script src="js/api.js"></script>
+
+    <!-- configuracoes.js — lógica de dados: exportação, importação e parse de arquivo -->
     <script src="js/configuracoes.js"></script>
+
     <script>
         // =====================================================================
-        // configuracoes.html — Script inline de UI
+        // SCRIPT INLINE — configuracoes.html
         //
-        // Responsabilidade: APENAS o que é visual e interativo.
-        //   - Tema (dark/light), sidebar, avatar, menu ativo
-        //   - salvarConfiguracoes / carregarConfiguracoes (localStorage)
-        //   - limparPreferencias (localStorage)
-        //   - openModal / closeModal
-        //   - fecharModalImport — reseta estado visual do modal
-        //   - Drag & drop e seleção de arquivo (feedback visual)
-        //   - processarArquivoSelecionado — valida extensão e exibe nome
-        //   - mostrarProgressoImport / atualizarProgressoImport /
-        //     mostrarResultadoImport — helpers de UI chamados por configuracoes.js
+        // Responsabilidade: APENAS código de UI/frontend desta tela.
+        //   - Tema persistente (dark/light) e picker de tema
+        //   - Sidebar: toggle, link ativo, limpar busca
+        //   - Avatar: inicial do nome do usuário logado
+        //   - Save strip: exibir, salvar e carregar configurações (localStorage)
+        //   - Navegação lateral por âncoras
+        //   - Modais: abrir, fechar, reset de estado visual
+        //   - Export multi-step: renderização das telas, navegação entre steps,
+        //     toggle de tabelas/campos, filtros e lista de registros
+        //     (a busca dos dados e a geração do arquivo ficam em configuracoes.js)
+        //   - Import: drag & drop, seleção de arquivo, validação de extensão
+        //     (o envio à API fica em configuracoes.js via confirmarImport())
         //
-        // Lógica de backend (API, parse de arquivo, exportação):
-        //   → js/configuracoes.js
+        // Dependências:
+        //   - js/configuracoes.js (EXPORT_CAMPOS, exportarDadosFiltrado,
+        //     confirmarImport, _FILTROS_DEF) — carregado antes deste script
+        //   - login.js (logout, getUsuarioLogado) — carregado antes, disponível globalmente
         // =====================================================================
 
-        // ── TEMA persistente ─────────────────────────────────────────────────
+        // ── TEMA PERSISTENTE ─────────────────────────────────────────────────
+        // Aplica o tema salvo imediatamente para evitar flash de layout.
         (function () {
-            const saved = localStorage.getItem('tl_theme') || 'light';
-            if (saved === 'dark') document.body.classList.add('dark');
+            const salvo = localStorage.getItem('tl_theme') || 'light';
+            if (salvo === 'dark') document.body.classList.add('dark');
+
             const btn = document.getElementById('themeToggle');
-            if (saved === 'light') btn.classList.add('light');
+            if (salvo === 'light') btn.classList.add('light');
+
+            // Alterna o tema ao clicar no botão do header
             btn.addEventListener('click', () => {
-                const isDark = document.body.classList.toggle('dark');
-                btn.classList.toggle('light', !isDark);
-                localStorage.setItem('tl_theme', isDark ? 'dark' : 'light');
+                const escuro = document.body.classList.toggle('dark');
+                btn.classList.toggle('light', !escuro);
+                localStorage.setItem('tl_theme', escuro ? 'dark' : 'light');
                 syncThemeOpts();
             });
         })();
@@ -1216,50 +1273,95 @@
         document.getElementById('toggleSidebar').addEventListener('click', () => {
             document.getElementById('sidebar').classList.toggle('closed');
         });
-        const currentPage = (window.location.pathname.split('/').pop() || window.location.href.split('/').pop() || '').split('?')[0] || 'dashboard.html';
+
+        // Marca o link ativo conforme a página atual
+        const paginaAtual = (window.location.pathname.split('/').pop() || 'dashboard.html').split('?')[0];
         document.querySelectorAll('.menu li a').forEach(link => {
-            if (link.getAttribute('href') === currentPage) link.parentElement.classList.add('active');
+            if (link.getAttribute('href') === paginaAtual) link.parentElement.classList.add('active');
         });
+
+        // Limpa o campo de busca da sidebar
         document.querySelector('.clear-btn')?.addEventListener('click', () => {
             document.querySelector('.search-box input').value = '';
         });
 
-        // ── AVATAR ───────────────────────────────────────────────────────────
-        const userData = JSON.parse(localStorage.getItem('tl_user') || '{}');
-        if (userData.nome) {
-            const av = document.querySelector('.user-avatar');
-            if (av) av.textContent = userData.nome.charAt(0).toUpperCase();
-        }
+        // Logout — usa a função global definida em login.js
+        document.getElementById('btnLogout').addEventListener('click', logout);
 
-        // ── OPÇÕES DE TEMA ───────────────────────────────────────────────────
-        function setTheme(mode) {
-            if (mode === 'dark') {
+        // ── AVATAR ───────────────────────────────────────────────────────────
+        // Exibe a inicial do nome do usuário logado no avatar do header.
+        // getUsuarioLogado() vem de login.js.
+        (function () {
+            const usuario = getUsuarioLogado();
+            const av = document.getElementById('userAvatar');
+            if (usuario?.nome && av) {
+                av.textContent = usuario.nome.charAt(0).toUpperCase();
+            }
+            // Clique no avatar navega para o perfil
+            if (av) av.addEventListener('click', () => { window.location.href = 'perfil.html'; });
+        })();
+
+        // ── PICKER DE TEMA (seção Aparência) ─────────────────────────────────
+        /**
+         * Aplica o tema selecionado e sincroniza todos os controles visuais.
+         * @param {'light'|'dark'} modo
+         */
+        function setTheme(modo) {
+            if (modo === 'dark') {
                 document.body.classList.add('dark');
                 document.getElementById('themeToggle').classList.remove('light');
             } else {
                 document.body.classList.remove('dark');
                 document.getElementById('themeToggle').classList.add('light');
             }
-            localStorage.setItem('tl_theme', mode);
+            localStorage.setItem('tl_theme', modo);
             syncThemeOpts();
             showSaveStrip();
         }
+
+        /** Atualiza a classe .selected nos botões do picker de tema. */
         function syncThemeOpts() {
-            const isDark = document.body.classList.contains('dark');
-            document.getElementById('themeOptLight').classList.toggle('selected', !isDark);
-            document.getElementById('themeOptDark').classList.toggle('selected', isDark);
+            const escuro = document.body.classList.contains('dark');
+            document.getElementById('themeOptLight').classList.toggle('selected', !escuro);
+            document.getElementById('themeOptDark').classList.toggle('selected',  escuro);
         }
         syncThemeOpts();
 
+        // Vincula cliques no picker de tema
+        document.getElementById('themeOptLight').addEventListener('click', () => setTheme('light'));
+        document.getElementById('themeOptDark').addEventListener('click',  () => setTheme('dark'));
+
+        // ── NAVEGAÇÃO LATERAL ────────────────────────────────────────────────
+        // Cada link da config-nav faz scroll suave até a seção correspondente.
+        document.getElementById('navAparencia').addEventListener('click', () => window.scrollTo(0, 0));
+        document.getElementById('navNotif').addEventListener('click',     () => document.getElementById('sec-notif').scrollIntoView({ behavior: 'smooth' }));
+        document.getElementById('navSistema').addEventListener('click',   () => document.getElementById('sec-sistema').scrollIntoView({ behavior: 'smooth' }));
+        document.getElementById('navSeguranca').addEventListener('click', () => document.getElementById('sec-seguranca').scrollIntoView({ behavior: 'smooth' }));
+        document.getElementById('navDados').addEventListener('click',     () => document.getElementById('sec-dados').scrollIntoView({ behavior: 'smooth' }));
+        document.getElementById('navPerfil').addEventListener('click',    () => { window.location.href = 'perfil.html'; });
+
         // ── SAVE STRIP ───────────────────────────────────────────────────────
+
+        /** Exibe a strip de "salvar configurações" no rodapé da tela. */
         function showSaveStrip() {
             document.getElementById('saveStrip').classList.add('show');
         }
+
+        // Qualquer mudança nos toggles ou selects aciona a strip
         document.querySelectorAll('input[type=checkbox], select.cr-select').forEach(el => {
             el.addEventListener('change', showSaveStrip);
         });
 
-        // ── SALVAR configurações no localStorage ─────────────────────────────
+        // Botão "Salvar" da strip
+        document.getElementById('btnSalvar').addEventListener('click', salvarConfiguracoes);
+
+        // Botão "Limpar preferências"
+        document.getElementById('btnLimparPrefs').addEventListener('click', limparPreferencias);
+
+        /**
+         * Persiste todas as configurações no localStorage (tl_config).
+         * Ao salvar com sucesso, a strip exibe "Salvo!" por 1,5 s.
+         */
         function salvarConfiguracoes() {
             const cfg = {
                 idioma:        document.getElementById('cfgIdioma').value,
@@ -1277,33 +1379,40 @@
             };
             localStorage.setItem('tl_config', JSON.stringify(cfg));
 
-            const strip = document.getElementById('saveStrip');
-            strip.classList.remove('show');
-            strip.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#4ade80"></i> Salvo!';
+            // Feedback visual de sucesso na strip
+            const strip   = document.getElementById('saveStrip');
+            const msgEl   = document.getElementById('saveStripMsg');
+            msgEl.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#4ade80"></i> Salvo!';
             setTimeout(() => {
                 strip.classList.remove('show');
-                strip.innerHTML = '<span>Configurações alteradas</span><button onclick="salvarConfiguracoes()"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>';
+                msgEl.textContent = 'Configurações alteradas';
             }, 1500);
         }
 
-        // ── CARREGAR configurações do localStorage ────────────────────────────
+        /**
+         * Carrega as configurações salvas do localStorage e aplica nos controles.
+         * Chamada no DOMContentLoaded (ao final deste script).
+         */
         function carregarConfiguracoes() {
             const cfg = JSON.parse(localStorage.getItem('tl_config') || '{}');
-            if (cfg.idioma)                      document.getElementById('cfgIdioma').value        = cfg.idioma;
-            if (cfg.sidebarClosed !== undefined)  document.getElementById('cfgSidebarClosed').checked = cfg.sidebarClosed;
-            if (cfg.animacoes     !== undefined)  document.getElementById('cfgAnimacoes').checked     = cfg.animacoes;
-            if (cfg.alertaEstoque !== undefined)  document.getElementById('cfgAlertaEstoque').checked = cfg.alertaEstoque;
-            if (cfg.alertaPedidos !== undefined)  document.getElementById('cfgAlertaPedidos').checked = cfg.alertaPedidos;
-            if (cfg.emailNotif    !== undefined)  document.getElementById('cfgEmailNotif').checked    = cfg.emailNotif;
-            if (cfg.freqEmail)                    document.getElementById('cfgFreqEmail').value        = cfg.freqEmail;
-            if (cfg.itensPagina)                  document.getElementById('cfgItensPagina').value      = cfg.itensPagina;
-            if (cfg.formatoData)                  document.getElementById('cfgFormatoData').value      = cfg.formatoData;
-            if (cfg.sessao)                       document.getElementById('cfgSessao').value           = cfg.sessao;
-            if (cfg.fa2 !== undefined)            document.getElementById('cfg2FA').checked            = cfg.fa2;
-            if (cfg.log !== undefined)            document.getElementById('cfgLog').checked             = cfg.log;
+            if (cfg.idioma)                      document.getElementById('cfgIdioma').value             = cfg.idioma;
+            if (cfg.sidebarClosed !== undefined)  document.getElementById('cfgSidebarClosed').checked   = cfg.sidebarClosed;
+            if (cfg.animacoes     !== undefined)  document.getElementById('cfgAnimacoes').checked        = cfg.animacoes;
+            if (cfg.alertaEstoque !== undefined)  document.getElementById('cfgAlertaEstoque').checked    = cfg.alertaEstoque;
+            if (cfg.alertaPedidos !== undefined)  document.getElementById('cfgAlertaPedidos').checked    = cfg.alertaPedidos;
+            if (cfg.emailNotif    !== undefined)  document.getElementById('cfgEmailNotif').checked       = cfg.emailNotif;
+            if (cfg.freqEmail)                    document.getElementById('cfgFreqEmail').value           = cfg.freqEmail;
+            if (cfg.itensPagina)                  document.getElementById('cfgItensPagina').value         = cfg.itensPagina;
+            if (cfg.formatoData)                  document.getElementById('cfgFormatoData').value         = cfg.formatoData;
+            if (cfg.sessao)                       document.getElementById('cfgSessao').value              = cfg.sessao;
+            if (cfg.fa2 !== undefined)            document.getElementById('cfg2FA').checked               = cfg.fa2;
+            if (cfg.log !== undefined)            document.getElementById('cfgLog').checked                = cfg.log;
         }
 
-        // ── LIMPAR preferências locais ────────────────────────────────────────
+        /**
+         * Apaga tl_config e tl_theme do localStorage e recarrega a página.
+         * Exibe confirmação antes de prosseguir.
+         */
         function limparPreferencias() {
             if (!confirm('Tem certeza? Isso vai apagar as configurações e preferências salvas neste navegador.')) return;
             localStorage.removeItem('tl_config');
@@ -1311,23 +1420,48 @@
             location.reload();
         }
 
-        // ── MODAIS ────────────────────────────────────────────────────────────
+        // ── MODAIS — abrir / fechar ───────────────────────────────────────────
+
+        /** Fecha qualquer modal pelo seu id. */
         function closeModal(id) {
-            document.getElementById(id).classList.remove('open');
+            document.getElementById(id)?.classList.remove('open');
         }
 
-        // openModal intercepta o modal de exportação para iniciar o fluxo multi-step
-        function openModal(id) {
-            if (id === 'modalExport') { abrirModalExport(); return; }
-            document.getElementById(id).classList.add('open');
-        }
+        // Botões de abertura dos modais
+        document.getElementById('btnAbrirExport').addEventListener('click', abrirModalExport);
+        document.getElementById('btnAbrirImport').addEventListener('click', () => {
+            document.getElementById('modalImport').classList.add('open');
+        });
 
-        // ── EXPORT multi-step ─────────────────────────────────────────────────
+        // Botões de fechamento
+        document.getElementById('btnFecharExport').addEventListener('click', fecharModalExport);
+        document.getElementById('btnExportCancelar').addEventListener('click', fecharModalExport);
+        document.getElementById('btnFecharImport').addEventListener('click', fecharModalImport);
+        document.getElementById('btnCancelarImport').addEventListener('click', fecharModalImport);
+
+        // Fecha o modal ao clicar fora do painel (no overlay)
+        document.getElementById('modalExport').addEventListener('click', e => {
+            if (e.target === document.getElementById('modalExport')) fecharModalExport();
+        });
+        document.getElementById('modalImport').addEventListener('click', e => {
+            if (e.target === document.getElementById('modalImport')) fecharModalImport();
+        });
+
+        // ── EXPORT MULTI-STEP — estado e controle de navegação ───────────────
+
+        /**
+         * Estado atual do fluxo de exportação.
+         * _exportCurrentStep : passo visível (1–4)
+         * _expCache          : { key: { dados: [], selecionados: Set<id> } }
+         * _expTabAtiva       : key da tab ativa no step 3
+         * _expFiltros        : { key: { prop, values: [] } | null }
+         */
         let _exportCurrentStep = 1;
-        let _expCache    = {};   // { key: { dados: [...], selecionados: Set<id> } }
+        let _expCache    = {};
         let _expTabAtiva = null;
-        let _expFiltros  = {};   // { key: { prop, values: [] } | null }
+        let _expFiltros  = {};
 
+        /** Abre o modal de exportação e reinicia o fluxo do zero. */
         function abrirModalExport() {
             _exportCurrentStep = 1;
             _expCache    = {};
@@ -1339,31 +1473,61 @@
             document.getElementById('modalExport').classList.add('open');
         }
 
+        /** Fecha o modal de exportação. */
         function fecharModalExport() {
             document.getElementById('modalExport').classList.remove('open');
         }
 
+        // Botões de navegação entre steps
+        document.getElementById('expBtnNext').addEventListener('click', () => exportStep(1));
+        document.getElementById('expBtnBack').addEventListener('click', () => exportStep(-1));
+
+        // Botões de formato (step 4) — chamam a função de backend
+        document.getElementById('btnExportCSV').addEventListener('click',  () => executarExportacao('csv'));
+        document.getElementById('btnExportXLSX').addEventListener('click', () => executarExportacao('xlsx'));
+
+        // Botões de seleção global no step 3
+        document.getElementById('btnExpSelTodos').addEventListener('click', () => expSelecionarTodos(true));
+        document.getElementById('btnExpLimparSel').addEventListener('click', () => expSelecionarTodos(false));
+
+        // Busca em tempo real no step 3
+        document.getElementById('expRecordsSearch').addEventListener('input', expFiltrarRegistros);
+
+        /**
+         * Avança ou recua entre os steps do fluxo de exportação.
+         * Valida pré-condições antes de avançar:
+         *   - step 2: exige ao menos uma tabela selecionada
+         *   - step 3: carrega os dados da API via configuracoes.js
+         * @param {1|-1} dir direção de navegação
+         */
         async function exportStep(dir) {
-            const next = _exportCurrentStep + dir;
-            if (next < 1 || next > 4) return;
-            if (next === 2) {
+            const proximo = _exportCurrentStep + dir;
+            if (proximo < 1 || proximo > 4) return;
+
+            if (proximo === 2) {
                 if (!EXPORT_CAMPOS.some(c => c.selected)) {
                     alert('Selecione ao menos uma tabela.');
                     return;
                 }
                 _renderExportFields();
             }
-            if (next === 3) await _carregarDadosRegistros();
-            _goExportStep(next);
+            // _carregarDadosRegistros() é definida abaixo — busca dados via api.js
+            if (proximo === 3) await _carregarDadosRegistros();
+            _goExportStep(proximo);
         }
 
+        /**
+         * Aplica a transição visual para o step indicado.
+         * Atualiza pills, bodies ativos e visibilidade dos botões de navegação.
+         * @param {number} n step de destino (1–4)
+         */
         function _goExportStep(n) {
             _exportCurrentStep = n;
-            [1,2,3,4].forEach(i => {
+            [1, 2, 3, 4].forEach(i => {
                 document.getElementById(`expStep${i}`).classList.toggle('active', i === n);
                 const pill = document.getElementById(`expPill${i}`);
                 pill.classList.toggle('active', i === n);
-                pill.classList.toggle('done',   i < n);
+                pill.classList.toggle('done',   i <  n);
             });
             document.getElementById('expBtnBack').style.display  = n > 1 ? '' : 'none';
             document.getElementById('expBtnNext').style.display  = n < 4 ? '' : 'none';
@@ -1373,12 +1537,18 @@
         }
 
         // ── Step 1: tabelas ───────────────────────────────────────────────────
+
+        /**
+         * Renderiza os cards de seleção de tabelas no step 1.
+         * Usa EXPORT_CAMPOS definido em configuracoes.js.
+         */
         function _renderExportTables() {
             const grid = document.getElementById('expTableGrid');
             grid.innerHTML = '';
             EXPORT_CAMPOS.forEach(cat => {
                 const card = document.createElement('label');
                 card.className = 'export-table-card' + (cat.selected ? ' selected' : '');
+                // Checkbox com evento inline necessário pois é criado dinamicamente
                 card.innerHTML = `
                     <input type="checkbox" ${cat.selected ? 'checked' : ''}
                            onchange="exportToggleTable('${cat.key}', this.checked)">
@@ -1389,6 +1559,7 @@
             _updateExportTableCount();
         }
 
+        /** Alterna seleção de uma tabela e atualiza o estado visual dos cards. */
         function exportToggleTable(key, checked) {
             EXPORT_CAMPOS.find(c => c.key === key).selected = checked;
             document.querySelectorAll('.export-table-card').forEach(card => {
@@ -1398,11 +1569,16 @@
             _updateExportTableCount();
         }
 
+        /** Seleciona ou desmarca todas as tabelas. */
         function exportSelectAll(v) {
             EXPORT_CAMPOS.forEach(c => c.selected = v);
             _renderExportTables();
         }
 
+        document.getElementById('btnExportSelecionarTodas').addEventListener('click', () => exportSelectAll(true));
+        document.getElementById('btnExportLimparTodas').addEventListener('click',     () => exportSelectAll(false));
+
+        /** Atualiza o contador de tabelas selecionadas e desativa "Próximo" se zero. */
         function _updateExportTableCount() {
             const n = EXPORT_CAMPOS.filter(c => c.selected).length;
             document.getElementById('expTableCount').textContent =
@@ -1412,6 +1588,11 @@
         }
 
         // ── Step 2: campos ────────────────────────────────────────────────────
+
+        /**
+         * Renderiza as seções de chips de campos para cada tabela selecionada.
+         * Cada chip representa um campo exportável, clicável para incluir/excluir.
+         */
         function _renderExportFields() {
             const container = document.getElementById('expFieldsContainer');
             container.innerHTML = '';
@@ -1441,6 +1622,7 @@
             });
         }
 
+        /** Renderiza os chips de campos de uma categoria. */
         function _renderChips(cat) {
             const chips = document.getElementById(`expChips_${cat.key}`);
             if (!chips) return;
@@ -1454,45 +1636,56 @@
                     chip.className = 'export-field-chip' + (campo.selected ? ' selected' : '');
                     chip.innerHTML = campo.selected ? `<i class="fa-solid fa-check"></i> ${campo.label}` : campo.label;
                     const cnt = document.getElementById(`expFieldCount_${cat.key}`);
-                    if (cnt) cnt.textContent = `(${cat.campos.filter(f=>f.selected).length}/${cat.campos.length})`;
+                    if (cnt) cnt.textContent = `(${cat.campos.filter(f => f.selected).length}/${cat.campos.length})`;
                 };
                 chips.appendChild(chip);
             });
         }
 
+        /** Seleciona ou desmarca todos os campos de uma categoria. */
         function exportToggleAllFields(key, v) {
             const cat = EXPORT_CAMPOS.find(c => c.key === key);
             if (!cat) return;
             cat.campos.forEach(f => f.selected = v);
             _renderChips(cat);
             const cnt = document.getElementById(`expFieldCount_${cat.key}`);
-            if (cnt) cnt.textContent = `(${cat.campos.filter(f=>f.selected).length}/${cat.campos.length})`;
+            if (cnt) cnt.textContent = `(${cat.campos.filter(f => f.selected).length}/${cat.campos.length})`;
         }
 
+        /** Recolhe/expande a seção de chips ao clicar no cabeçalho. */
         function exportToggleSectionCollapse(header) {
-            const chips = header.nextElementSibling;
-            const icon  = header.querySelector('.sect-toggle');
-            const collapsed = chips.style.display === 'none';
-            chips.style.display = collapsed ? '' : 'none';
-            icon.className = `fa-solid fa-chevron-${collapsed ? 'up' : 'down'} sect-toggle`;
+            const chips     = header.nextElementSibling;
+            const icon      = header.querySelector('.sect-toggle');
+            const recolhido = chips.style.display === 'none';
+            chips.style.display = recolhido ? '' : 'none';
+            icon.className = `fa-solid fa-chevron-${recolhido ? 'up' : 'down'} sect-toggle`;
         }
 
-        // ── Step 3: registros ─────────────────────────────────────────────────
+        // ── Step 3: registros — busca de dados (parte que depende da API) ─────
 
+        /** Extrai um label legível de um registro para exibição na lista. */
         function _expItemLabel(item) {
             return item.codigo || item.numero || item.descricao || item.id || '(sem código)';
         }
+        /** Extrai a sublinha descritiva do registro (modelo, usuário, setor…). */
         function _expItemSub(item) {
-            const parts = [];
-            if (item.modelo)    parts.push(item.modelo);
-            if (item.operadora) parts.push(item.operadora);
-            if (item.usuario)   parts.push(item.usuario);
-            if (item.setor)     parts.push(item.setor);
-            return parts.join(' · ') || '';
+            const partes = [];
+            if (item.modelo)    partes.push(item.modelo);
+            if (item.operadora) partes.push(item.operadora);
+            if (item.usuario)   partes.push(item.usuario);
+            if (item.setor)     partes.push(item.setor);
+            return partes.join(' · ') || '';
         }
 
+        /**
+         * Busca os dados de todas as tabelas selecionadas via API (configuracoes.js / api.js)
+         * e popula _expCache, _expFiltros, as tabs e a lista de registros.
+         *
+         * Chamada por exportStep() ao avançar para o step 3.
+         * As funções de API (request) vêm de api.js.
+         * O mapeamento de categorias e funções fn() vêm de EXPORT_CAMPOS (configuracoes.js).
+         */
         async function _carregarDadosRegistros() {
-            // Mostra loading nos containers existentes sem sobrescrever o step inteiro
             document.getElementById('expFiltrosContainer').innerHTML = '';
             document.getElementById('expRecordsTabs').innerHTML      = '';
             document.getElementById('expRecordsList').innerHTML      =
@@ -1501,6 +1694,7 @@
             document.getElementById('expBtnNext').disabled = true;
 
             const selecionadas = EXPORT_CAMPOS.filter(c => c.selected);
+            // Chama a fn() de cada categoria — definida em configuracoes.js, usa api.js internamente
             const resultados   = await Promise.allSettled(selecionadas.map(c => c.fn()));
 
             _expCache   = {};
@@ -1511,17 +1705,16 @@
                 _expFiltros[cat.key] = null;
             });
 
-            // Popula filtros
             _expRenderFiltros(selecionadas);
 
-            // Popula tabs
+            // Tabs por categoria
             const tabBar = document.getElementById('expRecordsTabs');
             selecionadas.forEach((cat, i) => {
-                const btn = document.createElement('button');
+                const btn     = document.createElement('button');
                 btn.className = 'exp-tab-btn' + (i === 0 ? ' active' : '');
                 btn.id        = `expTab_${cat.key}`;
                 btn.innerHTML = `<i class="${cat.icon}"></i> ${cat.label} <span class="badge">${_expCache[cat.key].dados.length}</span>`;
-                btn.onclick   = () => expMudarTab(cat.key);
+                btn.addEventListener('click', () => expMudarTab(cat.key));
                 tabBar.appendChild(btn);
             });
 
@@ -1531,101 +1724,13 @@
             _expAtualizarSelCount();
         }
 
-        // ── Filtros por tabela ────────────────────────────────────────────────
+        // ── Step 3: filtros por tabela ────────────────────────────────────────
 
-        // Mapa de campos filtráveis por categoria (key da API + label)
-        const _FILTROS_DEF = {
-            computadores: [
-                { key: 'codigo',        label: 'Código'           },
-                { key: 'usuario',       label: 'Usuário'          },
-                { key: 'setor',         label: 'Setor'            },
-                { key: 'status',        label: 'Status'           },
-                { key: 'modelo',        label: 'Modelo'           },
-                { key: 'tipo',          label: 'Tipo'             },
-                { key: 'sistemaOperacional', label: 'Sistema Op.' },
-                { key: 'ativo',         label: 'Ativo'            },
-                { key: 'ip',            label: 'IP'               },
-            ],
-            celulares: [
-                { key: 'codigo',    label: 'Código'    },
-                { key: 'usuario',   label: 'Usuário'   },
-                { key: 'setor',     label: 'Setor'     },
-                { key: 'status',    label: 'Status'    },
-                { key: 'modelo',    label: 'Modelo'    },
-                { key: 'operadora', label: 'Operadora' },
-                { key: 'ativo',     label: 'Ativo'     },
-            ],
-            monitores: [
-                { key: 'codigo',    label: 'Código'    },
-                { key: 'usuario',   label: 'Usuário'   },
-                { key: 'setor',     label: 'Setor'     },
-                { key: 'status',    label: 'Status'    },
-                { key: 'modelo',    label: 'Modelo'    },
-                { key: 'resolucao', label: 'Resolução' },
-                { key: 'ativo',     label: 'Ativo'     },
-            ],
-            mouses: [
-                { key: 'codigo', label: 'Código' },
-                { key: 'usuario',label: 'Usuário'},
-                { key: 'setor',  label: 'Setor'  },
-                { key: 'status', label: 'Status' },
-                { key: 'modelo', label: 'Modelo' },
-                { key: 'tipo',   label: 'Tipo'   },
-                { key: 'ativo',  label: 'Ativo'  },
-            ],
-            teclados: [
-                { key: 'codigo', label: 'Código' },
-                { key: 'usuario',label: 'Usuário'},
-                { key: 'setor',  label: 'Setor'  },
-                { key: 'status', label: 'Status' },
-                { key: 'modelo', label: 'Modelo' },
-                { key: 'tipo',   label: 'Tipo'   },
-                { key: 'ativo',  label: 'Ativo'  },
-            ],
-            fones: [
-                { key: 'codigo', label: 'Código' },
-                { key: 'usuario',label: 'Usuário'},
-                { key: 'setor',  label: 'Setor'  },
-                { key: 'status', label: 'Status' },
-                { key: 'modelo', label: 'Modelo' },
-                { key: 'tipo',   label: 'Tipo'   },
-                { key: 'ativo',  label: 'Ativo'  },
-            ],
-            ramais: [
-                { key: 'codigo',label: 'Código'  },
-                { key: 'setor', label: 'Setor'   },
-                { key: 'status',label: 'Status'  },
-                { key: 'modelo',label: 'Modelo'  },
-                { key: 'linha', label: 'Linha'   },
-                { key: 'numero',label: 'Número'  },
-                { key: 'ativo', label: 'Ativo'   },
-            ],
-            chips: [
-                { key: 'codigo',    label: 'Código'    },
-                { key: 'operadora', label: 'Operadora' },
-                { key: 'numero',    label: 'Número'    },
-                { key: 'dono',      label: 'Dono'      },
-                { key: 'status',    label: 'Status'    },
-                { key: 'ativo',     label: 'Ativo'     },
-            ],
-            chips: [
-                { key: 'codigo',    label: 'Código'    },
-                { key: 'operadora', label: 'Operadora' },
-                { key: 'numero',    label: 'Número'    },
-                { key: 'dono',      label: 'Dono'      },
-                { key: 'status',    label: 'Status'    },
-                { key: 'ativo',     label: 'Ativo'     },
-            ],
-            extras: [
-                { key: 'codigo',    label: 'Código'    },
-                { key: 'usuario',   label: 'Usuário'   },
-                { key: 'setor',     label: 'Setor'     },
-                { key: 'status',    label: 'Status'    },
-                { key: 'categoria', label: 'Categoria' },
-                { key: 'ativo',     label: 'Ativo'     },
-            ],
-        };
-
+        /**
+         * Renderiza os blocos de filtro (um por tabela selecionada).
+         * Os campos disponíveis para filtro vêm de _FILTROS_DEF (configuracoes.js).
+         * @param {Array} selecionadas lista de categorias selecionadas
+         */
         function _expRenderFiltros(selecionadas) {
             const container = document.getElementById('expFiltrosContainer');
             if (!container) return;
@@ -1639,7 +1744,7 @@
                 const defs = _FILTROS_DEF[cat.key] || [];
 
                 block.innerHTML = `
-                    <div class="exp-filter-header" onclick="expToggleFiltroBlock('${cat.key}')">
+                    <div class="exp-filter-header" id="expFilterHeader_${cat.key}">
                         <i class="${cat.icon} exp-filter-header-icon"></i>
                         <strong>Filtrar ${cat.label}</strong>
                         <span class="exp-filter-active-label" id="expFiltroLabel_${cat.key}"
@@ -1648,8 +1753,7 @@
                     </div>
                     <div class="exp-filter-body" id="expFilterBody_${cat.key}">
                         <div class="exp-filter-row">
-                            <select class="exp-filter-prop-select" id="expFilterProp_${cat.key}"
-                                    onchange="expFiltroAtualizarDropdown('${cat.key}')">
+                            <select class="exp-filter-prop-select" id="expFilterProp_${cat.key}">
                                 <option value="">— Escolha um campo —</option>
                                 ${defs.map(d => `<option value="${d.key}">${d.label}</option>`).join('')}
                             </select>
@@ -1659,29 +1763,42 @@
                     </div>`;
 
                 container.appendChild(block);
+
+                // Vincula toggle do bloco
+                document.getElementById(`expFilterHeader_${cat.key}`)
+                    .addEventListener('click', () => expToggleFiltroBlock(cat.key));
+
+                // Vincula mudança de campo do filtro
+                document.getElementById(`expFilterProp_${cat.key}`)
+                    .addEventListener('change', () => expFiltroAtualizarDropdown(cat.key));
             });
         }
 
+        /** Abre/fecha o bloco de filtro de uma categoria. */
         function expToggleFiltroBlock(key) {
             const body   = document.getElementById(`expFilterBody_${key}`);
             const header = document.getElementById(`expFilterBlock_${key}`).querySelector('.exp-filter-header');
             const icon   = header.querySelector('.toggle-icon');
-            const open   = body.classList.toggle('open');
-            header.classList.toggle('open', open);
-            icon.className = `fa-solid fa-chevron-${open ? 'up' : 'down'} toggle-icon`;
+            const aberto = body.classList.toggle('open');
+            header.classList.toggle('open', aberto);
+            icon.className = `fa-solid fa-chevron-${aberto ? 'up' : 'down'} toggle-icon`;
         }
 
-        // Quando o usuário escolhe um campo — monta o dropdown de valores
+        /**
+         * Ao escolher um campo no select de filtro, monta o dropdown de valores únicos.
+         * Os valores são extraídos dos dados já em cache (_expCache).
+         * @param {string} catKey key da categoria
+         */
         function expFiltroAtualizarDropdown(catKey) {
-            const wrap  = document.getElementById(`expFilterWrap_${catKey}`);
-            const prop  = document.getElementById(`expFilterProp_${catKey}`).value;
+            const wrap = document.getElementById(`expFilterWrap_${catKey}`);
+            const prop = document.getElementById(`expFilterProp_${catKey}`).value;
             wrap.innerHTML = '';
             if (!prop) return;
 
             const cache = _expCache[catKey];
             if (!cache) return;
 
-            // Valores únicos desse campo nos dados já carregados
+            // Valores únicos do campo nos dados carregados
             const unicos = [...new Set(
                 cache.dados
                     .map(d => d[prop])
@@ -1689,10 +1806,10 @@
                     .map(v => String(v))
             )].sort();
 
-            // Estado de seleção temporária
+            // Estado de seleção temporária para este dropdown
             let selecionados = new Set();
 
-            // ── Estrutura do dropdown ───────────────────────
+            // ── Monta a estrutura do dropdown ──
             const wrapDiv = document.createElement('div');
             wrapDiv.className = 'exp-filter-dropdown-wrap';
             wrapDiv.style.position = 'relative';
@@ -1700,41 +1817,40 @@
             const trigger = document.createElement('button');
             trigger.type = 'button';
             trigger.className = 'exp-filter-value-btn';
-            trigger.innerHTML = '<span id="expFiltroTriggerLabel_' + catKey + '">— Selecione valores —</span><i class="fa-solid fa-chevron-down" style="font-size:11px;color:var(--text-muted);"></i>';
+            trigger.innerHTML = `<span id="expFiltroTriggerLabel_${catKey}">— Selecione valores —</span><i class="fa-solid fa-chevron-down" style="font-size:11px;color:var(--text-muted);"></i>`;
 
             const panel = document.createElement('div');
             panel.className = 'exp-filter-value-panel';
             panel.id = `expFilterPanel_${catKey}`;
 
-            // Busca
-            const searchWrap = document.createElement('div');
+            // Campo de busca dentro do dropdown
+            const searchWrap  = document.createElement('div');
             searchWrap.className = 'exp-filter-value-search';
             const searchInput = document.createElement('input');
-            searchInput.type = 'text';
+            searchInput.type        = 'text';
             searchInput.placeholder = 'Pesquisar…';
             searchWrap.appendChild(searchInput);
             panel.appendChild(searchWrap);
 
-            // Lista
             const listEl = document.createElement('div');
             listEl.className = 'exp-filter-value-list';
             panel.appendChild(listEl);
 
-            // Botão aplicar
+            // Botão "Aplicar filtro"
             const applyBtn = document.createElement('button');
-            applyBtn.type = 'button';
+            applyBtn.type      = 'button';
             applyBtn.className = 'exp-filter-apply-btn';
             applyBtn.textContent = 'Aplicar filtro';
-            applyBtn.onclick = (e) => {
+            applyBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const defs = _FILTROS_DEF[catKey] || [];
                 const def  = defs.find(d => d.key === prop);
                 _expAplicarFiltro(catKey, prop, def?.label || prop, [...selecionados]);
                 panel.classList.remove('open');
-            };
+            });
             panel.appendChild(applyBtn);
 
-            // Fecha ao clicar fora
+            // Fecha o dropdown ao clicar fora
             document.addEventListener('click', function fecharPanel(e) {
                 if (!wrapDiv.contains(e.target)) {
                     panel.classList.remove('open');
@@ -1742,6 +1858,7 @@
                 }
             });
 
+            // Renderiza os itens da lista (com filtragem por busca)
             const renderItens = (filtro = '') => {
                 listEl.innerHTML = '';
                 const filtrados = filtro
@@ -1757,8 +1874,8 @@
                     const row = document.createElement('label');
                     row.className = 'exp-filter-value-item';
                     const cb = document.createElement('input');
-                    cb.type = 'checkbox';
-                    cb.value = val;
+                    cb.type    = 'checkbox';
+                    cb.value   = val;
                     cb.checked = selecionados.has(val);
                     cb.addEventListener('change', (e) => {
                         e.stopPropagation();
@@ -1778,16 +1895,18 @@
             searchInput.addEventListener('input', () => renderItens(searchInput.value));
             renderItens();
 
-            trigger.onclick = (e) => {
+            // Abre/fecha o painel ao clicar no trigger
+            trigger.addEventListener('click', (e) => {
                 e.stopPropagation();
                 panel.classList.toggle('open');
-            };
+            });
 
             wrapDiv.appendChild(trigger);
             wrapDiv.appendChild(panel);
             wrap.appendChild(wrapDiv);
         }
 
+        /** Atualiza o label do trigger com quantos valores estão selecionados. */
         function _expAtualizarTriggerLabel(catKey, selecionados) {
             const el = document.getElementById(`expFiltroTriggerLabel_${catKey}`);
             if (!el) return;
@@ -1796,39 +1915,41 @@
             else el.textContent = `${selecionados.size} valores selecionados`;
         }
 
+        /**
+         * Aplica o filtro selecionado e re-renderiza a lista.
+         * Se nenhum valor foi escolhido, limpa o filtro.
+         */
         function _expAplicarFiltro(catKey, prop, propLabel, valores) {
-            if (!valores.length) {
-                expLimparFiltro(catKey);
-                return;
-            }
+            if (!valores.length) { expLimparFiltro(catKey); return; }
 
             _expFiltros[catKey] = { prop, values: valores };
 
-            // Chip de filtro ativo
+            // Exibe chip de filtro ativo
             const chipsEl = document.getElementById(`expFilterChips_${catKey}`);
             const labelEl = document.getElementById(`expFiltroLabel_${catKey}`);
             if (chipsEl) {
                 chipsEl.innerHTML = `
                     <div class="exp-filter-chip">
                         <i class="fa-solid fa-filter" style="font-size:10px;"></i>
-                        <span>${propLabel}: ${valores.length <= 2 ? valores.join(', ') : valores.slice(0,2).join(', ') + ` +${valores.length-2}`}</span>
-                        <button onclick="expLimparFiltro('${catKey}')" title="Remover filtro">
+                        <span>${propLabel}: ${valores.length <= 2 ? valores.join(', ') : valores.slice(0, 2).join(', ') + ` +${valores.length - 2}`}</span>
+                        <button id="btnLimparFiltro_${catKey}" title="Remover filtro">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>`;
+                document.getElementById(`btnLimparFiltro_${catKey}`)
+                    ?.addEventListener('click', () => expLimparFiltro(catKey));
             }
             if (labelEl) labelEl.textContent = `${propLabel}: ${valores.length} valor(es)`;
-
             expRenderizarLista();
         }
 
+        /** Remove o filtro ativo de uma categoria e re-renderiza a lista. */
         function expLimparFiltro(catKey) {
             _expFiltros[catKey] = null;
             const chipsEl = document.getElementById(`expFilterChips_${catKey}`);
             const labelEl = document.getElementById(`expFiltroLabel_${catKey}`);
             if (chipsEl) chipsEl.innerHTML = '';
             if (labelEl) labelEl.textContent = 'Sem filtro';
-            // Reseta o select e dropdown
             const propSel = document.getElementById(`expFilterProp_${catKey}`);
             if (propSel) propSel.value = '';
             const wrap = document.getElementById(`expFilterWrap_${catKey}`);
@@ -1836,8 +1957,9 @@
             expRenderizarLista();
         }
 
-        // ── Tabs e lista ──────────────────────────────────────────────────────
+        // ── Step 3: tabs e lista de registros ─────────────────────────────────
 
+        /** Muda a tab ativa no step 3 e re-renderiza a lista. */
         function expMudarTab(key) {
             _expTabAtiva = key;
             document.querySelectorAll('.exp-tab-btn').forEach(b =>
@@ -1847,6 +1969,10 @@
             expRenderizarLista();
         }
 
+        /**
+         * Renderiza a lista de registros da tab ativa,
+         * aplicando filtro de campo e busca de texto se ativos.
+         */
         function expRenderizarLista() {
             const list  = document.getElementById('expRecordsList');
             const cache = _expCache[_expTabAtiva];
@@ -1854,15 +1980,11 @@
 
             const termo  = (document.getElementById('expRecordsSearch')?.value || '').toLowerCase().trim();
             const filtro = _expFiltros[_expTabAtiva];
+            let dados    = cache.dados;
 
-            let dados = cache.dados;
-
-            // Aplica filtro de campo se ativo
-            if (filtro && filtro.values.length) {
-                dados = dados.filter(item => {
-                    const v = String(item[filtro.prop] ?? '');
-                    return filtro.values.includes(v);
-                });
+            // Aplica filtro de campo
+            if (filtro?.values?.length) {
+                dados = dados.filter(item => filtro.values.includes(String(item[filtro.prop] ?? '')));
             }
 
             // Aplica busca de texto
@@ -1877,11 +1999,12 @@
                 });
             }
 
+            // Contador
             const countEl = document.getElementById('expRecordsCount');
             if (countEl) {
                 const total = cache.dados.length;
                 const vis   = dados.length;
-                countEl.innerHTML = (vis < total)
+                countEl.innerHTML = vis < total
                     ? `<strong>${vis}</strong> de ${total}`
                     : `<strong>${total}</strong> registros`;
             }
@@ -1895,33 +2018,36 @@
 
             list.innerHTML = '';
             dados.forEach(item => {
-                const id       = item.id || item._id;
-                const selected = cache.selecionados.has(id);
-                const statusCls = (item.status || 'default').replace(/[^a-zA-Z]/g, '');
+                const id         = item.id || item._id;
+                const selecionado = cache.selecionados.has(id);
+                const statusCls   = (item.status || 'default').replace(/[^a-zA-Z]/g, '');
 
-                const row = document.createElement('div');
-                row.className  = 'exp-record-item' + (selected ? ' selected' : '');
-                row.dataset.id = id;
-                row.innerHTML  = `
-                    <input type="checkbox" ${selected ? 'checked' : ''}
+                const row        = document.createElement('div');
+                row.className    = 'exp-record-item' + (selecionado ? ' selected' : '');
+                row.dataset.id   = id;
+                // Evento inline no checkbox necessário pois o elemento é criado dinamicamente
+                row.innerHTML    = `
+                    <input type="checkbox" ${selecionado ? 'checked' : ''}
                            onchange="expToggleItem('${_expTabAtiva}','${id}',this.checked);event.stopPropagation();">
                     <div class="exp-record-main">
                         <strong>${_expItemLabel(item)}</strong>
                         <span>${_expItemSub(item)}</span>
                     </div>
                     ${item.status ? `<span class="exp-record-badge ${statusCls}">${item.status}</span>` : ''}`;
-                row.onclick = (e) => {
+                row.addEventListener('click', (e) => {
                     if (e.target.tagName === 'INPUT') return;
                     const cb = row.querySelector('input');
                     cb.checked = !cb.checked;
                     expToggleItem(_expTabAtiva, id, cb.checked);
-                };
+                });
                 list.appendChild(row);
             });
         }
 
+        /** Handler do input de busca — re-renderiza a lista. */
         function expFiltrarRegistros() { expRenderizarLista(); }
 
+        /** Seleciona ou desmarca um item individual e atualiza contadores. */
         function expToggleItem(catKey, id, checked) {
             const cache = _expCache[catKey];
             if (!cache) return;
@@ -1933,15 +2059,22 @@
             _expAtualizarSelCount();
         }
 
+        /**
+         * Seleciona ou desmarca todos os registros visíveis (pós-filtro)
+         * na tab ativa.
+         * @param {boolean} v true = selecionar, false = limpar
+         */
         function expSelecionarTodos(v) {
             const cache = _expCache[_expTabAtiva];
             if (!cache) return;
-            // Seleciona/limpa apenas os que estão visíveis (pós-filtro)
             const filtro = _expFiltros[_expTabAtiva];
             const termo  = (document.getElementById('expRecordsSearch')?.value || '').toLowerCase().trim();
-            let dados = cache.dados;
+            let dados    = cache.dados;
             if (filtro?.values?.length) dados = dados.filter(d => filtro.values.includes(String(d[filtro.prop] ?? '')));
-            if (termo) dados = dados.filter(d => [d.codigo,d.modelo,d.usuario,d.setor,d.status,d.ip,d.numero,d.descricao,d.categoria,d.linha,d.operadora,d.dono].filter(Boolean).join(' ').toLowerCase().includes(termo));
+            if (termo) dados = dados.filter(d =>
+                [d.codigo, d.modelo, d.usuario, d.setor, d.status, d.ip, d.numero, d.descricao, d.categoria, d.linha, d.operadora, d.dono]
+                .filter(Boolean).join(' ').toLowerCase().includes(termo)
+            );
             dados.forEach(d => {
                 const id = d.id || d._id;
                 if (v) cache.selecionados.add(id);
@@ -1952,58 +2085,71 @@
             _expAtualizarSelCount();
         }
 
+        /** Atualiza o badge numérico da tab com a quantidade de selecionados. */
         function _expAtualizarBadge(catKey) {
             const cache = _expCache[catKey];
             const btn   = document.getElementById(`expTab_${catKey}`);
             if (!btn || !cache) return;
-            const cat = EXPORT_CAMPOS.find(c => c.key === catKey);
+            const cat   = EXPORT_CAMPOS.find(c => c.key === catKey);
             btn.innerHTML = `<i class="${cat.icon}"></i> ${cat.label} <span class="badge">${cache.selecionados.size}</span>`;
         }
 
+        /** Atualiza o contador total de registros selecionados (todas as tabs). */
         function _expAtualizarSelCount() {
             const total = Object.values(_expCache).reduce((s, c) => s + c.selecionados.size, 0);
-            const el = document.getElementById('expRecordsSelCount');
+            const el    = document.getElementById('expRecordsSelCount');
             if (el) el.textContent = total === 1 ? '1 selecionado' : `${total} selecionados`;
         }
 
-        // ── Step 4: execução ──────────────────────────────────────────────────
+        // ── Step 4: execução da exportação ────────────────────────────────────
+
+        /**
+         * Aciona a geração do arquivo no formato escolhido.
+         * Delega para exportarDadosFiltrado() definida em configuracoes.js.
+         * @param {'csv'|'xlsx'} formato
+         */
         async function executarExportacao(formato) {
-            [1,2,3,4].forEach(i => document.getElementById(`expStep${i}`).classList.remove('active'));
+            // Oculta todos os steps e botões durante a geração
+            [1, 2, 3, 4].forEach(i => document.getElementById(`expStep${i}`).classList.remove('active'));
             document.getElementById('expBtnNext').style.display = 'none';
             document.getElementById('expBtnBack').style.display = 'none';
             document.getElementById('expLoading').classList.add('show');
             document.getElementById('expLoadingMsg').textContent = 'Gerando arquivo…';
+
+            // exportarDadosFiltrado() está em configuracoes.js
             await exportarDadosFiltrado(formato, EXPORT_CAMPOS, _expCache);
             fecharModalExport();
         }
 
+        // ── MODAL IMPORTAR — estado e eventos ────────────────────────────────
+
+        /**
+         * Arquivo selecionado pelo usuário na drop zone ou input nativo.
+         * Lido por confirmarImport() em configuracoes.js ao confirmar.
+         * @type {File|null}
+         */
+        let importArquivo = null;
 
         /** Fecha o modal de importação e reseta todo o estado visual. */
         function fecharModalImport() {
             closeModal('modalImport');
-            document.getElementById('importFileName').style.display = 'none';
-            document.getElementById('importFileName').textContent   = '';
+            document.getElementById('importFileName').style.display  = 'none';
+            document.getElementById('importFileName').textContent    = '';
             document.getElementById('importProgress').classList.remove('show');
             document.getElementById('importProgressBar').style.width = '0%';
             document.getElementById('importResult').classList.remove('show', 'success', 'error');
-            document.getElementById('importResult').textContent = '';
-            document.getElementById('btnConfirmarImport').disabled  = true;
-            document.getElementById('importFileInput').value        = '';
+            document.getElementById('importResult').textContent      = '';
+            document.getElementById('btnConfirmarImport').disabled   = true;
+            document.getElementById('importFileInput').value         = '';
             importArquivo = null;
         }
 
-        // ── IMPORT — estado e event listeners de UI ───────────────────────────
-
-        /** Arquivo selecionado (lido por configuracoes.js na confirmação). */
-        let importArquivo = null;
-
-        // Os modais ficam depois deste <script> no DOM, por isso os listeners
-        // precisam ser registrados no DOMContentLoaded para os elementos existirem.
+        // Vincula eventos de drag & drop e seleção de arquivo no DOMContentLoaded
+        // (os elementos existem no DOM neste ponto, pois este script está no final do body)
         document.addEventListener('DOMContentLoaded', () => {
             const dropZone  = document.getElementById('importDropZone');
             const fileInput = document.getElementById('importFileInput');
 
-            // Drag & drop
             dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
             dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
             dropZone.addEventListener('drop', e => {
@@ -2013,7 +2159,7 @@
                 if (file) processarArquivoSelecionado(file);
             });
 
-            // Clique na drop zone abre o seletor de arquivo
+            // Clique na drop zone abre o seletor de arquivo nativo
             dropZone.addEventListener('click', () => fileInput.click());
 
             // Arquivo selecionado pelo input nativo
@@ -2021,9 +2167,18 @@
                 const file = e.target.files[0];
                 if (file) processarArquivoSelecionado(file);
             });
+
+            // Botão confirmar import — chama confirmarImport() de configuracoes.js
+            document.getElementById('btnConfirmarImport')
+                .addEventListener('click', confirmarImport);
         });
 
-        /** Valida a extensão e exibe o nome do arquivo na drop zone. */
+        /**
+         * Valida a extensão do arquivo e exibe o nome na drop zone.
+         * Habilita o botão "Importar" se válido.
+         * O arquivo é armazenado em importArquivo para uso por confirmarImport().
+         * @param {File} file
+         */
         function processarArquivoSelecionado(file) {
             const ext = file.name.split('.').pop().toLowerCase();
             if (!['csv', 'xlsx', 'xls'].includes(ext)) {
@@ -2031,34 +2186,33 @@
                 return;
             }
             importArquivo = file;
-            const nameEl = document.getElementById('importFileName');
+            const nameEl         = document.getElementById('importFileName');
             nameEl.textContent   = `📄 ${file.name}`;
             nameEl.style.display = 'block';
             document.getElementById('btnConfirmarImport').disabled = false;
             document.getElementById('importResult').classList.remove('show', 'success', 'error');
         }
 
-        // ── IMPORT — helpers de UI chamados por configuracoes.js ─────────────
+        // ── HELPERS DE UI DA IMPORTAÇÃO (chamados por configuracoes.js) ───────
 
         /**
-         * Exibe a barra de progresso com uma mensagem e percentual iniciais.
-         * @param {string} msg    Texto de status
-         * @param {number} pct    Percentual inicial (0–100)
+         * Exibe a barra de progresso com mensagem e percentual iniciais.
+         * Chamada por confirmarImport() em configuracoes.js.
+         * @param {string} msg  Texto de status
+         * @param {number} pct  Percentual inicial (0–100)
          */
         function mostrarProgressoImport(msg, pct) {
-            const progEl   = document.getElementById('importProgress');
-            const barEl    = document.getElementById('importProgressBar');
-            const statusEl = document.getElementById('importStatus');
-            progEl.classList.add('show');
+            document.getElementById('importProgress').classList.add('show');
             document.getElementById('importResult').classList.remove('show', 'success', 'error');
-            barEl.style.width      = pct + '%';
-            statusEl.textContent   = msg;
+            document.getElementById('importProgressBar').style.width = pct + '%';
+            document.getElementById('importStatus').textContent      = msg;
         }
 
         /**
-         * Atualiza percentual (e opcionalmente o texto) da barra de progresso.
-         * @param {number}  pct  Percentual (0–100)
-         * @param {string=} msg  Texto opcional de status
+         * Atualiza o percentual e opcionalmente o texto da barra de progresso.
+         * Chamada por confirmarImport() em configuracoes.js durante o envio.
+         * @param {number}  pct Percentual (0–100)
+         * @param {string=} msg Texto opcional de status
          */
         function atualizarProgressoImport(pct, msg) {
             document.getElementById('importProgressBar').style.width = pct + '%';
@@ -2066,219 +2220,22 @@
         }
 
         /**
-         * Exibe o resultado final da importação (sucesso ou erro).
+         * Exibe o resultado final da importação.
+         * Chamada por confirmarImport() em configuracoes.js ao terminar.
          * @param {'success'|'error'} tipo
          * @param {string}            html  Conteúdo HTML da mensagem
          */
         function mostrarResultadoImport(tipo, html) {
-            const el = document.getElementById('importResult');
+            const el      = document.getElementById('importResult');
             el.className  = `import-result show ${tipo}`;
             el.innerHTML  = html;
         }
 
-        // ── INICIALIZAÇÃO ────────────────────────────────────────────────────
+        // ── INICIALIZAÇÃO ─────────────────────────────────────────────────────
+        // Carrega as configurações salvas e sincroniza os controles visuais.
         carregarConfiguracoes();
         syncThemeOpts();
     </script>
 
-    <!-- ══ MODAL EXPORTAR (multi-step) ══════════════════════════════ -->
-    <div class="modal-overlay" id="modalExport">
-        <div class="modal modal-export">
-
-            <!-- Cabeçalho fixo -->
-            <div class="modal-header" style="flex-direction:column; align-items:flex-start; gap:12px;">
-                <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
-                    <h2><i class="fa-solid fa-file-export"></i> Exportar dados</h2>
-                    <button class="modal-close" onclick="fecharModalExport()">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-                <!-- Stepper -->
-                <div class="export-steps-header" style="padding:0; border:none;">
-                    <div class="export-step-pill active" id="expPill1">
-                        <i class="fa-solid fa-table"></i> 1. Tabelas
-                    </div>
-                    <div class="export-step-sep"></div>
-                    <div class="export-step-pill" id="expPill2">
-                        <i class="fa-solid fa-list-check"></i> 2. Campos
-                    </div>
-                    <div class="export-step-sep"></div>
-                    <div class="export-step-pill" id="expPill3">
-                        <i class="fa-solid fa-magnifying-glass-check"></i> 3. Registros
-                    </div>
-                    <div class="export-step-sep"></div>
-                    <div class="export-step-pill" id="expPill4">
-                        <i class="fa-solid fa-file-arrow-down"></i> 4. Formato
-                    </div>
-                </div>
-            </div>
-
-            <!-- Step 1 — Tabelas -->
-            <div class="export-step-body active" id="expStep1">
-                <div class="export-select-all-row">
-                    <span id="expTableCount">0 tabelas selecionadas</span>
-                    <button onclick="exportSelectAll(true)">Selecionar todas</button>
-                    <button onclick="exportSelectAll(false)" style="margin-left:8px;">Limpar</button>
-                </div>
-                <div class="export-table-grid" id="expTableGrid">
-                    <!-- gerado por JS -->
-                </div>
-            </div>
-
-            <!-- Step 2 — Campos -->
-            <div class="export-step-body" id="expStep2">
-                <p style="font-size:12px;color:var(--text-muted);margin:0 0 14px;">
-                    Clique nos campos para incluir ou excluir da exportação.
-                    Campos em destaque serão exportados.
-                </p>
-                <div id="expFieldsContainer">
-                    <!-- seções geradas por JS -->
-                </div>
-            </div>
-
-            <!-- Step 3 — Registros -->
-            <div class="export-step-body" id="expStep3">
-                <!-- Filtros por tabela (gerados por JS) -->
-                <div id="expFiltrosContainer"></div>
-
-                <!-- Tab bar por categoria -->
-                <div class="exp-tab-bar" id="expRecordsTabs"></div>
-
-                <!-- Toolbar: busca + contador -->
-                <div class="exp-records-toolbar">
-                    <div class="exp-records-search">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="expRecordsSearch"
-                               placeholder="Buscar por código, modelo, usuário, setor…"
-                               oninput="expFiltrarRegistros()">
-                    </div>
-                    <span class="exp-records-count" id="expRecordsCount"></span>
-                </div>
-
-                <!-- Barra de seleção rápida -->
-                <div class="exp-records-selbar">
-                    <span id="expRecordsSelCount">0 selecionados</span>
-                    <div class="selbar-actions">
-                        <button onclick="expSelecionarTodos(true)">Selecionar todos</button>
-                        <button onclick="expSelecionarTodos(false)">Limpar</button>
-                    </div>
-                </div>
-
-                <!-- Lista de registros -->
-                <div class="exp-records-list" id="expRecordsList"></div>
-            </div>
-
-            <!-- Step 4 — Formato -->
-            <div class="export-step-body" id="expStep4">
-                <p style="font-size:12px;color:var(--text-muted);margin:0 0 14px;">
-                    Escolha o formato do arquivo gerado.
-                </p>
-                <div class="export-format-options">
-                    <button class="export-option-btn" onclick="executarExportacao('csv')">
-                        <i class="fa-solid fa-file-csv export-icon csv"></i>
-                        <div class="export-info">
-                            <strong>CSV</strong>
-                            <span>Um arquivo por tabela — compatível com qualquer planilha</span>
-                        </div>
-                    </button>
-                    <button class="export-option-btn" onclick="executarExportacao('xlsx')">
-                        <i class="fa-solid fa-file-excel export-icon xlsx"></i>
-                        <div class="export-info">
-                            <strong>Excel (.xlsx)</strong>
-                            <span>Um arquivo por tabela — formatado para Microsoft Excel</span>
-                        </div>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Loading -->
-            <div class="export-loading" id="expLoading">
-                <i class="fa-solid fa-circle-notch"></i>
-                <span id="expLoadingMsg">Buscando dados…</span>
-            </div>
-
-            <!-- Footer -->
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="fecharModalExport()" style="font-size:13px;">
-                    <i class="fa-solid fa-xmark"></i> Cancelar
-                </button>
-                <button class="btn btn-outline" id="expBtnBack" onclick="exportStep(-1)"
-                        style="font-size:13px; display:none;">
-                    <i class="fa-solid fa-chevron-left"></i> Voltar
-                </button>
-                <button class="btn btn-primary" id="expBtnNext" onclick="exportStep(1)"
-                        style="font-size:13px;">
-                    Próximo <i class="fa-solid fa-chevron-right"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ══ MODAL IMPORTAR ══════════════════════════════════════════ -->
-    <div class="modal-overlay" id="modalImport">
-        <div class="modal modal-import">
-            <div class="modal-header">
-                <h2><i class="fa-solid fa-file-import"></i> Importar dados</h2>
-                <button class="modal-close" onclick="fecharModalImport()">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <div class="import-body">
-
-                <!-- Seleção de categoria -->
-                <div class="import-category-select">
-                    <label for="importCategoria">Categoria de destino</label>
-                    <select id="importCategoria" class="cr-select" style="width:100%;">
-                        <option value="computadores">Computadores</option>
-                        <option value="celulares">Celulares</option>
-                        <option value="monitores">Monitores</option>
-                        <option value="mouses">Mouses</option>
-                        <option value="teclados">Teclados</option>
-                        <option value="fones">Fones</option>
-                        <option value="ramais">Ramais</option>
-                        <option value="chips">Chips</option>
-                        <option value="extras">Extras</option>
-                    </select>
-                </div>
-
-                <!-- Drop zone -->
-                <div class="import-drop-zone" id="importDropZone">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                    <p>Clique ou arraste um arquivo aqui</p>
-                    <p style="font-size:11px; margin-top:4px;">CSV ou Excel (.xlsx)</p>
-                    <div class="file-name" id="importFileName" style="display:none;"></div>
-                </div>
-                <input type="file" id="importFileInput" accept=".csv,.xlsx,.xls" style="display:none;">
-
-                <!-- Progresso -->
-                <div class="import-progress" id="importProgress">
-                    <div class="progress-bar-wrap">
-                        <div class="progress-bar-fill" id="importProgressBar" style="width:0%"></div>
-                    </div>
-                    <span class="import-status" id="importStatus">Processando…</span>
-                </div>
-
-                <!-- Resultado -->
-                <div class="import-result" id="importResult"></div>
-
-                <!-- Dica -->
-                <div class="import-hint">
-                    <strong>Dica:</strong> use a função <em>Exportar</em> para obter um arquivo modelo com as colunas corretas.
-                    A primeira linha deve ser o cabeçalho. Campos obrigatórios variam por categoria.
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="fecharModalImport()" style="font-size:13px;">
-                    <i class="fa-solid fa-xmark"></i> Cancelar
-                </button>
-                <button class="btn btn-primary" id="btnConfirmarImport" onclick="confirmarImport()" disabled style="font-size:13px;">
-                    <i class="fa-solid fa-upload"></i> Importar
-                </button>
-            </div>
-        </div>
-    </div>
-
 </body>
-</html> 
+</html>
