@@ -1,85 +1,226 @@
 // =============================================================================
-// cadastro.js — Backend do cadastro de usuário
-// Responsabilidade: dados de domínio, validação e comunicação com a API.
+// cadastro.js — Lógica da tela de cadastro de usuário
 //
-// O que está aqui:
-//   - Enum Setor (espelha o backend .NET)
-//   - populateSetores() — popula o <select id="setor"> com as options do enum
-//   - validarFormulario() — validação client-side antes de chamar a API
-//   - handleCadastro() — orquestra validação → API → feedback
+// Responsabilidades:
+//   FRONTEND (UI):
+//     - setupToggleSenha()    — alterna visibilidade dos campos de senha
+//     - atualizarForcaSenha() — calcula e exibe o indicador de força de senha
+//     - mostrarErro()         — exibe a caixa de alerta de erro com mensagem
+//     - ocultarAlertas()      — oculta ambas as caixas de alerta
+//     - setLoading()          — alterna o estado de carregamento do botão
 //
-// O que NÃO está aqui (fica no <script> inline do HTML):
-//   - Toggle de visibilidade de senha
-//   - Barra de força de senha
-//   - mostrarErro / mostrarSucesso / ocultarAlertas / setLoading
-//   - Qualquer manipulação visual de UI
-//   - addEventListener de botões e teclas
+//   BACKEND / API:
+//     - carregarSetors()      — busca as opções de setor via GET /api/opcoes/Setor
+//                               e preenche o <select id="setor">
+//     - validarFormulario()   — valida os campos antes de chamar a API
+//     - handleCadastro()      — orquestra validação → criarUsuario() → redirect
 //
 // Dependências:
-//   - api.js (criarUsuario) — deve ser carregado antes no HTML
-//   - Funções de UI definidas no <script> inline do HTML:
-//       mostrarErro(), mostrarSucesso(), ocultarAlertas(), setLoading()
+//   - api.js (criarUsuario, getOpcoesPorTipo) — carregado antes no HTML
+//   - IDs do HTML: nome, sobrenome, email, setor, senha, confirmar, termos,
+//                  btnCadastrar, btnCadastrarIcon, btnCadastrarLabel,
+//                  togglePass1, togglePass2, eye1, eye2,
+//                  strengthFill, strengthLabel, alertError, alertErrorMsg, alertSuccess
 // =============================================================================
 
 
-// =============================================================================
-// SEÇÃO 1 — ENUM DE DOMÍNIO: SETOR
-// Values são os nomes EXATOS do enum Setor do backend (Setor.cs).
-// O ASP.NET com JsonStringEnumConverter deserializa pela string do nome.
-// ATENÇÃO: 'CallCenter' sem espaço — bate exatamente com o enum C#.
-// =============================================================================
+// ─────────────────────────────────────────────────────────────────────────────
+// Aguarda o DOM estar totalmente carregado antes de inicializar qualquer lógica
+// ─────────────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
 
-const SETORES_USUARIO = [
-    { value: 'RH',          label: 'RH'          },
-    { value: 'Suporte',     label: 'Suporte'     },
-    { value: 'Produtos',    label: 'Produtos'    },
-    { value: 'Auditoria',   label: 'Auditoria'   },
-    { value: 'Diretoria',   label: 'Diretoria'   },
-    { value: 'CallCenter',  label: 'Call Center' }, // value sem espaço = nome do enum
-    { value: 'Dev',         label: 'Dev'         },
-    { value: 'Cofre',       label: 'Cofre'       },
-    { value: 'Servidor',    label: 'Servidor'    },
-];
+    // Inicializa todos os módulos da tela
+    setupToggleSenha();
+    setupForcaSenha();
+    setupBotaoCadastrar();
+    carregarSetors();
+
+});
+
 
 // =============================================================================
-// SEÇÃO 2 — POPULATE DO SELECT DE SETOR
-// Injeta as <option> no <select id="setor"> que já existe no HTML.
-// O <select> deve ter uma <option value="">Selecione...</option> no HTML
-// para nunca ficar invisível antes do script rodar.
+// SEÇÃO 1 — UTILITÁRIOS DE UI
+// Funções visuais/frontend que não se comunicam com o backend.
 // =============================================================================
 
 /**
- * Popula o <select id="setor"> com as opções do enum Setor do backend.
- * Chamado pelo script inline do HTML.
+ * Configura os botões de alternância de visibilidade dos campos de senha.
+ * Alterna o tipo do input entre "password" e "text" e troca o ícone do olho.
+ *
+ * Usada em: campo #senha (togglePass1 / eye1) e #confirmar (togglePass2 / eye2)
  */
-function populateSetores() {
-    const select = document.getElementById('setor');
-    if (!select) {
-        console.error('[cadastro.js] #setor não encontrado.');
-        return;
+function setupToggleSenha() {
+
+    /**
+     * Vincula o comportamento de toggle a um par (botão + input + ícone).
+     * @param {string} btnId   — ID do botão de toggle
+     * @param {string} inputId — ID do input de senha
+     * @param {string} iconId  — ID do <i> do ícone dentro do botão
+     */
+    function vincularToggle(btnId, inputId, iconId) {
+        const btn   = document.getElementById(btnId);
+        const input = document.getElementById(inputId);
+        const icon  = document.getElementById(iconId);
+
+        // Aborta silenciosamente se algum elemento não existir no DOM
+        if (!btn || !input || !icon) return;
+
+        btn.addEventListener('click', (e) => {
+            e.preventDefault(); // evita submit acidental se dentro de form
+
+            const visivel = input.type === 'text';
+            input.type    = visivel ? 'password' : 'text';
+            icon.className = visivel ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash';
+        });
     }
 
-    const blank = document.createElement('option');
-    blank.value = '';
-    blank.textContent = '— Selecione o setor —';
-    select.appendChild(blank);
+    vincularToggle('togglePass1', 'senha',     'eye1');
+    vincularToggle('togglePass2', 'confirmar', 'eye2');
+}
 
-    SETORES_USUARIO.forEach(s => {
-        const opt       = document.createElement('option');
-        opt.value       = s.value; // string exata do enum C#
-        opt.textContent = s.label; // label legível para o usuário
-        select.appendChild(opt);
+/**
+ * Vincula o evento de input ao campo de senha para calcular e exibir
+ * o indicador de força em tempo real.
+ *
+ * Critérios de pontuação (0–4):
+ *   +1 se tiver 8 ou mais caracteres
+ *   +1 se tiver letra maiúscula
+ *   +1 se tiver número
+ *   +1 se tiver caractere especial
+ *
+ * Resultado visual:
+ *   - #strengthFill : largura (%) e cor de fundo alteradas via style
+ *   - #strengthLabel: texto descritivo (ex: "Forte")
+ */
+function setupForcaSenha() {
+    const inputSenha    = document.getElementById('senha');
+    const fill          = document.getElementById('strengthFill');
+    const label         = document.getElementById('strengthLabel');
+
+    if (!inputSenha || !fill || !label) return;
+
+    // Tabela de níveis: índice = pontuação (0–4)
+    const niveis = [
+        { largura: '0%',   cor: '',         texto: '' },
+        { largura: '25%',  cor: '#ef4444',  texto: 'Muito fraca' },
+        { largura: '50%',  cor: '#f59e0b',  texto: 'Fraca' },
+        { largura: '75%',  cor: '#3b82f6',  texto: 'Boa' },
+        { largura: '100%', cor: '#10b981',  texto: 'Forte' },
+    ];
+
+    inputSenha.addEventListener('input', function () {
+        const v = this.value;
+        let pontuacao = 0;
+
+        if (v.length >= 8)            pontuacao++;
+        if (/[A-Z]/.test(v))          pontuacao++;
+        if (/[0-9]/.test(v))          pontuacao++;
+        if (/[^A-Za-z0-9]/.test(v))   pontuacao++;
+
+        // Quando o campo está vazio, força nível 0
+        const nivel = v.length === 0 ? niveis[0] : (niveis[pontuacao] || niveis[1]);
+
+        fill.style.width      = nivel.largura;
+        fill.style.background = nivel.cor;
+        label.textContent     = nivel.texto;
+        label.style.color     = nivel.cor || 'var(--text-muted)';
     });
 }
 
+/**
+ * Exibe a caixa de alerta de erro com uma mensagem específica.
+ * Também oculta a caixa de sucesso, caso esteja visível.
+ * @param {string} mensagem — texto a ser exibido no alerta
+ */
+function mostrarErro(mensagem) {
+    const caixaErro = document.getElementById('alertError');
+    const msgErro   = document.getElementById('alertErrorMsg');
+    const caixaSuc  = document.getElementById('alertSuccess');
+
+    if (msgErro)   msgErro.textContent = mensagem;
+    if (caixaErro) caixaErro.classList.add('show');
+    if (caixaSuc)  caixaSuc.classList.remove('show');
+}
+
+/**
+ * Oculta ambas as caixas de alerta (erro e sucesso).
+ * Chamada no início de cada tentativa de cadastro.
+ */
+function ocultarAlertas() {
+    document.getElementById('alertError')?.classList.remove('show');
+    document.getElementById('alertSuccess')?.classList.remove('show');
+}
+
+/**
+ * Alterna o estado de carregamento do botão "Criar conta".
+ * Desativa o botão e substitui seu conteúdo por um spinner durante a requisição.
+ *
+ * @param {boolean} carregando — true para ativar loading, false para restaurar
+ */
+function setLoading(carregando) {
+    const btn   = document.getElementById('btnCadastrar');
+    const icon  = document.getElementById('btnCadastrarIcon');
+    const label = document.getElementById('btnCadastrarLabel');
+
+    if (!btn || !icon || !label) return;
+
+    if (carregando) {
+        btn.disabled      = true;
+        icon.className    = 'fa-solid fa-spinner fa-spin';
+        label.textContent = 'Criando conta...';
+    } else {
+        btn.disabled      = false;
+        icon.className    = 'fa-solid fa-user-plus';
+        label.textContent = 'Criar conta';
+    }
+}
+
+
 // =============================================================================
-// SEÇÃO 3 — VALIDAÇÃO CLIENT-SIDE
-// Verifica os campos antes de disparar qualquer requisição à API.
-// Depende de mostrarErro() definida no script inline do HTML.
+// SEÇÃO 2 — COMUNICAÇÃO COM A API
+// Funções que fazem requisições ao backend (dependem de api.js).
 // =============================================================================
 
 /**
- * Valida todos os campos do formulário de cadastro.
+ * Busca as opções de setor/setor via GET /api/opcoes/Setor
+ * e popula o <select id="setor"> com as opções retornadas.
+ *
+ * Chamada automaticamente no DOMContentLoaded.
+ * Em caso de falha, mantém o select com a opção padrão estática do HTML.
+ *
+ * Usa: getOpcoesPorTipo() de api.js
+ */
+async function carregarSetors() {
+    const select = document.getElementById('setor');
+    if (!select) return;
+
+    try {
+        // GET /api/opcoes/Setor → string[]
+        const opcoes = await getOpcoesPorTipo('Setor');
+
+        // Remove quaisquer opções dinâmicas anteriores (mantém a opção padrão)
+        while (select.options.length > 1) {
+            select.remove(1);
+        }
+
+        // Insere cada opção retornada pela API
+        opcoes.forEach(opcao => {
+            const opt   = document.createElement('option');
+            opt.value   = opcao;
+            opt.textContent = opcao;
+            select.appendChild(opt);
+        });
+
+    } catch (err) {
+        // Falha silenciosa: o select permanece com as opções estáticas do HTML
+        console.warn('Não foi possível carregar os setors da API:', err);
+    }
+}
+
+/**
+ * Valida os campos do formulário de cadastro antes de chamar a API.
+ * Exibe mensagem de erro via mostrarErro() para o primeiro campo inválido.
+ *
  * @returns {boolean} true se todos os campos são válidos
  */
 function validarFormulario() {
@@ -89,30 +230,53 @@ function validarFormulario() {
     const setor     = document.getElementById('setor').value;
     const senha     = document.getElementById('senha').value;
     const confirmar = document.getElementById('confirmar').value;
+    const termos    = document.getElementById('termos').checked;
 
-    if (!nome)                                                { mostrarErro('Por favor, informe o seu nome.');               return false; }
-    if (!sobrenome)                                           { mostrarErro('Por favor, informe o seu sobrenome.');          return false; }
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { mostrarErro('Informe um e-mail válido.');                   return false; }
-    if (setor === '')                                         { mostrarErro('Selecione o seu setor.');                      return false; }
-    if (senha.length < 8)                                     { mostrarErro('A senha deve ter pelo menos 8 caracteres.');   return false; }
-    if (senha !== confirmar)                                  { mostrarErro('As senhas não coincidem.');                    return false; }
+    if (!nome || !sobrenome) {
+        mostrarErro('Preencha nome e sobrenome.');
+        return false;
+    }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        mostrarErro('Informe um e-mail válido.');
+        return false;
+    }
+    if (!setor) {
+        mostrarErro('Selecione um setor.');
+        return false;
+    }
+    if (!senha) {
+        mostrarErro('Informe uma senha.');
+        return false;
+    }
+    if (senha.length < 8) {
+        mostrarErro('A senha deve ter pelo menos 8 caracteres.');
+        return false;
+    }
+    if (senha !== confirmar) {
+        mostrarErro('As senhas não coincidem.');
+        return false;
+    }
+    if (!termos) {
+        mostrarErro('Aceite os termos para continuar.');
+        return false;
+    }
 
     return true;
 }
 
-// =============================================================================
-// SEÇÃO 4 — HANDLER DE CADASTRO
-// Chamado diretamente pelo onclick do botão no HTML: onclick="handleCadastro()"
-// Orquestra: validação → criarUsuario() (api.js) → feedback → redirecionamento.
-// =============================================================================
-
 /**
- * Envia UsuarioCreateDto para POST /api/usuarios via criarUsuario() de api.js.
+ * Handler principal do botão "Criar conta".
+ * Orquestra: ocultarAlertas → validarFormulario → criarUsuario (api.js) → redirect.
  *
- * UsuarioCreateDto esperado pelo backend:
- * { nome, sobrenome, email, setor (string = nome do enum), senha }
+ * POST /api/usuarios
+ * Body:    UsuarioCreateDto { nome, sobrenome, email, setor (número), senha }
+ * Sucesso: UsuarioResponseDto → redireciona para login.html
+ * Erros tratados:
+ *   - 0   : sem conexão com o servidor
+ *   - 409 : e-mail já cadastrado (Conflict)
+ *   - outros: mensagem genérica com código HTTP
  *
- * O hash da senha é aplicado pelo backend (PasswordHasher).
+ * Vinculado ao botão #btnCadastrar no setupBotaoCadastrar().
  */
 async function handleCadastro() {
     ocultarAlertas();
@@ -121,24 +285,47 @@ async function handleCadastro() {
     const nome      = document.getElementById('nome').value.trim();
     const sobrenome = document.getElementById('sobrenome').value.trim();
     const email     = document.getElementById('email').value.trim();
-    const setor     = document.getElementById('setor').value; // string do enum, não parseInt
+    const setor     = document.getElementById('setor').value;
     const senha     = document.getElementById('senha').value;
 
     setLoading(true);
 
     try {
         // criarUsuario() definida em api.js → POST /api/usuarios
-        await criarUsuario({ nome, sobrenome, email, setor, senha });
+        // O campo "setor" recebe o valor do setor selecionado.
+        // Ajuste o mapeamento se o backend esperar um número de enum.
+        await criarUsuario({ nome, sobrenome, email, setor: setor, senha });
 
-        mostrarSucesso();
-        setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+        // Exibe mensagem de sucesso e redireciona após 1,8 s
+        document.getElementById('alertSuccess')?.classList.add('show');
+        setTimeout(() => { window.location.href = 'login.html'; }, 1800);
 
     } catch (err) {
-        if      (err.status === 0)   mostrarErro('Não foi possível conectar ao servidor. Verifique sua conexão.');
-        else if (err.status === 409) mostrarErro(err.corpo?.message || 'Este e-mail já está cadastrado.');
-        else if (err.status === 400) mostrarErro(err.corpo?.message || 'Dados inválidos. Verifique os campos.');
-        else                         mostrarErro(`Erro ao criar conta (código ${err.status || '?'}). Tente novamente.`);
-    } finally {
-        setLoading(false);
+        if (err.status === 0) {
+            mostrarErro('Não foi possível conectar ao servidor. Verifique sua conexão.');
+        } else if (err.status === 409) {
+            // 409 Conflict = e-mail já em uso
+            mostrarErro(err.corpo?.message || 'Este e-mail já está cadastrado.');
+        } else {
+            mostrarErro(`Erro ao criar conta (código ${err.status || '?'}). Tente novamente.`);
+        }
+        setLoading(false); // restaura o botão apenas em caso de erro
     }
+}
+
+
+// =============================================================================
+// SEÇÃO 3 — VINCULAÇÃO DE EVENTOS
+// Conecta os handlers aos elementos do DOM.
+// Mantido separado para facilitar leitura e manutenção.
+// =============================================================================
+
+/**
+ * Vincula o clique do botão #btnCadastrar à função handleCadastro().
+ * Chamada no DOMContentLoaded junto com os demais setups.
+ */
+function setupBotaoCadastrar() {
+    const btn = document.getElementById('btnCadastrar');
+    if (!btn) return;
+    btn.addEventListener('click', handleCadastro);
 }
