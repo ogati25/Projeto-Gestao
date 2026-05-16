@@ -17,16 +17,19 @@ public class MonitorService
     }
 
     public async Task<List<Projeto_Gestao.Models.Monitor>> GetAllAsync() =>
-    await _monitores.Find(_ => true).ToListAsync();
+        await _monitores.Find(_ => true).ToListAsync();
 
     public async Task<Projeto_Gestao.Models.Monitor?> GetByIdAsync(string id) =>
-    await _monitores.Find(m => m.Id == id).FirstOrDefaultAsync();
+        await _monitores.Find(m => m.Id == id).FirstOrDefaultAsync();
 
     public async Task CreateAsync(Projeto_Gestao.Models.Monitor monitor) =>
-    await _monitores.InsertOneAsync(monitor);
+        await _monitores.InsertOneAsync(monitor);
 
-    public async Task UpdateAsync(string id, Projeto_Gestao.Models.Monitor monitor) =>
-    await _monitores.ReplaceOneAsync(m => m.Id == id, monitor);
+    public async Task UpdateAsync(string id, Projeto_Gestao.Models.Monitor monitor)
+    {
+        monitor.Id = id;
+        await _monitores.ReplaceOneAsync(m => m.Id == id, monitor);
+    }
 
     public async Task DeleteAsync(string id) =>
         await _monitores.DeleteOneAsync(m => m.Id == id);
@@ -52,8 +55,11 @@ public class MouseService
     public async Task CreateAsync(Mouse mouse) =>
         await _mouses.InsertOneAsync(mouse);
 
-    public async Task UpdateAsync(string id, Mouse mouse) =>
+    public async Task UpdateAsync(string id, Mouse mouse)
+    {
+        mouse.Id = id;
         await _mouses.ReplaceOneAsync(m => m.Id == id, mouse);
+    }
 
     public async Task DeleteAsync(string id) =>
         await _mouses.DeleteOneAsync(m => m.Id == id);
@@ -79,8 +85,11 @@ public class TecladoService
     public async Task CreateAsync(Teclado teclado) =>
         await _teclados.InsertOneAsync(teclado);
 
-    public async Task UpdateAsync(string id, Teclado teclado) =>
+    public async Task UpdateAsync(string id, Teclado teclado)
+    {
+        teclado.Id = id;
         await _teclados.ReplaceOneAsync(t => t.Id == id, teclado);
+    }
 
     public async Task DeleteAsync(string id) =>
         await _teclados.DeleteOneAsync(t => t.Id == id);
@@ -106,8 +115,11 @@ public class FoneService
     public async Task CreateAsync(Fone fone) =>
         await _fones.InsertOneAsync(fone);
 
-    public async Task UpdateAsync(string id, Fone fone) =>
+    public async Task UpdateAsync(string id, Fone fone)
+    {
+        fone.Id = id;
         await _fones.ReplaceOneAsync(f => f.Id == id, fone);
+    }
 
     public async Task DeleteAsync(string id) =>
         await _fones.DeleteOneAsync(f => f.Id == id);
@@ -133,8 +145,11 @@ public class RamalService
     public async Task CreateAsync(Ramal ramal) =>
         await _ramais.InsertOneAsync(ramal);
 
-    public async Task UpdateAsync(string id, Ramal ramal) =>
+    public async Task UpdateAsync(string id, Ramal ramal)
+    {
+        ramal.Id = id;
         await _ramais.ReplaceOneAsync(r => r.Id == id, ramal);
+    }
 
     public async Task DeleteAsync(string id) =>
         await _ramais.DeleteOneAsync(r => r.Id == id);
@@ -160,8 +175,11 @@ public class ExtraService
     public async Task CreateAsync(Extra extra) =>
         await _extras.InsertOneAsync(extra);
 
-    public async Task UpdateAsync(string id, Extra extra) =>
+    public async Task UpdateAsync(string id, Extra extra)
+    {
+        extra.Id = id;
         await _extras.ReplaceOneAsync(e => e.Id == id, extra);
+    }
 
     public async Task DeleteAsync(string id) =>
         await _extras.DeleteOneAsync(e => e.Id == id);
