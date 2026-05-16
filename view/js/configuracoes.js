@@ -169,18 +169,6 @@ const EXPORT_CAMPOS = [
         ],
     },
     {
-        key: 'chips', label: 'Chips', icon: 'fa-solid fa-sim-card', selected: true,
-        fn: () => request('chips'),
-        campos: [
-            ..._camposBase(),
-            { key: 'operadora', label: 'Operadora', selected: true  },
-            { key: 'numero',    label: 'Número',    selected: true  },
-            { key: 'dono',      label: 'Dono',      selected: true  },
-            { key: 'plano',     label: 'Plano',     selected: true  },
-            { key: 'celularId', label: 'Celular ID',selected: false },
-        ],
-    },
-    {
         key: 'extras', label: 'Extras', icon: 'fa-solid fa-ellipsis', selected: true,
         fn: () => request('extras'),
         campos: [
@@ -659,18 +647,6 @@ function _coercirTipos(reg, categoria) {
             numero:      reg.Numero      || reg.numero      || null,
             ip:          reg.IP          || reg.ip          || null,
             mac:         reg.MAC         || reg.mac         || null,
-        };
-    }
-
-    // ── chips ────────────────────────────────────────────────────────
-    if (categoria === 'chips') {
-        return {
-            ...base,
-            operadora: reg.Operadora || reg.operadora || '',
-            numero:    reg.Numero    || reg.numero    || '',
-            dono:      reg.Dono      || reg.dono      || null,
-            plano:     toFlt(reg.Plano ?? reg.plano ?? 0),
-            celularId: reg.CelularId || reg.celularId || null,
         };
     }
 

@@ -669,6 +669,149 @@
             background: none; border: none; cursor: pointer; padding: 0;
         }
         .exp-records-selbar .selbar-actions { display: flex; gap: 10px; }
+        /* ── Export step 3 — filtro por tabela ─────────────────────── */
+        .exp-filter-block {
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin-bottom: 12px;
+            overflow: visible;
+            background: var(--secondary-color);
+        }
+        .exp-filter-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 12px;
+            cursor: pointer;
+            user-select: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.15s;
+        }
+        .exp-filter-header.open { border-bottom-color: var(--border-color); }
+        .exp-filter-header-icon { font-size: 14px; color: var(--primary-color); width: 18px; text-align:center; }
+        .exp-filter-header strong { font-size: 13px; color: var(--text-primary); flex: 1; }
+        .exp-filter-header .toggle-icon { font-size: 11px; color: var(--text-muted); }
+        .exp-filter-body { display: none; padding: 12px; }
+        .exp-filter-body.open { display: block; }
+
+        /* linha de seleção do campo */
+        .exp-filter-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .exp-filter-prop-select {
+            flex: 1;
+            min-width: 160px;
+            padding: 7px 10px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--background-color);
+            color: var(--text-primary);
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.15s;
+        }
+        .exp-filter-prop-select:focus { border-color: var(--primary-color); }
+
+        /* chip de filtro ativo */
+        .exp-filter-active {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .exp-filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px 3px 10px;
+            background: color-mix(in srgb, var(--primary-color) 12%, transparent);
+            border: 1.5px solid var(--primary-color);
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        .exp-filter-chip button {
+            background: none; border: none; cursor: pointer;
+            color: var(--primary-color); font-size: 11px; padding: 0; line-height: 1;
+        }
+        .exp-filter-chip button:hover { color: #ef4444; }
+
+        /* dropdown de valores (igual ao estoque) */
+        .exp-filter-dropdown-wrap { position: relative; display: inline-block; }
+        .exp-filter-value-btn {
+            display: flex; align-items: center; gap: 6px;
+            padding: 7px 10px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--background-color);
+            color: var(--text-primary);
+            font-size: 13px;
+            cursor: pointer;
+            min-width: 200px;
+            transition: border-color 0.15s;
+            white-space: nowrap;
+        }
+        .exp-filter-value-btn:hover { border-color: var(--primary-color); }
+        .exp-filter-value-btn span { flex: 1; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+        .exp-filter-value-panel {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            min-width: 270px;
+            max-width: 360px;
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+            z-index: 9999;
+            overflow: hidden;
+        }
+        .exp-filter-value-panel.open { display: block; }
+        .exp-filter-value-search {
+            display: flex; gap: 6px; align-items: center;
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .exp-filter-value-search input {
+            flex: 1; padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--background-color);
+            color: var(--text-primary);
+            outline: none;
+        }
+        .exp-filter-value-list { max-height: 200px; overflow-y: auto; padding: 6px 0; }
+        .exp-filter-value-item {
+            display: flex; align-items: center; gap: 8px;
+            padding: 7px 14px;
+            cursor: pointer; font-size: 13px;
+            color: var(--text-primary);
+            transition: background 0.1s;
+        }
+        .exp-filter-value-item:hover { background: var(--background-color); }
+        .exp-filter-value-item input[type=checkbox] {
+            accent-color: var(--primary-color);
+            width: 14px; height: 14px; cursor: pointer; flex-shrink: 0;
+        }
+        .exp-filter-apply-btn {
+            display: block; width: 100%;
+            padding: 8px;
+            border: none; border-top: 1px solid var(--border-color);
+            background: var(--primary-color);
+            color: #fff;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+        .exp-filter-apply-btn:hover { opacity: 0.88; }
     </style>
 </head>
 <body>
@@ -1182,10 +1325,15 @@
 
         // ── EXPORT multi-step ─────────────────────────────────────────────────
         let _exportCurrentStep = 1;
+        let _expCache    = {};   // { key: { dados: [...], selecionados: Set<id> } }
+        let _expTabAtiva = null;
+        let _expFiltros  = {};   // { key: { prop, values: [] } | null }
 
         function abrirModalExport() {
             _exportCurrentStep = 1;
-            // Reseta seleção de tabelas para "todas selecionadas"
+            _expCache    = {};
+            _expTabAtiva = null;
+            _expFiltros  = {};
             EXPORT_CAMPOS.forEach(c => { c.selected = true; });
             _renderExportTables();
             _goExportStep(1);
@@ -1196,9 +1344,9 @@
             document.getElementById('modalExport').classList.remove('open');
         }
 
-        function exportStep(dir) {
+        async function exportStep(dir) {
             const next = _exportCurrentStep + dir;
-            if (next < 1 || next > 3) return;
+            if (next < 1 || next > 4) return;
             if (next === 2) {
                 if (!EXPORT_CAMPOS.some(c => c.selected)) {
                     alert('Selecione ao menos uma tabela.');
@@ -1206,19 +1354,20 @@
                 }
                 _renderExportFields();
             }
+            if (next === 3) await _carregarDadosRegistros();
             _goExportStep(next);
         }
 
         function _goExportStep(n) {
             _exportCurrentStep = n;
-            [1,2,3].forEach(i => {
+            [1,2,3,4].forEach(i => {
                 document.getElementById(`expStep${i}`).classList.toggle('active', i === n);
                 const pill = document.getElementById(`expPill${i}`);
                 pill.classList.toggle('active', i === n);
                 pill.classList.toggle('done',   i < n);
             });
-            document.getElementById('expBtnBack').style.display  = n > 1  ? '' : 'none';
-            document.getElementById('expBtnNext').style.display  = n < 3  ? '' : 'none';
+            document.getElementById('expBtnBack').style.display  = n > 1 ? '' : 'none';
+            document.getElementById('expBtnNext').style.display  = n < 4 ? '' : 'none';
             document.getElementById('expBtnNext').disabled       = false;
             document.getElementById('expLoading').classList.remove('show');
             if (n === 1) _updateExportTableCount();
@@ -1329,14 +1478,513 @@
             icon.className = `fa-solid fa-chevron-${collapsed ? 'up' : 'down'} sect-toggle`;
         }
 
-        // ── Step 3: execução ──────────────────────────────────────────────────
+        // ── Step 3: registros ─────────────────────────────────────────────────
+
+        function _expItemLabel(item) {
+            return item.codigo || item.numero || item.descricao || item.id || '(sem código)';
+        }
+        function _expItemSub(item) {
+            const parts = [];
+            if (item.modelo)    parts.push(item.modelo);
+            if (item.operadora) parts.push(item.operadora);
+            if (item.usuario)   parts.push(item.usuario);
+            if (item.setor)     parts.push(item.setor);
+            return parts.join(' · ') || '';
+        }
+
+        async function _carregarDadosRegistros() {
+            // Loading placeholder
+            document.getElementById('expStep3').innerHTML =
+                '<div class="export-loading show" style="display:flex"><i class="fa-solid fa-circle-notch"></i><span>Carregando registros…</span></div>';
+            document.getElementById('expBtnNext').disabled = true;
+
+            const selecionadas = EXPORT_CAMPOS.filter(c => c.selected);
+            const resultados   = await Promise.allSettled(selecionadas.map(c => c.fn()));
+
+            _expCache   = {};
+            _expFiltros = {};
+            selecionadas.forEach((cat, i) => {
+                const dados = resultados[i].status === 'fulfilled' ? (resultados[i].value || []) : [];
+                _expCache[cat.key]   = { dados, selecionados: new Set(dados.map(d => d.id || d._id)) };
+                _expFiltros[cat.key] = null; // sem filtro ativo
+            });
+
+            // Reconstrói HTML do step 3
+            document.getElementById('expStep3').innerHTML = `
+                <div id="expFiltrosContainer"></div>
+                <div class="exp-tab-bar" id="expRecordsTabs"></div>
+                <div class="exp-records-toolbar">
+                    <div class="exp-records-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="expRecordsSearch"
+                               placeholder="Buscar por código, modelo, usuário, setor…"
+                               oninput="expFiltrarRegistros()">
+                    </div>
+                    <span class="exp-records-count" id="expRecordsCount"></span>
+                </div>
+                <div class="exp-records-selbar">
+                    <span id="expRecordsSelCount">0 selecionados</span>
+                    <div class="selbar-actions">
+                        <button onclick="expSelecionarTodos(true)">Selecionar todos</button>
+                        <button onclick="expSelecionarTodos(false)">Limpar seleção</button>
+                    </div>
+                </div>
+                <div class="exp-records-list" id="expRecordsList"></div>`;
+
+            _expRenderFiltros(selecionadas);
+
+            // Tabs
+            const tabBar = document.getElementById('expRecordsTabs');
+            selecionadas.forEach((cat, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'exp-tab-btn' + (i === 0 ? ' active' : '');
+                btn.id        = `expTab_${cat.key}`;
+                btn.innerHTML = `<i class="${cat.icon}"></i> ${cat.label} <span class="badge">${_expCache[cat.key].dados.length}</span>`;
+                btn.onclick   = () => expMudarTab(cat.key);
+                tabBar.appendChild(btn);
+            });
+
+            _expTabAtiva = selecionadas[0]?.key || null;
+            if (_expTabAtiva) expRenderizarLista();
+            document.getElementById('expBtnNext').disabled = false;
+            _expAtualizarSelCount();
+        }
+
+        // ── Filtros por tabela ────────────────────────────────────────────────
+
+        // Mapa de campos filtráveis por categoria (key da API + label)
+        const _FILTROS_DEF = {
+            computadores: [
+                { key: 'codigo',        label: 'Código'           },
+                { key: 'usuario',       label: 'Usuário'          },
+                { key: 'setor',         label: 'Setor'            },
+                { key: 'status',        label: 'Status'           },
+                { key: 'modelo',        label: 'Modelo'           },
+                { key: 'tipo',          label: 'Tipo'             },
+                { key: 'sistemaOperacional', label: 'Sistema Op.' },
+                { key: 'ativo',         label: 'Ativo'            },
+                { key: 'ip',            label: 'IP'               },
+            ],
+            celulares: [
+                { key: 'codigo',    label: 'Código'    },
+                { key: 'usuario',   label: 'Usuário'   },
+                { key: 'setor',     label: 'Setor'     },
+                { key: 'status',    label: 'Status'    },
+                { key: 'modelo',    label: 'Modelo'    },
+                { key: 'operadora', label: 'Operadora' },
+                { key: 'ativo',     label: 'Ativo'     },
+            ],
+            monitores: [
+                { key: 'codigo',    label: 'Código'    },
+                { key: 'usuario',   label: 'Usuário'   },
+                { key: 'setor',     label: 'Setor'     },
+                { key: 'status',    label: 'Status'    },
+                { key: 'modelo',    label: 'Modelo'    },
+                { key: 'resolucao', label: 'Resolução' },
+                { key: 'ativo',     label: 'Ativo'     },
+            ],
+            mouses: [
+                { key: 'codigo', label: 'Código' },
+                { key: 'usuario',label: 'Usuário'},
+                { key: 'setor',  label: 'Setor'  },
+                { key: 'status', label: 'Status' },
+                { key: 'modelo', label: 'Modelo' },
+                { key: 'tipo',   label: 'Tipo'   },
+                { key: 'ativo',  label: 'Ativo'  },
+            ],
+            teclados: [
+                { key: 'codigo', label: 'Código' },
+                { key: 'usuario',label: 'Usuário'},
+                { key: 'setor',  label: 'Setor'  },
+                { key: 'status', label: 'Status' },
+                { key: 'modelo', label: 'Modelo' },
+                { key: 'tipo',   label: 'Tipo'   },
+                { key: 'ativo',  label: 'Ativo'  },
+            ],
+            fones: [
+                { key: 'codigo', label: 'Código' },
+                { key: 'usuario',label: 'Usuário'},
+                { key: 'setor',  label: 'Setor'  },
+                { key: 'status', label: 'Status' },
+                { key: 'modelo', label: 'Modelo' },
+                { key: 'tipo',   label: 'Tipo'   },
+                { key: 'ativo',  label: 'Ativo'  },
+            ],
+            ramais: [
+                { key: 'codigo',label: 'Código'  },
+                { key: 'setor', label: 'Setor'   },
+                { key: 'status',label: 'Status'  },
+                { key: 'modelo',label: 'Modelo'  },
+                { key: 'linha', label: 'Linha'   },
+                { key: 'numero',label: 'Número'  },
+                { key: 'ativo', label: 'Ativo'   },
+            ],
+            chips: [
+                { key: 'codigo',    label: 'Código'    },
+                { key: 'operadora', label: 'Operadora' },
+                { key: 'numero',    label: 'Número'    },
+                { key: 'dono',      label: 'Dono'      },
+                { key: 'status',    label: 'Status'    },
+                { key: 'ativo',     label: 'Ativo'     },
+            ],
+            extras: [
+                { key: 'codigo',    label: 'Código'    },
+                { key: 'usuario',   label: 'Usuário'   },
+                { key: 'setor',     label: 'Setor'     },
+                { key: 'status',    label: 'Status'    },
+                { key: 'categoria', label: 'Categoria' },
+                { key: 'ativo',     label: 'Ativo'     },
+            ],
+        };
+
+        function _expRenderFiltros(selecionadas) {
+            const container = document.getElementById('expFiltrosContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            selecionadas.forEach(cat => {
+                const block = document.createElement('div');
+                block.className = 'exp-filter-block';
+                block.id = `expFilterBlock_${cat.key}`;
+
+                const defs = _FILTROS_DEF[cat.key] || [];
+
+                block.innerHTML = `
+                    <div class="exp-filter-header" onclick="expToggleFiltroBlock('${cat.key}')">
+                        <i class="${cat.icon} exp-filter-header-icon"></i>
+                        <strong>Filtrar ${cat.label}</strong>
+                        <span class="exp-filter-active-label" id="expFiltroLabel_${cat.key}"
+                              style="font-size:11px;color:var(--text-muted);">Sem filtro</span>
+                        <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <div class="exp-filter-body" id="expFilterBody_${cat.key}">
+                        <div class="exp-filter-row">
+                            <select class="exp-filter-prop-select" id="expFilterProp_${cat.key}"
+                                    onchange="expFiltroAtualizarDropdown('${cat.key}')">
+                                <option value="">— Escolha um campo —</option>
+                                ${defs.map(d => `<option value="${d.key}">${d.label}</option>`).join('')}
+                            </select>
+                            <div class="exp-filter-dropdown-wrap" id="expFilterWrap_${cat.key}"></div>
+                        </div>
+                        <div class="exp-filter-active" id="expFilterChips_${cat.key}"></div>
+                    </div>`;
+
+                container.appendChild(block);
+            });
+        }
+
+        function expToggleFiltroBlock(key) {
+            const body   = document.getElementById(`expFilterBody_${key}`);
+            const header = document.getElementById(`expFilterBlock_${key}`).querySelector('.exp-filter-header');
+            const icon   = header.querySelector('.toggle-icon');
+            const open   = body.classList.toggle('open');
+            header.classList.toggle('open', open);
+            icon.className = `fa-solid fa-chevron-${open ? 'up' : 'down'} toggle-icon`;
+        }
+
+        // Quando o usuário escolhe um campo — monta o dropdown de valores
+        function expFiltroAtualizarDropdown(catKey) {
+            const wrap  = document.getElementById(`expFilterWrap_${catKey}`);
+            const prop  = document.getElementById(`expFilterProp_${catKey}`).value;
+            wrap.innerHTML = '';
+            if (!prop) return;
+
+            const cache = _expCache[catKey];
+            if (!cache) return;
+
+            // Valores únicos desse campo nos dados já carregados
+            const unicos = [...new Set(
+                cache.dados
+                    .map(d => d[prop])
+                    .filter(v => v !== null && v !== undefined && v !== '')
+                    .map(v => String(v))
+            )].sort();
+
+            // Estado de seleção temporária
+            let selecionados = new Set();
+
+            // ── Estrutura do dropdown ───────────────────────
+            const wrapDiv = document.createElement('div');
+            wrapDiv.className = 'exp-filter-dropdown-wrap';
+            wrapDiv.style.position = 'relative';
+
+            const trigger = document.createElement('button');
+            trigger.type = 'button';
+            trigger.className = 'exp-filter-value-btn';
+            trigger.innerHTML = '<span id="expFiltroTriggerLabel_' + catKey + '">— Selecione valores —</span><i class="fa-solid fa-chevron-down" style="font-size:11px;color:var(--text-muted);"></i>';
+
+            const panel = document.createElement('div');
+            panel.className = 'exp-filter-value-panel';
+            panel.id = `expFilterPanel_${catKey}`;
+
+            // Busca
+            const searchWrap = document.createElement('div');
+            searchWrap.className = 'exp-filter-value-search';
+            const searchInput = document.createElement('input');
+            searchInput.type = 'text';
+            searchInput.placeholder = 'Pesquisar…';
+            searchWrap.appendChild(searchInput);
+            panel.appendChild(searchWrap);
+
+            // Lista
+            const listEl = document.createElement('div');
+            listEl.className = 'exp-filter-value-list';
+            panel.appendChild(listEl);
+
+            // Botão aplicar
+            const applyBtn = document.createElement('button');
+            applyBtn.type = 'button';
+            applyBtn.className = 'exp-filter-apply-btn';
+            applyBtn.textContent = 'Aplicar filtro';
+            applyBtn.onclick = (e) => {
+                e.stopPropagation();
+                const defs = _FILTROS_DEF[catKey] || [];
+                const def  = defs.find(d => d.key === prop);
+                _expAplicarFiltro(catKey, prop, def?.label || prop, [...selecionados]);
+                panel.classList.remove('open');
+            };
+            panel.appendChild(applyBtn);
+
+            // Fecha ao clicar fora
+            document.addEventListener('click', function fecharPanel(e) {
+                if (!wrapDiv.contains(e.target)) {
+                    panel.classList.remove('open');
+                    document.removeEventListener('click', fecharPanel);
+                }
+            });
+
+            const renderItens = (filtro = '') => {
+                listEl.innerHTML = '';
+                const filtrados = filtro
+                    ? unicos.filter(v => v.toLowerCase().includes(filtro.toLowerCase()))
+                    : unicos;
+
+                if (!filtrados.length) {
+                    listEl.innerHTML = '<div style="padding:10px 14px;font-size:12px;color:var(--text-muted);">Nenhum valor encontrado</div>';
+                    return;
+                }
+
+                filtrados.forEach(val => {
+                    const row = document.createElement('label');
+                    row.className = 'exp-filter-value-item';
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.value = val;
+                    cb.checked = selecionados.has(val);
+                    cb.addEventListener('change', (e) => {
+                        e.stopPropagation();
+                        if (cb.checked) selecionados.add(val);
+                        else            selecionados.delete(val);
+                        _expAtualizarTriggerLabel(catKey, selecionados);
+                    });
+                    const span = document.createElement('span');
+                    span.textContent = val;
+                    row.appendChild(cb);
+                    row.appendChild(span);
+                    row.addEventListener('click', e => e.stopPropagation());
+                    listEl.appendChild(row);
+                });
+            };
+
+            searchInput.addEventListener('input', () => renderItens(searchInput.value));
+            renderItens();
+
+            trigger.onclick = (e) => {
+                e.stopPropagation();
+                panel.classList.toggle('open');
+            };
+
+            wrapDiv.appendChild(trigger);
+            wrapDiv.appendChild(panel);
+            wrap.appendChild(wrapDiv);
+        }
+
+        function _expAtualizarTriggerLabel(catKey, selecionados) {
+            const el = document.getElementById(`expFiltroTriggerLabel_${catKey}`);
+            if (!el) return;
+            if (selecionados.size === 0) el.textContent = '— Selecione valores —';
+            else if (selecionados.size === 1) el.textContent = [...selecionados][0];
+            else el.textContent = `${selecionados.size} valores selecionados`;
+        }
+
+        function _expAplicarFiltro(catKey, prop, propLabel, valores) {
+            if (!valores.length) {
+                expLimparFiltro(catKey);
+                return;
+            }
+
+            _expFiltros[catKey] = { prop, values: valores };
+
+            // Chip de filtro ativo
+            const chipsEl = document.getElementById(`expFilterChips_${catKey}`);
+            const labelEl = document.getElementById(`expFiltroLabel_${catKey}`);
+            if (chipsEl) {
+                chipsEl.innerHTML = `
+                    <div class="exp-filter-chip">
+                        <i class="fa-solid fa-filter" style="font-size:10px;"></i>
+                        <span>${propLabel}: ${valores.length <= 2 ? valores.join(', ') : valores.slice(0,2).join(', ') + ` +${valores.length-2}`}</span>
+                        <button onclick="expLimparFiltro('${catKey}')" title="Remover filtro">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>`;
+            }
+            if (labelEl) labelEl.textContent = `${propLabel}: ${valores.length} valor(es)`;
+
+            expRenderizarLista();
+        }
+
+        function expLimparFiltro(catKey) {
+            _expFiltros[catKey] = null;
+            const chipsEl = document.getElementById(`expFilterChips_${catKey}`);
+            const labelEl = document.getElementById(`expFiltroLabel_${catKey}`);
+            if (chipsEl) chipsEl.innerHTML = '';
+            if (labelEl) labelEl.textContent = 'Sem filtro';
+            // Reseta o select e dropdown
+            const propSel = document.getElementById(`expFilterProp_${catKey}`);
+            if (propSel) propSel.value = '';
+            const wrap = document.getElementById(`expFilterWrap_${catKey}`);
+            if (wrap) wrap.innerHTML = '';
+            expRenderizarLista();
+        }
+
+        // ── Tabs e lista ──────────────────────────────────────────────────────
+
+        function expMudarTab(key) {
+            _expTabAtiva = key;
+            document.querySelectorAll('.exp-tab-btn').forEach(b =>
+                b.classList.toggle('active', b.id === `expTab_${key}`)
+            );
+            document.getElementById('expRecordsSearch').value = '';
+            expRenderizarLista();
+        }
+
+        function expRenderizarLista() {
+            const list  = document.getElementById('expRecordsList');
+            const cache = _expCache[_expTabAtiva];
+            if (!list || !cache) return;
+
+            const termo  = (document.getElementById('expRecordsSearch')?.value || '').toLowerCase().trim();
+            const filtro = _expFiltros[_expTabAtiva];
+
+            let dados = cache.dados;
+
+            // Aplica filtro de campo se ativo
+            if (filtro && filtro.values.length) {
+                dados = dados.filter(item => {
+                    const v = String(item[filtro.prop] ?? '');
+                    return filtro.values.includes(v);
+                });
+            }
+
+            // Aplica busca de texto
+            if (termo) {
+                dados = dados.filter(item => {
+                    const haystack = [
+                        item.codigo, item.modelo, item.usuario, item.setor,
+                        item.status, item.ip, item.numero, item.descricao,
+                        item.categoria, item.linha, item.operadora, item.dono,
+                    ].filter(Boolean).join(' ').toLowerCase();
+                    return haystack.includes(termo);
+                });
+            }
+
+            const countEl = document.getElementById('expRecordsCount');
+            if (countEl) {
+                const total = cache.dados.length;
+                const vis   = dados.length;
+                countEl.innerHTML = (vis < total)
+                    ? `<strong>${vis}</strong> de ${total}`
+                    : `<strong>${total}</strong> registros`;
+            }
+
+            if (!dados.length) {
+                list.innerHTML = `<div class="exp-record-empty">
+                    <i class="fa-solid fa-inbox" style="font-size:20px;display:block;margin-bottom:6px;"></i>
+                    Nenhum registro encontrado.</div>`;
+                return;
+            }
+
+            list.innerHTML = '';
+            dados.forEach(item => {
+                const id       = item.id || item._id;
+                const selected = cache.selecionados.has(id);
+                const statusCls = (item.status || 'default').replace(/[^a-zA-Z]/g, '');
+
+                const row = document.createElement('div');
+                row.className  = 'exp-record-item' + (selected ? ' selected' : '');
+                row.dataset.id = id;
+                row.innerHTML  = `
+                    <input type="checkbox" ${selected ? 'checked' : ''}
+                           onchange="expToggleItem('${_expTabAtiva}','${id}',this.checked);event.stopPropagation();">
+                    <div class="exp-record-main">
+                        <strong>${_expItemLabel(item)}</strong>
+                        <span>${_expItemSub(item)}</span>
+                    </div>
+                    ${item.status ? `<span class="exp-record-badge ${statusCls}">${item.status}</span>` : ''}`;
+                row.onclick = (e) => {
+                    if (e.target.tagName === 'INPUT') return;
+                    const cb = row.querySelector('input');
+                    cb.checked = !cb.checked;
+                    expToggleItem(_expTabAtiva, id, cb.checked);
+                };
+                list.appendChild(row);
+            });
+        }
+
+        function expFiltrarRegistros() { expRenderizarLista(); }
+
+        function expToggleItem(catKey, id, checked) {
+            const cache = _expCache[catKey];
+            if (!cache) return;
+            if (checked) cache.selecionados.add(id);
+            else         cache.selecionados.delete(id);
+            const row = document.querySelector(`.exp-record-item[data-id="${id}"]`);
+            if (row) row.classList.toggle('selected', checked);
+            _expAtualizarBadge(catKey);
+            _expAtualizarSelCount();
+        }
+
+        function expSelecionarTodos(v) {
+            const cache = _expCache[_expTabAtiva];
+            if (!cache) return;
+            // Seleciona/limpa apenas os que estão visíveis (pós-filtro)
+            const filtro = _expFiltros[_expTabAtiva];
+            const termo  = (document.getElementById('expRecordsSearch')?.value || '').toLowerCase().trim();
+            let dados = cache.dados;
+            if (filtro?.values?.length) dados = dados.filter(d => filtro.values.includes(String(d[filtro.prop] ?? '')));
+            if (termo) dados = dados.filter(d => [d.codigo,d.modelo,d.usuario,d.setor,d.status,d.ip,d.numero,d.descricao,d.categoria,d.linha,d.operadora,d.dono].filter(Boolean).join(' ').toLowerCase().includes(termo));
+            dados.forEach(d => {
+                const id = d.id || d._id;
+                if (v) cache.selecionados.add(id);
+                else   cache.selecionados.delete(id);
+            });
+            expRenderizarLista();
+            _expAtualizarBadge(_expTabAtiva);
+            _expAtualizarSelCount();
+        }
+
+        function _expAtualizarBadge(catKey) {
+            const cache = _expCache[catKey];
+            const btn   = document.getElementById(`expTab_${catKey}`);
+            if (!btn || !cache) return;
+            const cat = EXPORT_CAMPOS.find(c => c.key === catKey);
+            btn.innerHTML = `<i class="${cat.icon}"></i> ${cat.label} <span class="badge">${cache.selecionados.size}</span>`;
+        }
+
+        function _expAtualizarSelCount() {
+            const total = Object.values(_expCache).reduce((s, c) => s + c.selecionados.size, 0);
+            const el = document.getElementById('expRecordsSelCount');
+            if (el) el.textContent = total === 1 ? '1 selecionado' : `${total} selecionados`;
+        }
+
+        // ── Step 4: execução ──────────────────────────────────────────────────
         async function executarExportacao(formato) {
-            [1,2,3].forEach(i => document.getElementById(`expStep${i}`).classList.remove('active'));
+            [1,2,3,4].forEach(i => document.getElementById(`expStep${i}`).classList.remove('active'));
             document.getElementById('expBtnNext').style.display = 'none';
             document.getElementById('expBtnBack').style.display = 'none';
             document.getElementById('expLoading').classList.add('show');
-            document.getElementById('expLoadingMsg').textContent = 'Buscando dados da API…';
-            await exportarDadosFiltrado(formato, EXPORT_CAMPOS);
+            document.getElementById('expLoadingMsg').textContent = 'Gerando arquivo…';
+            await exportarDadosFiltrado(formato, EXPORT_CAMPOS, _expCache);
             fecharModalExport();
         }
 
@@ -1501,6 +2149,9 @@
 
             <!-- Step 3 — Registros -->
             <div class="export-step-body" id="expStep3">
+                <!-- Filtros por tabela (gerados por JS) -->
+                <div id="expFiltrosContainer"></div>
+
                 <!-- Tab bar por categoria -->
                 <div class="exp-tab-bar" id="expRecordsTabs"></div>
 
