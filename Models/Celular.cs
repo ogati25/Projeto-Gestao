@@ -18,8 +18,6 @@ public class Celular : Equipamento
 
     public TipoConectorCarregador? Conectividade { get; set; }  // estático → enum
 
-    public string? Operadora { get; set; }  // dinâmico → string?
-
     [MaximoElementos(2)]
     public List<string> ChipIds { get; set; } = new();
 

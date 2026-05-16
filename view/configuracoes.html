@@ -1493,9 +1493,12 @@
         }
 
         async function _carregarDadosRegistros() {
-            // Loading placeholder
-            document.getElementById('expStep3').innerHTML =
-                '<div class="export-loading show" style="display:flex"><i class="fa-solid fa-circle-notch"></i><span>Carregando registros…</span></div>';
+            // Mostra loading nos containers existentes sem sobrescrever o step inteiro
+            document.getElementById('expFiltrosContainer').innerHTML = '';
+            document.getElementById('expRecordsTabs').innerHTML      = '';
+            document.getElementById('expRecordsList').innerHTML      =
+                '<div class="export-loading show" style="display:flex;padding:30px;"><i class="fa-solid fa-circle-notch"></i><span>Carregando registros…</span></div>';
+            document.getElementById('expRecordsSearch').value = '';
             document.getElementById('expBtnNext').disabled = true;
 
             const selecionadas = EXPORT_CAMPOS.filter(c => c.selected);
@@ -1506,34 +1509,13 @@
             selecionadas.forEach((cat, i) => {
                 const dados = resultados[i].status === 'fulfilled' ? (resultados[i].value || []) : [];
                 _expCache[cat.key]   = { dados, selecionados: new Set(dados.map(d => d.id || d._id)) };
-                _expFiltros[cat.key] = null; // sem filtro ativo
+                _expFiltros[cat.key] = null;
             });
 
-            // Reconstrói HTML do step 3
-            document.getElementById('expStep3').innerHTML = `
-                <div id="expFiltrosContainer"></div>
-                <div class="exp-tab-bar" id="expRecordsTabs"></div>
-                <div class="exp-records-toolbar">
-                    <div class="exp-records-search">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="expRecordsSearch"
-                               placeholder="Buscar por código, modelo, usuário, setor…"
-                               oninput="expFiltrarRegistros()">
-                    </div>
-                    <span class="exp-records-count" id="expRecordsCount"></span>
-                </div>
-                <div class="exp-records-selbar">
-                    <span id="expRecordsSelCount">0 selecionados</span>
-                    <div class="selbar-actions">
-                        <button onclick="expSelecionarTodos(true)">Selecionar todos</button>
-                        <button onclick="expSelecionarTodos(false)">Limpar seleção</button>
-                    </div>
-                </div>
-                <div class="exp-records-list" id="expRecordsList"></div>`;
-
+            // Popula filtros
             _expRenderFiltros(selecionadas);
 
-            // Tabs
+            // Popula tabs
             const tabBar = document.getElementById('expRecordsTabs');
             selecionadas.forEach((cat, i) => {
                 const btn = document.createElement('button');

@@ -1119,7 +1119,6 @@
                         <thead><tr>
                             <th class="col-id">ID</th>
                             <th>Modelo</th>
-                            <th>Marca</th>
                             <th>Data Aquisição</th>
                             <th>Preço Aquisição</th>
                             <th>Status</th>
@@ -1128,7 +1127,7 @@
                             <th>Ativo</th>
                             <th class="col-acoes">Ações</th>
                         </tr></thead>
-                        <tbody><tr class="empty-row"><td colspan="10">
+                        <tbody><tr class="empty-row"><td colspan="9">
                             <i class="fa-solid fa-computer-mouse"></i>Aguardando dados da API...
                         </td></tr></tbody>
                     </table>
@@ -1287,7 +1286,6 @@
                         <thead><tr>
                             <th class="col-id">ID</th>
                             <th>Número</th>
-                            <th>Operadora</th>
                             <th>Dono</th>
                             <th>Celular</th>
                             <th>Status</th>
@@ -1296,7 +1294,7 @@
                             <th>Ativo</th>
                             <th class="col-acoes">Ações</th>
                         </tr></thead>
-                        <tbody><tr class="empty-row"><td colspan="10">
+                        <tbody><tr class="empty-row"><td colspan="9">
                             <i class="fa-solid fa-sim-card"></i>Aguardando dados da API...
                         </td></tr></tbody>
                     </table>
@@ -1304,7 +1302,6 @@
                         <thead><tr>
                             <th class="col-id">ID</th>
                             <th>Número</th>
-                            <th>Operadora</th>
                             <th>Plano</th>
                             <th>Status</th>
                             <th>Setor</th>
@@ -1312,7 +1309,7 @@
                             <th>Ativo</th>
                             <th class="col-acoes">Ações</th>
                         </tr></thead>
-                        <tbody><tr class="empty-row"><td colspan="9">
+                        <tbody><tr class="empty-row"><td colspan="8">
                             <i class="fa-solid fa-sim-card"></i>Aguardando dados da API...
                         </td></tr></tbody>
                     </table>
@@ -2279,7 +2276,7 @@
                         <div class="detail-chip-item">
                             <div class="detail-chip-num">${c.num}</div>
                             <div class="detail-chip-info">
-                                <div class="detail-chip-title">${c.operadora} — ${c.numero}</div>
+                                <div class="detail-chip-title">${c.numero}</div>
                                 <div class="detail-chip-sub">Dono: ${c.dono}</div>
                             </div>
                             <div class="detail-chip-badge">${detailStatusBadge(c.status)}</div>
@@ -2503,6 +2500,24 @@
                             <div class="detail-field full" style="grid-column:1/-1;">
                                 <div class="detail-field-value" style="white-space:pre-wrap;font-size:13px;font-weight:500;line-height:1.6;">
                                     ${d.observacoes && d.observacoes.trim() ? d.observacoes : '<span style="color:var(--text-muted);font-style:italic;">Nenhuma observação registrada.</span>'}
+                                </div>
+                            </div>
+                        </div>`;
+                }
+
+                /* ── Observações (modo gestão — todas as categorias exceto computadores) ── */
+                case 'obs_only': {
+                    const obs = detail.data?.observacoes;
+                    return `
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label">
+                                <i class="fa-solid fa-note-sticky"></i> Observações
+                            </div>
+                            <div class="detail-field full" style="grid-column:1/-1;background:var(--background-color);border:1px solid var(--border-color);border-radius:8px;padding:14px 16px;">
+                                <div class="detail-field-value" style="white-space:pre-wrap;font-size:13px;font-weight:500;line-height:1.7;">
+                                    ${obs && obs.trim()
+                                        ? obs
+                                        : '<span style="color:var(--text-muted);font-style:italic;">Nenhuma observação registrada.</span>'}
                                 </div>
                             </div>
                         </div>`;
