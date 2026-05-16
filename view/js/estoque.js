@@ -1567,14 +1567,15 @@ function renderRow(categoria, item, modo) {
             title: 'Detalhes Completos',
             subtitle,
             data: {
-                cpu:        cpuDetail.data,
-                ram:        ramDetail.data,
-                disco:      discoDetail.data,
-                vram:       vramDetail.data,
-                so:         soDetail.data,
-                office:     officeDetail.data,
-                conectores: conectores,
-                ip:         item.ip || '—',
+                cpu:          cpuDetail.data,
+                ram:          ramDetail.data,
+                disco:        discoDetail.data,
+                vram:         vramDetail.data,
+                so:           soDetail.data,
+                office:       officeDetail.data,
+                conectores:   conectores,
+                ip:           item.ip           || '—',
+                observacoes:  item.observacoes  || '',
             }
         };
 

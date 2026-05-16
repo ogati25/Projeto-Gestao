@@ -2494,6 +2494,17 @@
                                     : detailField('Conectores de Vídeo', '—', true)}
                                 ${detailField('IP', d.ip, !Array.isArray(d.conectores) || !d.conectores.length)}
                             </div>
+                        </div>
+
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label">
+                                <i class="fa-solid fa-note-sticky"></i> Observações
+                            </div>
+                            <div class="detail-field full" style="grid-column:1/-1;">
+                                <div class="detail-field-value" style="white-space:pre-wrap;font-size:13px;font-weight:500;line-height:1.6;">
+                                    ${d.observacoes && d.observacoes.trim() ? d.observacoes : '<span style="color:var(--text-muted);font-style:italic;">Nenhuma observação registrada.</span>'}
+                                </div>
+                            </div>
                         </div>`;
                 }
 
