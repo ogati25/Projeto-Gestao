@@ -1953,13 +1953,9 @@ function renderRow(categoria, item, modo) {
             type: 'info_celular', icon: 'fa-mobile-screen', title: 'Detalhes Completos',
             subtitle: `${item.codigo || ''} · ${item.modelo || ''}`,
             data: {
-                modelo:        item.modelo        || '—',
-                memoriaRAM:    item.memoriaRAM ? item.memoriaRAM + ' GB' : '—',
-                armazenamento: item.armazenamento ? item.armazenamento + ' GB' : '—',
-                conectividade: item.conectividade  || '—',
-                chips:         chipsLista,
-                whatsapp:      wppLista,
-                observacoes:   item.observacoes    || '',
+                chips:   chipsDetail.data,
+                whatsapp: wppDetail.data,
+                observacoes: item.observacoes || '',
             },
         };
         const acoesCelularInfo = acoes.replace('</div>', `<button class="btn-action info" data-detail='${JSON.stringify(celularInfoDetail)}' title="Ver detalhes"><i class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">info</i></button></div>`);
@@ -2014,20 +2010,16 @@ function renderRow(categoria, item, modo) {
     // ── Ramais ────────────────────────────────────────────────────────
     else if (categoria === 'ramais') {
         const ramalInfo = {
-            type: 'info_generico', icon: 'fa-phone', title: 'Detalhes Completos',
+            type: 'info_ramal', icon: 'fa-phone', title: 'Detalhes Completos',
             subtitle: `${item.codigo || ''} · ${item.modelo || ''}`,
-            data: { campos: [
-                { label: 'Modelo',      value: item.modelo                      || '—' },
-                { label: 'Cor',         value: item.cor                         || '—' },
-                { label: 'Tipo',        value: item.tipo                        || '—' },
-                { label: 'IP',          value: item.ip                          || '—' },
-                { label: 'MAC',         value: item.mac                         || '—' },
-                { label: 'Linha',       value: item.linha                       || '—' },
-                { label: 'Número',      value: item.numero                      || '—' },
-                { label: 'Configurado', value: item.configurado ? 'Sim' : 'Não'        },
-            ], observacoes: item.observacoes || '' },
+            data: {
+                ip:          item.ip  || '—',
+                mac:         item.mac || '—',
+                observacoes: item.observacoes || '',
+            },
         };
-        const acoesRamalInfo = acoes.replace('</div>', `<button class="btn-action info" data-detail='${JSON.stringify(ramalInfo)}' title="Ver detalhes"><i class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">info</i></button></div>`);
+        const ramalInfoJson = encodeURIComponent(JSON.stringify(ramalInfo));
+        const acoesRamalInfo = acoes.replace('</div>', `<button class="btn-action info" data-detail-enc="${ramalInfoJson}" title="Ver detalhes"><i class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">info</i></button></div>`);
 
         if (modo === 'suporte') {
             cells = `
@@ -2036,7 +2028,6 @@ function renderRow(categoria, item, modo) {
                 <td>${item.cor || '—'}</td>
                 <td>${item.tipo || '—'}</td>
                 <td>${item.ip        || '—'}</td>
-                <td>${item.mac       || '—'}</td>
                 <td>${item.linha     || '—'}</td>
                 <td>${item.numero    || '—'}</td>
                 <td>${item.configurado ? 'Sim' : 'Não'}</td>
