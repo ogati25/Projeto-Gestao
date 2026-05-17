@@ -25,8 +25,13 @@ public class Usuario
     [Required]
     public string Senha { get; set; } = null!;
 
+    public string? Telefone { get; set; }
+
     [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
     public DateTime CriadoEm { get; set; }
+
+    [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
+    public DateTime? AtualizadoEm { get; set; }
 
     // ── Reset de senha ──────────────────────────────────────────────────────
     // Token gerado ao solicitar "Esqueci minha senha". Expira em 1 hora.

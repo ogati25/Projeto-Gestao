@@ -53,6 +53,7 @@ public class UsuarioService
         usuarioExistente.Nome = nome;
         usuarioExistente.Sobrenome = sobrenome;
         usuarioExistente.Setor = setor;
+        usuarioExistente.AtualizadoEm = DateTime.UtcNow;
 
         await _usuarios.ReplaceOneAsync(u => u.Id == id, usuarioExistente);
     }
@@ -67,6 +68,7 @@ public class UsuarioService
         if (usuarioExistente == null) return false;
 
         usuarioExistente.Email = novoEmail;
+        usuarioExistente.AtualizadoEm = DateTime.UtcNow;
         await _usuarios.ReplaceOneAsync(u => u.Id == id, usuarioExistente);
         return true;
     }
@@ -77,6 +79,7 @@ public class UsuarioService
         if (usuarioExistente == null) return;
 
         usuarioExistente.Senha = _passwordHasher.HashPassword(usuarioExistente, novaSenha);
+        usuarioExistente.AtualizadoEm = DateTime.UtcNow;
         await _usuarios.ReplaceOneAsync(u => u.Id == id, usuarioExistente);
     }
 
@@ -133,6 +136,7 @@ public class UsuarioService
         usuario.Senha                 = _passwordHasher.HashPassword(usuario, novaSenha);
         usuario.ResetSenhaToken       = null;
         usuario.ResetSenhaTokenExpiry = null;
+        usuario.AtualizadoEm          = DateTime.UtcNow;
 
         await _usuarios.ReplaceOneAsync(u => u.Id == usuario.Id, usuario);
         return true;
@@ -174,6 +178,7 @@ public class UsuarioService
         usuario.EmailVerificado             = true;
         usuario.EmailVerificacaoToken       = null;
         usuario.EmailVerificacaoTokenExpiry = null;
+        usuario.AtualizadoEm                = DateTime.UtcNow;
 
         await _usuarios.ReplaceOneAsync(u => u.Id == usuario.Id, usuario);
         return true;

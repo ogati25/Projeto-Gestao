@@ -30,6 +30,7 @@ public class UsuariosController : ControllerBase
             Sobrenome = dto.Sobrenome,
             Email = dto.Email,
             Setor = dto.Setor,
+            Telefone = dto.Telefone,
             Senha = dto.Senha
         };
 
@@ -220,7 +221,9 @@ public class UsuariosController : ControllerBase
             Sobrenome = usuario.Sobrenome,
             Email = usuario.Email,
             Setor = usuario.Setor,
+            Telefone = usuario.Telefone,
             CriadoEm = usuario.CriadoEm,
+            AtualizadoEm = usuario.AtualizadoEm,
             EmailVerificado = usuario.EmailVerificado
         };
     }

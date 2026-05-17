@@ -17,6 +17,10 @@ public class UsuarioCreateDto
     [Required(ErrorMessage = "O setor é obrigatório.")]
     public string Setor { get; set; } = null!;  // dinâmico → string
 
+    // Telefone é opcional no cadastro
+    [Phone(ErrorMessage = "Telefone inválido.")]
+    public string? Telefone { get; set; }
+
     [Required(ErrorMessage = "A senha é obrigatória.")]
     [MinLength(6, ErrorMessage = "A senha deve ter no mínimo 6 caracteres.")]
     public string Senha { get; set; } = null!;

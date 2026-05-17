@@ -138,7 +138,9 @@ function salvarSessao(usuario) {
         sobrenome:      usuario.sobrenome   ?? usuario.Sobrenome   ?? '',
         email:          usuario.email       ?? usuario.Email       ?? '',
         setor:          usuario.setor       ?? usuario.Setor       ?? '',
+        telefone:       usuario.telefone    ?? usuario.Telefone    ?? null,
         criadoEm:       usuario.criadoEm    ?? usuario.CriadoEm    ?? null,
+        atualizadoEm:   usuario.atualizadoEm ?? usuario.AtualizadoEm ?? null,
         emailVerificado: usuario.emailVerificado ?? usuario.EmailVerificado ?? false,
     };
 

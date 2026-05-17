@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inicializa todos os módulos da tela
     setupToggleSenha();
     setupForcaSenha();
+    setupMascaraTelefone();
     setupBotaoCadastrar();
     carregarSetors();
 
@@ -182,6 +183,25 @@ function setLoading(carregando) {
 // =============================================================================
 
 /**
+ * Aplica máscara de telefone brasileiro ao campo #telefone em tempo real.
+ * Formatos aceitos: (11) 9999-9999 ou (11) 99999-9999
+ */
+function setupMascaraTelefone() {
+    const input = document.getElementById('telefone');
+    if (!input) return;
+
+    input.addEventListener('input', function () {
+        let v = this.value.replace(/\D/g, '').slice(0, 11);
+        if (v.length <= 10) {
+            v = v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+        } else {
+            v = v.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+        }
+        this.value = v.replace(/-$/, '');
+    });
+}
+
+/**
  * Busca as opções de setor/setor via GET /api/opcoes/Setor
  * e popula o <select id="setor"> com as opções retornadas.
  *
@@ -286,15 +306,14 @@ async function handleCadastro() {
     const sobrenome = document.getElementById('sobrenome').value.trim();
     const email     = document.getElementById('email').value.trim();
     const setor     = document.getElementById('setor').value;
+    const telefone  = document.getElementById('telefone')?.value.trim() || null;
     const senha     = document.getElementById('senha').value;
 
     setLoading(true);
 
     try {
         // criarUsuario() definida em api.js → POST /api/usuarios
-        // O campo "setor" recebe o valor do setor selecionado.
-        // Ajuste o mapeamento se o backend esperar um número de enum.
-        await criarUsuario({ nome, sobrenome, email, setor: setor, senha });
+        await criarUsuario({ nome, sobrenome, email, setor, telefone, senha });
 
         // Exibe mensagem de sucesso e redireciona após 1,8 s
         document.getElementById('alertSuccess')?.classList.add('show');
