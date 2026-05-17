@@ -13,13 +13,16 @@
  *   - Produtos.deletarValor()          → DELETE valor de um tipo
  *   - Produtos.adicionarTipo()         → POST tipo novo com primeiro valor
  *   - Produtos.getState()              → retorna o estado atual em memória
+ *   - Produtos.getClasses()            → retorna a lista de classes com metadados
+ *   - Produtos.getEnumsDaClasse()      → retorna os enums filtrados de uma classe
  *
  *  O que NÃO está aqui (fica no <script> do produtos.html):
- *   - Renderização da tabela / cards de enum
+ *   - Renderização dos cards de classe
  *   - Abertura/fechamento de modais
  *   - Eventos de clique, input, teclado
  *   - Toast / feedback visual
  *   - Tema, sidebar, avatar
+ *   - Navegação para produto-detalhe.html
  * ============================================================
  */
 
@@ -30,6 +33,105 @@ const Produtos = (() => {
     //  enumData = { Setor: ['RH','Suporte',...], Tipo: [...], ... }
     // ============================================================
     let enumData = {};
+
+    // ============================================================
+    //  MAPEAMENTO: CLASSE → ENUMS DINÂMICOS
+    //
+    //  Cada entrada representa uma "classe" do sistema.
+    //  - id         : identificador único usado na URL (?classe=id)
+    //  - nome       : nome exibido no card
+    //  - descricao  : subtítulo do card
+    //  - icone      : classe Font Awesome
+    //  - cor        : cor do ícone do card (classe CSS de cor)
+    //  - enums      : lista dos tipos dinâmicos (chaves do enumData)
+    //                 que pertencem a esta classe
+    //
+    //  'Base' é especial: agrupa os enums comuns a todos os equipamentos.
+    //  Classes sem enums dinâmicos aparecem como cards informativos
+    //  e têm enums: [] — ao abrir mostram aviso de "sem configurações".
+    // ============================================================
+    const CLASSES = [
+        {
+            id:         'base',
+            nome:       'Base',
+            descricao:  'Campos comuns a todos os equipamentos',
+            icone:      'fa-layer-group',
+            cor:        'slate',
+            enums:      ['Setor'],
+        },
+        {
+            id:         'computador',
+            nome:       'Computador',
+            descricao:  'Desktops, notebooks e servidores',
+            icone:      'fa-desktop',
+            cor:        'blue',
+            enums:      ['SistemaOperacional', 'AtivacaoSO', 'TipoOffice', 'AtivacaoOffice', 'GeracaoRAM', 'TipoDisco', 'TipoPlacaVideo'],
+        },
+        {
+            id:         'chip',
+            nome:       'Chip',
+            descricao:  'Chips de telefonia e dados',
+            icone:      'fa-sim-card',
+            cor:        'green',
+            enums:      ['Operadora'],
+        },
+        {
+            id:         'celular',
+            nome:       'Celular',
+            descricao:  'Smartphones corporativos',
+            icone:      'fa-mobile-screen',
+            cor:        'indigo',
+            enums:      [],
+        },
+        {
+            id:         'monitor',
+            nome:       'Monitor',
+            descricao:  'Monitores e displays',
+            icone:      'fa-display',
+            cor:        'cyan',
+            enums:      [],
+        },
+        {
+            id:         'teclado',
+            nome:       'Teclado',
+            descricao:  'Teclados com fio e sem fio',
+            icone:      'fa-keyboard',
+            cor:        'violet',
+            enums:      [],
+        },
+        {
+            id:         'mouse',
+            nome:       'Mouse',
+            descricao:  'Mouses com fio e sem fio',
+            icone:      'fa-computer-mouse',
+            cor:        'purple',
+            enums:      [],
+        },
+        {
+            id:         'fone',
+            nome:       'Fone',
+            descricao:  'Headsets e fones de ouvido',
+            icone:      'fa-headphones',
+            cor:        'pink',
+            enums:      [],
+        },
+        {
+            id:         'ramal',
+            nome:       'Ramal',
+            descricao:  'Ramais telefônicos IP',
+            icone:      'fa-phone-office',
+            cor:        'orange',
+            enums:      [],
+        },
+        {
+            id:         'extra',
+            nome:       'Extra',
+            descricao:  'Equipamentos e acessórios diversos',
+            icone:      'fa-box-open',
+            cor:        'amber',
+            enums:      [],
+        },
+    ];
 
     // ============================================================
     //  SEÇÃO 1 — LEITURA
@@ -49,8 +151,50 @@ const Produtos = (() => {
      * @returns {Object}
      */
     function getState() {
-        // deep copy para o frontend não mutar o estado diretamente
         return JSON.parse(JSON.stringify(enumData));
+    }
+
+    /**
+     * Retorna a lista de classes com metadados enriquecidos
+     * (quantidade de enums e total de opções calculados em tempo real).
+     * @returns {Array}
+     */
+    function getClasses() {
+        return CLASSES.map(cls => {
+            const totalOpcoes = cls.enums.reduce((soma, tipo) => {
+                return soma + (enumData[tipo] ? enumData[tipo].length : 0);
+            }, 0);
+            return {
+                ...cls,
+                totalEnums:  cls.enums.length,
+                totalOpcoes,
+            };
+        });
+    }
+
+    /**
+     * Retorna somente os enums dinâmicos de uma classe específica,
+     * filtrando o enumData pelo mapeamento da classe.
+     * @param {string} classeId  - Ex: "computador"
+     * @returns {Object}  { SistemaOperacional: [...], AtivacaoSO: [...], ... }
+     */
+    function getEnumsDaClasse(classeId) {
+        const cls = CLASSES.find(c => c.id === classeId);
+        if (!cls) return {};
+        const resultado = {};
+        for (const tipo of cls.enums) {
+            resultado[tipo] = enumData[tipo] ? [...enumData[tipo]] : [];
+        }
+        return resultado;
+    }
+
+    /**
+     * Retorna os metadados de uma classe pelo id.
+     * @param {string} classeId
+     * @returns {Object|null}
+     */
+    function getClasse(classeId) {
+        return CLASSES.find(c => c.id === classeId) || null;
     }
 
     // ============================================================
@@ -71,7 +215,6 @@ const Produtos = (() => {
             return { ok: false, mensagem: 'Tipo e valor são obrigatórios.' };
         }
 
-        // Verifica duplicata no estado local antes de ir à API
         const valoresAtuais = enumData[tipo] || [];
         const jaExiste = valoresAtuais.some(v => v.toLowerCase() === valor.toLowerCase());
         if (jaExiste) {
@@ -81,7 +224,6 @@ const Produtos = (() => {
         try {
             await criarOpcao(tipo, valor); // função de api.js
 
-            // Atualiza estado local
             if (!enumData[tipo]) enumData[tipo] = [];
             enumData[tipo].push(valor);
             enumData[tipo].sort((a, b) => a.localeCompare(b, 'pt-BR'));
@@ -112,10 +254,8 @@ const Produtos = (() => {
         try {
             await deletarOpcao(tipo, valor); // função de api.js
 
-            // Atualiza estado local
             if (enumData[tipo]) {
                 enumData[tipo] = enumData[tipo].filter(v => v !== valor);
-                // Se o tipo ficou vazio, remove o grupo também
                 if (enumData[tipo].length === 0) {
                     delete enumData[tipo];
                 }
@@ -152,17 +292,13 @@ const Produtos = (() => {
             return { ok: false, mensagem: 'O primeiro valor é obrigatório.' };
         }
 
-        // Verifica se o tipo já existe localmente
         if (enumData.hasOwnProperty(tipo)) {
             return { ok: false, mensagem: `O tipo "${tipo}" já existe. Use "Adicionar valor" no card correspondente.` };
         }
 
         try {
-            await criarOpcao(tipo, valor); // função de api.js — cria tipo + valor de uma vez
-
-            // Atualiza estado local
+            await criarOpcao(tipo, valor);
             enumData[tipo] = [valor];
-
             return { ok: true, mensagem: `Tipo "${tipo}" criado com valor "${valor}".` };
         } catch (err) {
             if (err.status === 409) {
@@ -178,6 +314,9 @@ const Produtos = (() => {
     return {
         carregarEnums,
         getState,
+        getClasses,
+        getClasse,
+        getEnumsDaClasse,
         adicionarValor,
         deletarValor,
         adicionarTipo,

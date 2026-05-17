@@ -8,12 +8,15 @@
     <link rel="stylesheet" href="style.css">
     <title>Produtos — Tech Logistics</title>
     <style>
+        /* ── Controles superiores ── */
         .prod-controls { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
         .prod-controls-left { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
         .search-inline { display:flex; align-items:center; gap:8px; background:var(--secondary-color); border:1px solid var(--border-color); border-radius:8px; padding:7px 12px; min-width:260px; }
         .search-inline i { font-size:13px; color:var(--text-muted); }
         .search-inline input { border:none; outline:none; background:transparent; font-size:13px; color:var(--text-primary); width:100%; }
         .search-inline input::placeholder { color:var(--text-muted); }
+
+        /* ── KPIs ── */
         .kpi-row { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
         .kpi-mini { background:var(--secondary-color); border:1px solid var(--border-color); border-radius:10px; padding:16px 18px; box-shadow:var(--card-shadow); display:flex; align-items:center; gap:14px; }
         .kpi-mini-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
@@ -23,33 +26,106 @@
         .kpi-mini-icon.purple { background:#8b5cf6; }
         .kpi-mini-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:3px; }
         .kpi-mini-value { font-size:22px; font-weight:700; color:var(--text-primary); line-height:1; }
-        .enum-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px; }
-        .enum-card { background:var(--secondary-color); border:1px solid var(--border-color); border-radius:12px; box-shadow:var(--card-shadow); display:flex; flex-direction:column; overflow:hidden; transition:box-shadow 0.2s; }
-        .enum-card:hover { box-shadow:0 4px 20px rgba(0,0,0,0.1); }
-        .enum-card-header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px 12px; border-bottom:1px solid var(--border-color); gap:10px; }
-        .enum-card-header-left { display:flex; align-items:center; gap:10px; min-width:0; }
-        .enum-card-icon { width:34px; height:34px; border-radius:8px; background:var(--quinary-color); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-        .enum-card-icon i { font-size:14px; color:#fff; }
-        .enum-card-titulo { font-size:14px; font-weight:700; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .enum-card-count { font-size:11px; color:var(--text-muted); font-weight:500; margin-top:1px; }
-        .enum-valores-lista { padding:10px 14px; flex:1; display:flex; flex-direction:column; gap:4px; min-height:60px; max-height:220px; overflow-y:auto; }
-        .enum-valores-lista::-webkit-scrollbar { width:4px; }
-        .enum-valores-lista::-webkit-scrollbar-thumb { background:var(--border-color); border-radius:2px; }
-        .enum-valor-item { display:flex; align-items:center; justify-content:space-between; padding:6px 10px; border-radius:7px; background:var(--background-color); border:1px solid transparent; transition:border-color 0.15s; gap:8px; }
-        .enum-valor-item:hover { border-color:var(--border-color); }
-        .enum-valor-texto { font-size:13px; color:var(--text-primary); font-weight:500; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .enum-valor-del { width:24px; height:24px; border-radius:5px; border:1px solid transparent; background:transparent; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-muted); font-size:11px; flex-shrink:0; transition:0.15s; opacity:0; }
-        .enum-valor-item:hover .enum-valor-del { opacity:1; }
-        .enum-valor-del:hover { background:#fee2e2; color:#ef4444; border-color:#fecaca; }
-        .enum-add-inline { display:flex; align-items:center; gap:6px; padding:10px 14px; border-top:1px solid var(--border-color); }
-        .enum-add-inline input { flex:1; padding:7px 10px; border:1px solid var(--border-color); border-radius:7px; font-size:12px; background:var(--background-color); color:var(--text-primary); outline:none; transition:border 0.2s,box-shadow 0.2s; font-family:inherit; }
-        .enum-add-inline input:focus { border-color:var(--quinary-color); box-shadow:0 0 0 3px rgba(62,96,143,0.12); }
-        .enum-add-inline input::placeholder { color:var(--text-muted); font-size:12px; }
-        .btn-add-valor { height:32px; padding:0 12px; border-radius:7px; border:none; background:var(--quinary-color); color:#fff; font-size:12px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:5px; white-space:nowrap; transition:opacity 0.2s; }
-        .btn-add-valor:hover { opacity:0.88; }
-        .btn-add-valor:disabled { opacity:0.5; cursor:not-allowed; }
-        .enum-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px 10px; gap:6px; color:var(--text-muted); font-size:12px; }
-        .enum-empty i { font-size:22px; opacity:0.35; }
+
+        /* ── Grid de classes ── */
+        .classes-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:16px; }
+
+        /* ── Card de classe ── */
+        .classe-card {
+            background:var(--secondary-color);
+            border:1px solid var(--border-color);
+            border-radius:14px;
+            box-shadow:var(--card-shadow);
+            cursor:pointer;
+            transition:box-shadow 0.2s, border-color 0.2s, transform 0.15s;
+            overflow:hidden;
+            display:flex;
+            flex-direction:column;
+        }
+        .classe-card:hover {
+            box-shadow:0 6px 24px rgba(0,0,0,0.10);
+            border-color:var(--quinary-color);
+            transform:translateY(-2px);
+        }
+        .classe-card-body {
+            padding:20px 20px 16px;
+            display:flex;
+            align-items:flex-start;
+            gap:16px;
+            flex:1;
+        }
+        .classe-card-icon {
+            width:46px; height:46px;
+            border-radius:12px;
+            display:flex; align-items:center; justify-content:center;
+            flex-shrink:0;
+        }
+        .classe-card-icon i { font-size:20px; color:#fff; }
+
+        /* Cores dos ícones por classe */
+        .cc-slate  { background:#64748b; }
+        .cc-blue   { background:#3b82f6; }
+        .cc-green  { background:#10b981; }
+        .cc-indigo { background:#6366f1; }
+        .cc-cyan   { background:#06b6d4; }
+        .cc-violet { background:#7c3aed; }
+        .cc-purple { background:#a855f7; }
+        .cc-pink   { background:#ec4899; }
+        .cc-orange { background:#f97316; }
+        .cc-amber  { background:#f59e0b; }
+
+        .classe-card-info { flex:1; min-width:0; }
+        .classe-card-nome { font-size:15px; font-weight:700; color:var(--text-primary); margin-bottom:3px; }
+        .classe-card-desc { font-size:12px; color:var(--text-muted); line-height:1.4; }
+
+        .classe-card-footer {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:10px 20px 14px;
+            gap:8px;
+        }
+        .classe-card-stats { display:flex; gap:12px; }
+        .stat-pill {
+            display:flex; align-items:center; gap:5px;
+            background:var(--background-color);
+            border:1px solid var(--border-color);
+            border-radius:20px;
+            padding:3px 10px;
+            font-size:11px; font-weight:600; color:var(--text-muted);
+        }
+        .stat-pill i { font-size:10px; }
+        .stat-pill.active { color:var(--quinary-color); border-color:var(--quinary-color); background:rgba(62,96,143,0.07); }
+
+        .classe-card-arrow {
+            width:28px; height:28px;
+            border-radius:8px;
+            background:var(--background-color);
+            border:1px solid var(--border-color);
+            display:flex; align-items:center; justify-content:center;
+            color:var(--text-muted);
+            font-size:12px;
+            transition:background 0.15s, color 0.15s;
+            flex-shrink:0;
+        }
+        .classe-card:hover .classe-card-arrow {
+            background:var(--quinary-color);
+            color:#fff;
+            border-color:var(--quinary-color);
+        }
+
+        /* Badge "sem enums" */
+        .sem-enums-badge {
+            font-size:10px; font-weight:600;
+            color:#94a3b8;
+            background:var(--background-color);
+            border:1px solid var(--border-color);
+            border-radius:4px;
+            padding:2px 6px;
+            letter-spacing:0.3px;
+        }
+
+        /* ── Estados de página ── */
         .page-loading { display:flex; align-items:center; justify-content:center; padding:80px 20px; flex-direction:column; gap:14px; color:var(--text-muted); }
         .page-loading .spinner { width:34px; height:34px; border:3px solid var(--border-color); border-top-color:var(--quinary-color); border-radius:50%; animation:spin 0.8s linear infinite; }
         @keyframes spin { to { transform:rotate(360deg); } }
@@ -57,70 +133,33 @@
         .page-error i { font-size:38px; color:#ef4444; opacity:0.7; }
         .page-error h3 { font-size:16px; font-weight:700; color:var(--text-primary); }
         .page-error p  { font-size:13px; max-width:340px; line-height:1.5; }
-        .page-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:80px 20px; gap:12px; color:var(--text-muted); text-align:center; }
-        .page-empty i { font-size:38px; opacity:0.35; }
-        .page-empty h3 { font-size:16px; font-weight:700; color:var(--text-primary); }
-        .page-empty p  { font-size:13px; }
-        .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:999; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(2px); }
-        .modal-overlay.open { display:flex; }
-        .modal { background:var(--secondary-color); border-radius:14px; border:1px solid var(--border-color); box-shadow:0 20px 60px rgba(0,0,0,0.2); width:100%; max-width:480px; display:flex; flex-direction:column; animation:slideUp 0.22s ease; }
-        @keyframes slideUp { from{opacity:0;transform:translateY(20px) scale(0.98);} to{opacity:1;transform:translateY(0) scale(1);} }
-        .modal-header { display:flex; align-items:center; justify-content:space-between; padding:20px 24px 16px; border-bottom:1px solid var(--border-color); }
-        .modal-header-left { display:flex; align-items:center; gap:12px; }
-        .modal-header-icon { width:38px; height:38px; background:var(--quinary-color); border-radius:9px; display:flex; align-items:center; justify-content:center; }
-        .modal-header-icon i { font-size:16px; color:#fff; }
-        .modal-header h3 { font-size:15px; font-weight:700; color:var(--text-primary); }
-        .modal-header p  { font-size:12px; color:var(--text-muted); margin-top:2px; }
-        .modal-close { width:32px; height:32px; border-radius:8px; border:1px solid var(--border-color); background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:14px; transition:0.2s; }
-        .modal-close:hover { background:var(--background-color); color:var(--text-primary); }
-        .modal-body { padding:20px 24px; }
-        .form-field { display:flex; flex-direction:column; gap:5px; margin-bottom:14px; }
-        .form-field:last-child { margin-bottom:0; }
-        .form-field label { font-size:12px; font-weight:700; color:var(--text-primary); }
-        .form-field label .req { color:#ef4444; margin-left:2px; }
-        .form-field input { padding:9px 12px; border:1px solid var(--border-color); border-radius:8px; font-size:13px; background:var(--background-color); color:var(--text-primary); outline:none; transition:border 0.2s,box-shadow 0.2s; font-family:inherit; }
-        .form-field input:focus { border-color:var(--quinary-color); box-shadow:0 0 0 3px rgba(62,96,143,0.13); }
-        .form-field input.error { border-color:#ef4444; box-shadow:0 0 0 3px rgba(239,68,68,0.12); }
-        .form-field .field-hint { font-size:11px; color:var(--text-muted); margin-top:2px; }
-        .form-field .field-error { font-size:11px; color:#ef4444; margin-top:2px; display:none; }
-        .form-field .field-error.show { display:block; }
-        .modal-footer { display:flex; align-items:center; justify-content:flex-end; gap:8px; padding:16px 24px; border-top:1px solid var(--border-color); }
-        .confirm-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1100; align-items:center; justify-content:center; backdrop-filter:blur(2px); }
-        .confirm-overlay.open { display:flex; }
-        .confirm-box { background:var(--secondary-color); border:1px solid var(--border-color); border-radius:12px; padding:28px 28px 22px; max-width:380px; width:100%; box-shadow:0 16px 48px rgba(0,0,0,0.2); animation:slideUp 0.2s ease; }
-        .confirm-icon { width:46px; height:46px; background:#fee2e2; border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:14px; }
-        .confirm-icon i { font-size:20px; color:#ef4444; }
-        .confirm-box h3 { font-size:16px; font-weight:700; color:var(--text-primary); margin-bottom:6px; }
-        .confirm-box p  { font-size:13px; color:var(--text-muted); line-height:1.5; margin-bottom:20px; }
-        .confirm-actions { display:flex; gap:8px; justify-content:flex-end; }
+
+        /* ── Toast ── */
         .toast { position:fixed; bottom:24px; right:24px; background:#1e293b; color:#fff; border-radius:10px; padding:12px 18px; display:flex; align-items:center; gap:10px; font-size:13px; font-weight:600; box-shadow:0 8px 24px rgba(0,0,0,0.2); z-index:9999; transform:translateY(100px); opacity:0; transition:transform 0.3s ease,opacity 0.3s ease; }
         .toast.show { transform:translateY(0); opacity:1; }
         .toast i { font-size:16px; }
         .toast.success i { color:#10b981; }
         .toast.error   i { color:#ef4444; }
         .toast.warning i { color:#f59e0b; }
+
+        /* ── Sidebar footer / avatar ── */
         .sidebar-footer { display:flex; align-items:center; justify-content:space-between; padding-top:12px; border-top:1px solid #2d3f55; font-size:11px; color:#475569; }
         .btn-logout { display:flex; align-items:center; gap:6px; padding:5px 10px; background:rgba(239,68,68,0.12); color:#f87171; border:1px solid rgba(239,68,68,0.2); border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; transition:0.2s; text-decoration:none; }
         .btn-logout:hover { background:rgba(239,68,68,0.22); color:#fca5a5; }
         .header-user { display:flex; align-items:center; gap:10px; }
         .user-avatar { width:34px; height:34px; background:var(--quinary-color); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#fff; cursor:pointer; flex-shrink:0; }
+
+        /* ── Dark overrides ── */
         body.dark .search-inline { background:#1c2128; border-color:#30363d; }
         body.dark .search-inline input { color:var(--text-primary); }
-        body.dark .enum-card { background:#161b22; border-color:#30363d; }
-        body.dark .enum-card-header { border-color:#30363d; }
-        body.dark .enum-valor-item { background:#1c2128; }
-        body.dark .enum-valor-item:hover { border-color:#30363d; }
-        body.dark .enum-valor-del:hover { background:#2e1414; color:#ef4444; border-color:#4d1f1f; }
-        body.dark .enum-add-inline { border-color:#30363d; }
-        body.dark .enum-add-inline input { background:#1c2128; border-color:#30363d; color:var(--text-primary); }
-        body.dark .enum-add-inline input:focus { background:#22272e; }
         body.dark .kpi-mini { background:#161b22; border-color:#30363d; }
-        body.dark .modal { background:#161b22; border-color:#30363d; }
-        body.dark .modal-header,.modal-footer { border-color:#30363d; }
-        body.dark .form-field input { background:#1c2128; border-color:#30363d; color:var(--text-primary); }
-        body.dark .form-field input:focus { background:#22272e; }
-        body.dark .confirm-box { background:#161b22; border-color:#30363d; }
+        body.dark .classe-card { background:#161b22; border-color:#30363d; }
+        body.dark .classe-card:hover { border-color:var(--quinary-color); }
+        body.dark .stat-pill { background:#1c2128; border-color:#30363d; }
+        body.dark .stat-pill.active { background:rgba(62,96,143,0.15); }
+        body.dark .classe-card-arrow { background:#1c2128; border-color:#30363d; }
         body.dark .toast { background:#22272e; border:1px solid #30363d; }
+        body.dark .sem-enums-badge { background:#1c2128; border-color:#30363d; }
     </style>
 </head>
 <body>
@@ -178,24 +217,24 @@
             <!-- KPIs -->
             <div class="kpi-row">
                 <div class="kpi-mini">
-                    <div class="kpi-mini-icon blue"><i class="fa-solid fa-list"></i></div>
+                    <div class="kpi-mini-icon blue"><i class="fa-solid fa-cubes"></i></div>
+                    <div class="kpi-mini-body">
+                        <div class="kpi-mini-label">Classes de Produto</div>
+                        <div class="kpi-mini-value" id="kpi-classes">—</div>
+                    </div>
+                </div>
+                <div class="kpi-mini">
+                    <div class="kpi-mini-icon green"><i class="fa-solid fa-list"></i></div>
                     <div class="kpi-mini-body">
                         <div class="kpi-mini-label">Tipos de Enum</div>
                         <div class="kpi-mini-value" id="kpi-tipos">—</div>
                     </div>
                 </div>
                 <div class="kpi-mini">
-                    <div class="kpi-mini-icon green"><i class="fa-solid fa-tags"></i></div>
+                    <div class="kpi-mini-icon purple"><i class="fa-solid fa-tags"></i></div>
                     <div class="kpi-mini-body">
                         <div class="kpi-mini-label">Total de Opções</div>
                         <div class="kpi-mini-value" id="kpi-total">—</div>
-                    </div>
-                </div>
-                <div class="kpi-mini">
-                    <div class="kpi-mini-icon purple"><i class="fa-solid fa-filter"></i></div>
-                    <div class="kpi-mini-body">
-                        <div class="kpi-mini-label">Tipos Exibidos</div>
-                        <div class="kpi-mini-value" id="kpi-exibindo">—</div>
                     </div>
                 </div>
             </div>
@@ -205,75 +244,21 @@
                 <div class="prod-controls-left">
                     <div class="search-inline">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="searchInput" placeholder="Buscar tipo ou valor de enum...">
+                        <input type="text" id="searchInput" placeholder="Buscar classe de produto...">
                     </div>
                 </div>
-                <button class="btn btn-primary" id="btnNovoTipo">
-                    <i class="fa-solid fa-plus"></i> Novo Tipo
-                </button>
             </div>
 
-            <!-- Conteúdo dinâmico -->
+            <!-- Grid de classes -->
             <div id="areaConteudo">
                 <div class="page-loading" id="estadoCarregando">
                     <div class="spinner"></div>
-                    <span>Carregando enums do servidor...</span>
+                    <span>Carregando dados do servidor...</span>
                 </div>
             </div>
 
         </div>
     </main>
-
-    <!-- MODAL NOVO TIPO -->
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal">
-            <div class="modal-header">
-                <div class="modal-header-left">
-                    <div class="modal-header-icon"><i class="fa-solid fa-plus"></i></div>
-                    <div>
-                        <h3>Novo Tipo de Enum</h3>
-                        <p>Crie uma nova categoria de opções dinâmicas</p>
-                    </div>
-                </div>
-                <button class="modal-close" id="btnFecharModal"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="modal-body">
-                <div class="form-field">
-                    <label for="m-tipo">Nome do Tipo <span class="req">*</span></label>
-                    <input type="text" id="m-tipo" placeholder="Ex: SistemaOperacional, TipoConector...">
-                    <span class="field-hint">Use PascalCase sem espaços. Ex: <strong>SistemaOperacional</strong></span>
-                    <span class="field-error" id="err-tipo">Campo obrigatório</span>
-                </div>
-                <div class="form-field">
-                    <label for="m-valor">Primeiro Valor <span class="req">*</span></label>
-                    <input type="text" id="m-valor" placeholder="Ex: Windows 11, USB-C...">
-                    <span class="field-hint">Um tipo precisa ter pelo menos um valor para ser criado.</span>
-                    <span class="field-error" id="err-valor">Campo obrigatório</span>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" id="btnCancelarModal">Cancelar</button>
-                <button class="btn btn-primary" id="btnSalvarTipo">
-                    <i class="fa-solid fa-floppy-disk"></i> Criar Tipo
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL CONFIRMAR EXCLUSÃO -->
-    <div class="confirm-overlay" id="confirmOverlay">
-        <div class="confirm-box">
-            <div class="confirm-icon"><i class="fa-solid fa-trash"></i></div>
-            <h3>Remover opção?</h3>
-            <p>O valor <strong id="confirmValorNome"></strong> será removido do tipo <strong id="confirmTipoNome"></strong>. Esta ação não pode ser desfeita.</p>
-            <div class="confirm-actions">
-                <button class="btn btn-outline" id="confirmCancelar">Cancelar</button>
-                <button class="btn" id="confirmDeletar" style="background:#ef4444;color:#fff;">
-                    <i class="fa-solid fa-trash"></i> Remover
-                </button>
-            </div>
-        </div>
-    </div>
 
     <!-- TOAST -->
     <div class="toast" id="toast">
@@ -281,7 +266,7 @@
         <span id="toastMsg">Operação realizada com sucesso!</span>
     </div>
 
-    <!-- Scripts: api.js primeiro, depois produtos.js (backend), depois lógica front inline -->
+    <!-- Scripts -->
     <script src="js/api.js"></script>
     <script src="js/produtos.js"></script>
     <script>
@@ -338,16 +323,17 @@
     // ============================================================
     //  KPIs
     // ============================================================
-    function atualizarKPIs(dadosCompletos, qtdExibindo) {
-        const tipos  = Object.keys(dadosCompletos).length;
-        const total  = Object.values(dadosCompletos).reduce((s, v) => s + v.length, 0);
-        document.getElementById('kpi-tipos').textContent    = tipos;
-        document.getElementById('kpi-total').textContent    = total;
-        document.getElementById('kpi-exibindo').textContent = qtdExibindo;
+    function atualizarKPIs(classes) {
+        const totalClasses = classes.length;
+        const totalTipos   = classes.reduce((s, c) => s + c.totalEnums, 0);
+        const totalOpcoes  = classes.reduce((s, c) => s + c.totalOpcoes, 0);
+        document.getElementById('kpi-classes').textContent = totalClasses;
+        document.getElementById('kpi-tipos').textContent   = totalTipos;
+        document.getElementById('kpi-total').textContent   = totalOpcoes;
     }
 
     // ============================================================
-    //  RENDERIZAÇÃO
+    //  RENDERIZAÇÃO DOS CARDS DE CLASSE
     // ============================================================
     function esc(str) {
         return String(str)
@@ -358,255 +344,76 @@
             .replace(/'/g,'&#39;');
     }
 
-    function renderCard(tipo, valores) {
-        const count    = valores.length;
-        const countTxt = count === 1 ? '1 opção' : count + ' opções';
-        const itensHtml = count === 0
-            ? '<div class="enum-empty"><i class="fa-solid fa-inbox"></i><span>Nenhum valor cadastrado</span></div>'
-            : valores.map(v =>
-                '<div class="enum-valor-item" data-tipo="' + esc(tipo) + '" data-valor="' + esc(v) + '">' +
-                  '<span class="enum-valor-texto" title="' + esc(v) + '">' + esc(v) + '</span>' +
-                  '<button class="enum-valor-del" title="Remover valor" onclick="abrirConfirmDelete(\'' + esc(tipo) + '\',\'' + esc(v) + '\')">' +
-                    '<i class="fa-solid fa-xmark"></i>' +
-                  '</button>' +
-                '</div>'
-              ).join('');
+    function renderClasseCard(cls) {
+        const temEnums   = cls.totalEnums > 0;
+        const enumLabel  = cls.totalEnums === 1 ? '1 tipo de enum' : cls.totalEnums + ' tipos de enum';
+        const opcLabel   = cls.totalOpcoes === 1 ? '1 opção' : cls.totalOpcoes + ' opções';
 
-        return '<div class="enum-card" id="card-' + esc(tipo) + '">' +
-            '<div class="enum-card-header">' +
-              '<div class="enum-card-header-left">' +
-                '<div class="enum-card-icon"><i class="fa-solid fa-tag"></i></div>' +
-                '<div>' +
-                  '<div class="enum-card-titulo" title="' + esc(tipo) + '">' + esc(tipo) + '</div>' +
-                  '<div class="enum-card-count">' + countTxt + '</div>' +
-                '</div>' +
-              '</div>' +
-            '</div>' +
-            '<div class="enum-valores-lista" id="lista-' + esc(tipo) + '">' + itensHtml + '</div>' +
-            '<div class="enum-add-inline">' +
-              '<input type="text" id="input-' + esc(tipo) + '" placeholder="Novo valor..." ' +
-                'onkeydown="onEnterAdicionarValor(event,\'' + esc(tipo) + '\')">' +
-              '<button class="btn-add-valor" onclick="onClickAdicionarValor(\'' + esc(tipo) + '\')">' +
-                '<i class="fa-solid fa-plus"></i> Adicionar' +
-              '</button>' +
-            '</div>' +
-          '</div>';
+        const statsHtml = temEnums
+            ? `<div class="stat-pill active"><i class="fa-solid fa-list"></i>${esc(enumLabel)}</div>
+               <div class="stat-pill active"><i class="fa-solid fa-tags"></i>${esc(opcLabel)}</div>`
+            : `<span class="sem-enums-badge">Sem enums dinâmicos</span>`;
+
+        return `<div class="classe-card" onclick="abrirClasse('${esc(cls.id)}')" title="Abrir configurações de ${esc(cls.nome)}">
+            <div class="classe-card-body">
+                <div class="classe-card-icon cc-${esc(cls.cor)}">
+                    <i class="fa-solid ${esc(cls.icone)}"></i>
+                </div>
+                <div class="classe-card-info">
+                    <div class="classe-card-nome">${esc(cls.nome)}</div>
+                    <div class="classe-card-desc">${esc(cls.descricao)}</div>
+                </div>
+            </div>
+            <div class="classe-card-footer">
+                <div class="classe-card-stats">${statsHtml}</div>
+                <div class="classe-card-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+            </div>
+        </div>`;
     }
 
-    function renderGrid(dados) {
-        const area  = document.getElementById('areaConteudo');
-        const tipos = Object.keys(dados).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    function renderGrid(classes) {
+        const area = document.getElementById('areaConteudo');
 
-        if (tipos.length === 0) {
+        if (classes.length === 0) {
             area.innerHTML =
-                '<div class="page-empty">' +
-                  '<i class="fa-solid fa-list"></i>' +
-                  '<h3>Nenhum resultado encontrado</h3>' +
-                  '<p>Ajuste a busca ou clique em "Novo Tipo" para criar uma categoria.</p>' +
+                '<div class="page-error" style="color:var(--text-muted);">' +
+                  '<i class="fa-solid fa-magnifying-glass" style="color:var(--text-muted);opacity:0.3;"></i>' +
+                  '<h3>Nenhuma classe encontrada</h3>' +
+                  '<p>Ajuste a busca para encontrar uma classe de produto.</p>' +
                 '</div>';
             return;
         }
 
-        area.innerHTML = '<div class="enum-grid">' + tipos.map(t => renderCard(t, dados[t])).join('') + '</div>';
+        area.innerHTML = '<div class="classes-grid">' + classes.map(renderClasseCard).join('') + '</div>';
     }
 
     // ============================================================
-    //  FILTRO
+    //  FILTRO POR NOME DE CLASSE
     // ============================================================
     function filtrarERerender() {
-        const q             = (document.getElementById('searchInput').value || '').toLowerCase().trim();
-        const dadosCompletos = Produtos.getState();
+        const q       = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+        const classes = Produtos.getClasses();
+        const filtradas = q
+            ? classes.filter(c =>
+                c.nome.toLowerCase().includes(q) ||
+                c.descricao.toLowerCase().includes(q)
+              )
+            : classes;
 
-        let filtrado;
-        if (!q) {
-            filtrado = dadosCompletos;
-        } else {
-            filtrado = {};
-            for (const [tipo, valores] of Object.entries(dadosCompletos)) {
-                if (tipo.toLowerCase().includes(q)) {
-                    filtrado[tipo] = valores;
-                } else {
-                    const vf = valores.filter(v => v.toLowerCase().includes(q));
-                    if (vf.length > 0) filtrado[tipo] = vf;
-                }
-            }
-        }
-
-        renderGrid(filtrado);
-        atualizarKPIs(dadosCompletos, Object.keys(filtrado).length);
+        renderGrid(filtradas);
+        atualizarKPIs(classes); // KPIs sempre refletem o total real
     }
 
     document.getElementById('searchInput').addEventListener('input', filtrarERerender);
 
     // ============================================================
-    //  ADICIONAR VALOR (chamado pelo onclick do card)
+    //  NAVEGAÇÃO PARA DETALHE DA CLASSE
     // ============================================================
-    async function onEnterAdicionarValor(event, tipo) {
-        if (event.key === 'Enter') await onClickAdicionarValor(tipo);
+    function abrirClasse(classeId) {
+        window.location.href = 'produto-detalhe.html?classe=' + encodeURIComponent(classeId);
     }
 
-    async function onClickAdicionarValor(tipo) {
-        const input = document.getElementById('input-' + tipo);
-        if (!input) return;
-        const valor = input.value.trim();
-        if (!valor) { input.focus(); return; }
-
-        input.disabled = true;
-        const btn = input.nextElementSibling;
-        if (btn) btn.disabled = true;
-
-        const resultado = await Produtos.adicionarValor(tipo, valor);
-
-        input.disabled = false;
-        if (btn) btn.disabled = false;
-
-        if (!resultado.ok) {
-            showToast(resultado.mensagem, 'warning');
-            input.focus();
-            return;
-        }
-
-        input.value = '';
-        showToast(resultado.mensagem, 'success');
-
-        const dadosAtuais = Produtos.getState();
-        const novoCard    = renderCard(tipo, dadosAtuais[tipo] || []);
-        const cardEl      = document.getElementById('card-' + tipo);
-        if (cardEl) {
-            cardEl.outerHTML = novoCard;
-        } else {
-            filtrarERerender();
-        }
-        atualizarKPIs(dadosAtuais, Object.keys(Produtos.getState()).length);
-    }
-
-    window.onEnterAdicionarValor = onEnterAdicionarValor;
-    window.onClickAdicionarValor = onClickAdicionarValor;
-
-    // ============================================================
-    //  DELETAR VALOR
-    // ============================================================
-    let _deletarTipo  = null;
-    let _deletarValor = null;
-
-    function abrirConfirmDelete(tipo, valor) {
-        _deletarTipo  = tipo;
-        _deletarValor = valor;
-        document.getElementById('confirmValorNome').textContent = valor;
-        document.getElementById('confirmTipoNome').textContent  = tipo;
-        document.getElementById('confirmOverlay').classList.add('open');
-    }
-    window.abrirConfirmDelete = abrirConfirmDelete;
-
-    document.getElementById('confirmCancelar').addEventListener('click', () => {
-        document.getElementById('confirmOverlay').classList.remove('open');
-        _deletarTipo = _deletarValor = null;
-    });
-
-    document.getElementById('confirmDeletar').addEventListener('click', async () => {
-        if (!_deletarTipo || !_deletarValor) return;
-        const tipo  = _deletarTipo;
-        const valor = _deletarValor;
-        document.getElementById('confirmOverlay').classList.remove('open');
-        _deletarTipo = _deletarValor = null;
-
-        const resultado = await Produtos.deletarValor(tipo, valor);
-
-        if (!resultado.ok) { showToast(resultado.mensagem, 'error'); return; }
-
-        showToast(resultado.mensagem, 'success');
-
-        const dadosAtuais = Produtos.getState();
-        if (dadosAtuais[tipo]) {
-            const novoCard = renderCard(tipo, dadosAtuais[tipo]);
-            const cardEl   = document.getElementById('card-' + tipo);
-            if (cardEl) cardEl.outerHTML = novoCard;
-        } else {
-            // tipo ficou vazio → remove o card do DOM
-            const cardEl = document.getElementById('card-' + tipo);
-            if (cardEl) cardEl.remove();
-
-            // verifica se o grid ficou vazio
-            const grid = document.querySelector('.enum-grid');
-            if (grid && grid.children.length === 0) filtrarERerender();
-        }
-        atualizarKPIs(dadosAtuais, Object.keys(dadosAtuais).length);
-    });
-
-    // ============================================================
-    //  MODAL NOVO TIPO
-    // ============================================================
-    const modalOverlay = document.getElementById('modalOverlay');
-
-    function abrirModalNovoTipo() {
-        document.getElementById('m-tipo').value  = '';
-        document.getElementById('m-valor').value = '';
-        ['err-tipo','err-valor'].forEach(id => document.getElementById(id).classList.remove('show'));
-        ['m-tipo','m-valor'].forEach(id => document.getElementById(id).classList.remove('error'));
-        modalOverlay.classList.add('open');
-        document.getElementById('m-tipo').focus();
-    }
-
-    function fecharModalNovoTipo() { modalOverlay.classList.remove('open'); }
-
-    document.getElementById('btnNovoTipo').addEventListener('click', abrirModalNovoTipo);
-    document.getElementById('btnFecharModal').addEventListener('click', fecharModalNovoTipo);
-    document.getElementById('btnCancelarModal').addEventListener('click', fecharModalNovoTipo);
-    modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) fecharModalNovoTipo(); });
-
-    ['m-tipo','m-valor'].forEach(id => {
-        document.getElementById(id).addEventListener('keydown', e => {
-            if (e.key === 'Enter') document.getElementById('btnSalvarTipo').click();
-        });
-    });
-
-    document.getElementById('btnSalvarTipo').addEventListener('click', async () => {
-        const tipoInput  = document.getElementById('m-tipo');
-        const valorInput = document.getElementById('m-valor');
-        const errTipo    = document.getElementById('err-tipo');
-        const errValor   = document.getElementById('err-valor');
-
-        tipoInput.classList.remove('error');
-        valorInput.classList.remove('error');
-        errTipo.classList.remove('show');
-        errValor.classList.remove('show');
-
-        let ok = true;
-        if (!tipoInput.value.trim()) {
-            tipoInput.classList.add('error');
-            errTipo.textContent = 'O nome do tipo é obrigatório.';
-            errTipo.classList.add('show');
-            ok = false;
-        }
-        if (!valorInput.value.trim()) {
-            valorInput.classList.add('error');
-            errValor.textContent = 'O primeiro valor é obrigatório.';
-            errValor.classList.add('show');
-            ok = false;
-        }
-        if (!ok) return;
-
-        const btnSalvar = document.getElementById('btnSalvarTipo');
-        btnSalvar.disabled = true;
-        btnSalvar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Criando...';
-
-        const resultado = await Produtos.adicionarTipo(tipoInput.value.trim(), valorInput.value.trim());
-
-        btnSalvar.disabled = false;
-        btnSalvar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Criar Tipo';
-
-        if (!resultado.ok) {
-            showToast(resultado.mensagem, 'warning');
-            tipoInput.classList.add('error');
-            errTipo.textContent = resultado.mensagem;
-            errTipo.classList.add('show');
-            return;
-        }
-
-        showToast(resultado.mensagem, 'success');
-        fecharModalNovoTipo();
-        filtrarERerender();
-    });
+    window.abrirClasse = abrirClasse;
 
     // ============================================================
     //  INICIALIZAÇÃO
@@ -626,7 +433,7 @@
                     '<i class="fa-solid fa-rotate-right"></i> Tentar novamente' +
                   '</button>' +
                 '</div>';
-            atualizarKPIs({}, 0);
+            atualizarKPIs([]);
         }
     }
 
