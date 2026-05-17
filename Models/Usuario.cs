@@ -27,4 +27,19 @@ public class Usuario
 
     [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
     public DateTime CriadoEm { get; set; }
+
+    // ── Reset de senha ──────────────────────────────────────────────────────
+    // Token gerado ao solicitar "Esqueci minha senha". Expira em 1 hora.
+    public string? ResetSenhaToken { get; set; }
+
+    [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
+    public DateTime? ResetSenhaTokenExpiry { get; set; }
+
+    // ── Verificação de e-mail ───────────────────────────────────────────────
+    // Token gerado no cadastro. Expira em 24 horas.
+    public bool EmailVerificado { get; set; } = false;
+    public string? EmailVerificacaoToken { get; set; }
+
+    [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
+    public DateTime? EmailVerificacaoTokenExpiry { get; set; }
 }

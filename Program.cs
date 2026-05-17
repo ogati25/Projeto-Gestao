@@ -8,6 +8,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<MongoDbSettings>(
     builder.Configuration.GetSection("MongoDbSettings"));
 
+// configurações do serviço de e-mail (Gmail SMTP)
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddSingleton<EmailService>();
+
 // registro dos services
 // ProcessadorService primeiro pois ComputadorService depende dele
 // ChipService primeiro pois CelularService depende dele

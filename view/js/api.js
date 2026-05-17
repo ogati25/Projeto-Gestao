@@ -334,3 +334,31 @@ async function atualizarExtra(id, dados) {
 async function deletarExtra(id) {
     return await request(`extras/${id}`, 'DELETE');
 }
+
+// ==================== RECUPERAÇÃO DE SENHA ====================
+
+// POST /api/usuarios/recuperar-senha → 200 (sempre, por segurança)
+// Body: { email }
+// O backend envia o e-mail com o link se o endereço existir no cadastro
+async function solicitarRecuperacaoSenha(email) {
+    return await request('usuarios/recuperar-senha', 'POST', { email });
+}
+
+// POST /api/usuarios/redefinir-senha → 200 | 400 se token inválido/expirado
+// Body: { token, novaSenha }
+async function redefinirSenha(token, novaSenha) {
+    return await request('usuarios/redefinir-senha', 'POST', { token, novaSenha });
+}
+
+// ==================== VERIFICAÇÃO DE E-MAIL ====================
+
+// POST /api/usuarios/{id}/enviar-verificacao → 200 | 400 se já verificado
+async function enviarVerificacaoEmail(id) {
+    return await request(`usuarios/${id}/enviar-verificacao`, 'POST');
+}
+
+// POST /api/usuarios/confirmar-email → 200 | 400 se token inválido/expirado
+// Body: { token }
+async function confirmarEmail(token) {
+    return await request('usuarios/confirmar-email', 'POST', { token });
+}

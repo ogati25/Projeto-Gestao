@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
-    <title>Esqueci a Senha — Tech Logistics</title>
+    <title>Redefinir Senha — Tech Logistics</title>
     <style>
         body {
             display: flex;
@@ -82,34 +82,22 @@
         }
         .recovery-brand-body p { font-size: 13px; color: #94a3b8; line-height: 1.6; }
 
-        .recovery-steps {
+        .password-tips {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
-        .recovery-step {
+        .password-tip {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             padding: 10px 14px;
             background: rgba(255,255,255,0.05);
             border-radius: 8px;
             border: 1px solid rgba(255,255,255,0.08);
         }
-        .recovery-step .step-num {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: var(--quinary-color);
-            color: #fff;
-            font-size: 11px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-        .recovery-step span { font-size: 12px; color: #cbd5e1; }
+        .password-tip i { font-size: 13px; color: var(--quinary-hover); width: 16px; text-align: center; }
+        .password-tip span { font-size: 12px; color: #cbd5e1; }
 
         /* ---- Painel direito (formulário) ---- */
         .recovery-form-panel {
@@ -118,21 +106,6 @@
             flex-direction: column;
             justify-content: center;
         }
-
-        /* Voltar */
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            color: var(--text-muted);
-            text-decoration: none;
-            margin-bottom: 24px;
-            font-weight: 600;
-            transition: color 0.2s;
-        }
-        .back-link:hover { color: var(--quinary-color); }
-        .back-link i { font-size: 12px; }
 
         .recovery-form-panel h2 {
             font-size: 22px;
@@ -161,7 +134,7 @@
             letter-spacing: 0.3px;
         }
         .field-input-wrap { position: relative; }
-        .field-input-wrap i {
+        .field-input-wrap i.field-icon {
             position: absolute;
             left: 12px;
             top: 50%;
@@ -172,7 +145,7 @@
         }
         .field-input-wrap input {
             width: 100%;
-            padding: 10px 12px 10px 36px;
+            padding: 10px 38px 10px 36px;
             border: 1px solid var(--border-color);
             border-radius: 8px;
             font-size: 14px;
@@ -186,6 +159,42 @@
             border-color: var(--quinary-color);
             box-shadow: 0 0 0 3px rgba(62,96,143,0.15);
             background: var(--secondary-color);
+        }
+        .toggle-pass {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 14px;
+            padding: 0;
+            transition: color 0.2s;
+        }
+        .toggle-pass:hover { color: var(--text-primary); }
+
+        /* ---- Indicador de força de senha ---- */
+        .strength-bar {
+            display: flex;
+            gap: 4px;
+            margin-top: 6px;
+        }
+        .strength-bar span {
+            flex: 1;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--border-color);
+            transition: background 0.3s;
+        }
+        .strength-bar span.fraca  { background: #ef4444; }
+        .strength-bar span.media  { background: #f59e0b; }
+        .strength-bar span.forte  { background: #10b981; }
+        .strength-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
         }
 
         /* ---- Botão ---- */
@@ -223,6 +232,27 @@
         .alert-error   { background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; }
         .alert-success { background: #d1fae5; border: 1px solid #a7f3d0; color: #065f46; }
 
+        /* ---- Token inválido ---- */
+        .invalid-token-state {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 20px 0;
+        }
+        .invalid-token-state.show { display: flex; }
+        .error-icon {
+            width: 72px;
+            height: 72px;
+            background: #fee2e2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .error-icon i { font-size: 32px; color: #ef4444; }
+
         /* ---- Tela de sucesso ---- */
         .success-state {
             display: none;
@@ -243,24 +273,22 @@
             margin-bottom: 20px;
         }
         .success-icon i { font-size: 32px; color: #10b981; }
-        .success-state h3 {
+        .success-state h3,
+        .invalid-token-state h3 {
             font-size: 20px;
             font-weight: 700;
             color: var(--text-primary);
             margin-bottom: 8px;
         }
-        .success-state p {
+        .success-state p,
+        .invalid-token-state p {
             font-size: 13px;
             color: var(--text-muted);
             line-height: 1.6;
             margin-bottom: 24px;
             max-width: 320px;
         }
-        .success-state .email-highlight {
-            font-weight: 700;
-            color: var(--quinary-color);
-        }
-        .btn-back-login {
+        .btn-action {
             display: inline-flex;
             align-items: center;
             gap: 8px;
@@ -275,39 +303,7 @@
             text-decoration: none;
             transition: background 0.2s;
         }
-        .btn-back-login:hover { background: #2d4f7a; }
-
-        /* Dica de reenvio */
-        .resend-hint {
-            margin-top: 14px;
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-        .resend-hint button {
-            background: none;
-            border: none;
-            color: var(--quinary-color);
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            padding: 0;
-        }
-        .resend-hint button:hover { color: #2d4f7a; }
-        .resend-hint button:disabled { color: var(--text-muted); cursor: default; }
-
-        /* ---- Rodapé ---- */
-        .form-footer {
-            margin-top: 20px;
-            text-align: center;
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-        .form-footer a {
-            color: var(--quinary-color);
-            font-weight: 700;
-            text-decoration: none;
-        }
-        .form-footer a:hover { color: #2d4f7a; }
+        .btn-action:hover { background: #2d4f7a; }
 
         /* ---- Responsivo ---- */
         @media (max-width: 680px) {
@@ -330,24 +326,24 @@
 
         <div class="recovery-brand-body">
             <div class="icon-wrap">
-                <i class="fa-solid fa-key"></i>
+                <i class="fa-solid fa-shield-halved"></i>
             </div>
-            <h1>Recupere o<br>acesso à sua conta</h1>
-            <p>Enviaremos um link seguro para você redefinir sua senha.</p>
+            <h1>Crie uma senha<br>segura</h1>
+            <p>Sua nova senha protegerá o acesso ao sistema.</p>
         </div>
 
-        <div class="recovery-steps">
-            <div class="recovery-step">
-                <div class="step-num">1</div>
-                <span>Informe o e-mail cadastrado</span>
+        <div class="password-tips">
+            <div class="password-tip">
+                <i class="fa-solid fa-check"></i>
+                <span>Mínimo de 6 caracteres</span>
             </div>
-            <div class="recovery-step">
-                <div class="step-num">2</div>
-                <span>Verifique sua caixa de entrada</span>
+            <div class="password-tip">
+                <i class="fa-solid fa-check"></i>
+                <span>Use letras maiúsculas e minúsculas</span>
             </div>
-            <div class="recovery-step">
-                <div class="step-num">3</div>
-                <span>Clique no link e crie uma nova senha</span>
+            <div class="password-tip">
+                <i class="fa-solid fa-check"></i>
+                <span>Inclua números e símbolos</span>
             </div>
         </div>
     </div>
@@ -355,60 +351,89 @@
     <!-- Painel direito -->
     <div class="recovery-form-panel">
 
+        <!-- Token inválido / expirado -->
+        <div class="invalid-token-state" id="invalidTokenState">
+            <div class="error-icon">
+                <i class="fa-solid fa-link-slash"></i>
+            </div>
+            <h3>Link inválido ou expirado</h3>
+            <p>Este link de recuperação não é mais válido. Solicite um novo e tente novamente.</p>
+            <a href="esqueci-senha.html" class="btn-action">
+                <i class="fa-solid fa-paper-plane"></i> Solicitar novo link
+            </a>
+        </div>
+
         <!-- Formulário principal -->
         <div id="formState">
-            <a href="login.html" class="back-link">
-                <i class="fa-solid fa-arrow-left"></i> Voltar ao login
-            </a>
-
-            <h2>Esqueci minha senha</h2>
-            <p class="subtitle">Digite o e-mail associado à sua conta e enviaremos as instruções de recuperação.</p>
+            <h2>Redefinir senha</h2>
+            <p class="subtitle">Escolha uma nova senha para a sua conta.</p>
 
             <div class="alert-box alert-error" id="alertError">
                 <i class="fa-solid fa-circle-exclamation"></i>
-                <span id="alertErrorMsg">E-mail não encontrado.</span>
+                <span id="alertErrorMsg">Ocorreu um erro.</span>
             </div>
 
             <div class="field">
-                <label for="email">E-mail</label>
+                <label for="novaSenha">Nova senha</label>
                 <div class="field-input-wrap">
-                    <i class="fa-solid fa-envelope"></i>
-                    <input type="email" id="email" placeholder="seu@email.com" autocomplete="email">
+                    <i class="fa-solid fa-lock field-icon"></i>
+                    <input
+                        type="password"
+                        id="novaSenha"
+                        placeholder="••••••••"
+                        autocomplete="new-password"
+                    >
+                    <button type="button" class="toggle-pass" id="toggleNovaSenha" tabindex="-1">
+                        <i class="fa-solid fa-eye" id="eyeNova"></i>
+                    </button>
+                </div>
+                <div class="strength-bar" id="strengthBar">
+                    <span id="sb1"></span>
+                    <span id="sb2"></span>
+                    <span id="sb3"></span>
+                    <span id="sb4"></span>
+                </div>
+                <span class="strength-label" id="strengthLabel"></span>
+            </div>
+
+            <div class="field">
+                <label for="confirmarSenha">Confirmar nova senha</label>
+                <div class="field-input-wrap">
+                    <i class="fa-solid fa-lock field-icon"></i>
+                    <input
+                        type="password"
+                        id="confirmarSenha"
+                        placeholder="••••••••"
+                        autocomplete="new-password"
+                    >
+                    <button type="button" class="toggle-pass" id="toggleConfirmar" tabindex="-1">
+                        <i class="fa-solid fa-eye" id="eyeConfirmar"></i>
+                    </button>
                 </div>
             </div>
 
-            <button class="btn-recovery" id="btnRecovery">
-                <i class="fa-solid fa-paper-plane"></i> Enviar instruções
+            <button class="btn-recovery" id="btnRedefinir">
+                <i class="fa-solid fa-floppy-disk"></i> Salvar nova senha
             </button>
-
-            <div class="form-footer">
-                Lembrou a senha? <a href="login.html">Fazer login</a>
-            </div>
         </div>
 
-        <!-- Tela de sucesso (aparece após envio) -->
+        <!-- Tela de sucesso -->
         <div class="success-state" id="successState">
             <div class="success-icon">
-                <i class="fa-solid fa-envelope-circle-check"></i>
+                <i class="fa-solid fa-circle-check"></i>
             </div>
-            <h3>E-mail enviado!</h3>
-            <p>
-                Enviamos as instruções de recuperação para<br>
-                <span class="email-highlight" id="emailSent"></span>
-            </p>
-            <a href="login.html" class="btn-back-login">
-                <i class="fa-solid fa-right-to-bracket"></i> Voltar ao login
+            <h3>Senha redefinida!</h3>
+            <p>Sua senha foi atualizada com sucesso. Você já pode fazer login com a nova senha.</p>
+            <a href="login.html" class="btn-action">
+                <i class="fa-solid fa-right-to-bracket"></i> Ir para o login
             </a>
-            <div class="resend-hint">
-                Não recebeu? <button id="btnResend">Reenviar e-mail</button>
-            </div>
         </div>
 
     </div>
 </div>
 
-
 <script src="js/api.js"></script>
-<script src="js/esqueci-senha.js"></script>
+<script src="js/redefinir-senha.js"></script>
+
 </body>
 </html>
