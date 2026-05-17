@@ -2,11 +2,12 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="novatech-logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <title>Perfil — Tech Logistics</title>
+    <title>Perfil — NovaTech Solutions</title>
     <style>
         /* ---- Logout / Avatar (padrão) ---- */
         .sidebar-footer {
@@ -272,8 +273,8 @@
             <i class="fa-solid fa-angles-right icon-open"></i>
         </button>
         <div class="sidebar-brand">
-            <div class="brand-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
-            <h2>Tech Logistics</h2>
+            <img src="novatech-logo.png" alt="NovaTech Solutions" style="height:36px;width:auto;">
+            <h2>NovaTech Solutions</h2>
         </div>
         <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -330,10 +331,6 @@
                             <span class="psi-val" id="sidebarEmail">—</span>
                         </div>
                         <div class="profile-stat-item">
-                            <span class="psi-label"><i class="fa-solid fa-briefcase"></i> Cargo</span>
-                            <span class="psi-val" id="sidebarCargo">—</span>
-                        </div>
-                        <div class="profile-stat-item">
                             <span class="psi-label"><i class="fa-solid fa-building"></i> Setor</span>
                             <span class="psi-val" id="sidebarSetor">—</span>
                         </div>
@@ -378,16 +375,6 @@
                                 <div class="fg">
                                     <label>Telefone</label>
                                     <input type="tel" id="fTelefone" placeholder="(11) 99999-9999">
-                                </div>
-                                <div class="fg">
-                                    <label>Cargo</label>
-                                    <select id="fCargo">
-                                        <option>Administrador de TI</option>
-                                        <option>Analista de TI</option>
-                                        <option>Gerente de TI</option>
-                                        <option>Técnico de Suporte</option>
-                                        <option>Outro</option>
-                                    </select>
                                 </div>
                                 <div class="fg">
                                     <label>Setor / Departamento</label>
@@ -478,11 +465,11 @@
             const nomeCompleto = [u.nome, u.sobrenome].filter(Boolean).join(' ') || 'Usuário';
             document.getElementById('avatarBig').textContent   = nomeCompleto.charAt(0).toUpperCase();
             document.getElementById('sidebarName').textContent = nomeCompleto;
-            document.getElementById('sidebarRole').textContent = u.cargo || 'Sem cargo';
+            document.getElementById('sidebarRole').textContent = u.setor || '';
             document.getElementById('sidebarEmail').textContent = u.email || '—';
-            document.getElementById('sidebarCargo').textContent = u.cargo || '—';
             document.getElementById('sidebarSetor').textContent = u.setor || '—';
-            document.getElementById('sidebarMembro').textContent = u.membroDesde || '—';
+            const criadoEm = u.criadoEm ? new Date(u.criadoEm).toLocaleDateString('pt-BR') : '—';
+            document.getElementById('sidebarMembro').textContent = criadoEm;
             document.getElementById('sidebarNivel').textContent  = u.nivel || 'Usuário';
 
             // Avatar no header
@@ -495,13 +482,6 @@
             document.getElementById('fEmail').value     = u.email || '';
             document.getElementById('fTelefone').value  = u.telefone || '';
             document.getElementById('fSetor').value     = u.setor || '';
-
-            const cargoSel = document.getElementById('fCargo');
-            if (u.cargo) {
-                for (let i = 0; i < cargoSel.options.length; i++) {
-                    if (cargoSel.options[i].text === u.cargo) { cargoSel.selectedIndex = i; break; }
-                }
-            }
 
             document.getElementById('ultimaAtualizacao').textContent = u.ultimaAtualizacao || 'Nunca';
         }
@@ -539,7 +519,6 @@
             u.sobrenome = sobrenome;
             u.email     = email;
             u.telefone  = document.getElementById('fTelefone').value;
-            u.cargo     = document.getElementById('fCargo').value;
             u.setor     = document.getElementById('fSetor').value;
             u.ultimaAtualizacao = new Date().toLocaleDateString('pt-BR');
             localStorage.setItem('tl_user', JSON.stringify(u));

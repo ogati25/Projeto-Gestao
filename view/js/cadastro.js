@@ -251,7 +251,6 @@ function validarFormulario() {
     const setor     = document.getElementById('setor').value;
     const senha     = document.getElementById('senha').value;
     const confirmar = document.getElementById('confirmar').value;
-    const termos    = document.getElementById('termos').checked;
 
     if (!nome || !sobrenome) {
         mostrarErro('Preencha nome e sobrenome.');
@@ -275,10 +274,6 @@ function validarFormulario() {
     }
     if (senha !== confirmar) {
         mostrarErro('As senhas não coincidem.');
-        return false;
-    }
-    if (!termos) {
-        mostrarErro('Aceite os termos para continuar.');
         return false;
     }
 

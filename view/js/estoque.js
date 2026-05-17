@@ -125,7 +125,12 @@ async function carregarOpcoesDinamicas() {
         // Exibimos a string no select mas na hora de enviar ao backend
         // convertemos para int via ramStringParaInt().
         TIPO_MEMORIA_RAM.length = 0;
-        TIPO_MEMORIA_RAM.push(...get('TipoMemoriaRAM'));
+        // get() já retorna [{value, label}]; ordena numericamente e exibe com "GB"
+        const ramRaw = get('TipoMemoriaRAM')
+            .map(o => ({ value: o.value, num: parseInt(String(o.value).replace(/[^0-9]/g, ''), 10) || 0 }))
+            .sort((a, b) => a.num - b.num)
+            .map(({ value, num }) => ({ value, label: `${num} GB` }));
+        TIPO_MEMORIA_RAM.push(...ramRaw);
 
     } catch (e) {
         console.warn('Não foi possível carregar as opções dinâmicas da API:', e);

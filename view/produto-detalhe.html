@@ -2,11 +2,12 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="novatech-logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <title>Produto — Tech Logistics</title>
+    <title>Produto — NovaTech Solutions</title>
     <style>
         /* ── Breadcrumb ── */
         .breadcrumb { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted); margin-bottom:2px; }
@@ -180,8 +181,8 @@
             <i class="fa-solid fa-angles-right icon-open"></i>
         </button>
         <div class="sidebar-brand">
-            <div class="brand-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
-            <h2>Tech Logistics</h2>
+            <img src="novatech-logo.png" alt="NovaTech Solutions" style="height:36px;width:auto;">
+            <h2>NovaTech Solutions</h2>
         </div>
         <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -410,7 +411,7 @@
     //  INJEÇÃO DO CABEÇALHO DA CLASSE
     // ============================================================
     function injetarCabecalho(cls) {
-        document.title = cls.nome + ' — Tech Logistics';
+        document.title = cls.nome + ' — NovaTech Solutions';
 
         // Breadcrumb
         document.getElementById('breadcrumbNome').textContent = cls.nome;
