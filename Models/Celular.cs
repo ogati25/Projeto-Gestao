@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Projeto_Gestao.Enums;
 using Projeto_Gestao.Models.Base;
 using Projeto_Gestao.Validations;
 
@@ -16,7 +15,7 @@ public class Celular : Equipamento
     [Range(0, int.MaxValue, ErrorMessage = "Armazenamento inválido.")]
     public int Armazenamento { get; set; }
 
-    public TipoConectorCarregador? Conectividade { get; set; }  // estático → enum
+    public string? Conectividade { get; set; }  // dinâmico → string? (era TipoConectorCarregador)
 
     [MaximoElementos(2)]
     public List<string> ChipIds { get; set; } = new();

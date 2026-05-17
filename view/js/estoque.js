@@ -50,6 +50,8 @@ if (typeof activeFilters   === 'undefined') var activeFilters   = [];
 // Os arrays começam vazios e são preenchidos por carregarOpcoesDinamicas().
 // Qualquer função que depende deles (criarSelect, filterDefs) usará os valores
 // atualizados automaticamente pois referenciamos o mesmo array.
+
+// ── Anteriormente dinâmicos ──────────────────────────────────────────────────
 let SETOR    = [];
 let SO       = [];
 let ATIV_SO  = [];
@@ -59,6 +61,17 @@ let OPERADORA   = [];
 let GERACAO_RAM = [];
 let TIPO_DISCO  = [];
 let TIPO_GPU    = [];
+
+// ── Anteriormente enums fixos C# — agora dinâmicos via OpcoesEnum ────────────
+let STATUS          = [];  // era enum Status
+let TIPO_PC         = [];  // era enum TipoComputador
+let TIPO_MEMORIA_RAM = []; // era enum TipoMemoriaRAM  (exibido como string, enviado como int)
+let CONECTOR_VIDEO  = [];  // era enum TipoConectorVideo
+let CONECTOR_CARR   = [];  // era enum TipoConectorCarregador (celular)
+let RESOLUCAO       = [];  // era enum Resolucao (monitor)
+let TIPO_PER        = [];  // era enum TipoPeriferico (mouse/teclado/fone)
+let CONECTIV        = [];  // era enum Conectividade (mouse/teclado/fone)
+let SWITCH          = [];  // era enum Switch (teclado)
 
 /**
  * Converte um array de strings da API em [{value, label}].
@@ -87,6 +100,7 @@ async function carregarOpcoesDinamicas() {
             return stringsParaOpcoes(arr);
         };
 
+        // ── Anteriormente dinâmicos ─────────────────────────────────────────
         SETOR.length    = 0; SETOR.push(...get('Setor'));
         SO.length       = 0; SO.push(...get('SistemaOperacional'));
         ATIV_SO.length  = 0; ATIV_SO.push(...get('AtivacaoSO'));
@@ -97,75 +111,38 @@ async function carregarOpcoesDinamicas() {
         TIPO_DISCO.length   = 0; TIPO_DISCO.push(...get('TipoDisco'));
         TIPO_GPU.length     = 0; TIPO_GPU.push(...get('TipoPlacaVideo'));
 
+        // ── Anteriormente enums fixos C# — agora vindos do banco ────────────
+        STATUS.length         = 0; STATUS.push(...get('Status'));
+        TIPO_PC.length        = 0; TIPO_PC.push(...get('TipoComputador'));
+        CONECTOR_VIDEO.length = 0; CONECTOR_VIDEO.push(...get('TipoConectorVideo').map(o => o.value));
+        CONECTOR_CARR.length  = 0; CONECTOR_CARR.push(...get('TipoConectorCarregador'));
+        RESOLUCAO.length      = 0; RESOLUCAO.push(...get('Resolucao'));
+        TIPO_PER.length       = 0; TIPO_PER.push(...get('TipoPeriferico'));
+        CONECTIV.length       = 0; CONECTIV.push(...get('Conectividade'));
+        SWITCH.length         = 0; SWITCH.push(...get('Switch'));
+
+        // TipoMemoriaRAM: valores do banco são strings como "8GB", "16GB".
+        // Exibimos a string no select mas na hora de enviar ao backend
+        // convertemos para int via ramStringParaInt().
+        TIPO_MEMORIA_RAM.length = 0;
+        TIPO_MEMORIA_RAM.push(...get('TipoMemoriaRAM'));
+
     } catch (e) {
         console.warn('Não foi possível carregar as opções dinâmicas da API:', e);
     }
 }
 
-const STATUS = [
-    {value:'EmManutenção',        label:'Em Manutenção'},
-    {value:'NecessitaManutenção', label:'Necessita Manutenção'},
-    {value:'EmUso',               label:'Em Uso'},
-    {value:'Desativado',          label:'Desativado'},
-    {value:'EmEstoque',           label:'Em Estoque'},
-    {value:'Indisponível',        label:'Indisponível'},
-    {value:'AguardandoDescarte',  label:'Aguardando Descarte'},
-    {value:'Descartado',          label:'Descartado'},
-    {value:'Vendido',             label:'Vendido'},
-];
-const TIPO_PC = [
-    {value:'PC_Desktop', label:'PC Desktop'},
-    {value:'Notebook',   label:'Notebook'},
-    {value:'All_in_One', label:'All in One'},
-];
-const RESOLUCAO = [
-    {value:'HD',    label:'HD (1280x720)'},
-    {value:'FHD',   label:'Full HD (1920x1080)'},
-    {value:'QHD',   label:'QHD (2560x1440)'},
-    {value:'UHD4K', label:'UHD 4K (3840x2160)'},
-];
-const CONECTIV = [
-    {value:'Bluetooth', label:'Bluetooth'},
-    {value:'Cabo',      label:'Cabo'},
-    {value:'USB',       label:'USB'},
-    {value:'TriMode',   label:'Tri-Mode'},
-];
-const SWITCH = [
-    {value:'NaoPossui', label:'Não Possui'},
-    {value:'Red',       label:'Red'},
-    {value:'Blue',      label:'Blue'},
-    {value:'Brown',     label:'Brown'},
-    {value:'Yellow',    label:'Yellow'},
-    {value:'Green',     label:'Green'},
-    {value:'Black',     label:'Black'},
-    {value:'Silver',    label:'Silver'},
-    {value:'Purple',    label:'Purple'},
-    {value:'White',     label:'White'},
-    {value:'Orange',    label:'Orange'},
-];
-const TIPO_PER = [
-    {value:'Gamer',      label:'Gamer'},
-    {value:'Escritorio', label:'Escritório'},
-];
-/** Lista de tipos de conector de vídeo (usada nos slots dinâmicos de computador) */
-const CONECTOR_VIDEO = ['HDMI', 'DisplayPort', 'VGA', 'DVI'];
-
-const CONECTOR_CARREGADOR = [
-    {value:'USB_C',     label:'USB-C'},
-    {value:'Lightning', label:'Lightning (Apple)'},
-    {value:'MicroUSB',  label:'Micro USB'},
-    {value:'MiniUSB',   label:'Mini USB'},
-];
-
-/** Opções para os slots de RAM: tamanho instalado em cada slot */
-const TIPO_MEMORIA_RAM = [
-    {value:'GB0',  label:'0 GB'},
-    {value:'GB4',  label:'4 GB'},
-    {value:'GB8',  label:'8 GB'},
-    {value:'GB16', label:'16 GB'},
-    {value:'GB32', label:'32 GB'},
-    {value:'GB64', label:'64 GB'},
-];
+/**
+ * Converte uma string de RAM vinda do banco (ex: "8GB", "16 GB", "16")
+ * para um inteiro em GB que o backend espera em List<int>.
+ * Extrai o primeiro número encontrado na string.
+ * Retorna 0 se não encontrar nenhum número.
+ */
+function ramStringParaInt(valor) {
+    if (valor === null || valor === undefined || valor === '') return 0;
+    const num = parseInt(String(valor).replace(/[^0-9]/g, ''), 10);
+    return isNaN(num) ? 0 : num;
+}
 
 /** Opções de quantidade para selects de slots dinâmicos */
 const QUANT_SLOTS  = ['0','1','2','3','4','5','6','7','8'];
@@ -364,7 +341,7 @@ const formFields = {
         { section: 'Especificações' },
         { label: 'Armazenamento (GB)',   key: 'armazenamento', type: 'number', placeholder: 'Ex: 128' },
         { label: 'RAM (GB)',             key: 'ram',           type: 'number', placeholder: 'Ex: 8' },
-        { label: 'Conector Carregador', key: 'conectividade', type: 'select', options: CONECTOR_CARREGADOR },
+        { label: 'Conector Carregador', key: 'conectividade', type: 'select', options: CONECTOR_CARR },
 
         { section: 'Chips no Celular' },
         // 'chip_selector': carrega chips via getChips() e permite vincular até 2
@@ -623,7 +600,7 @@ const filterDefs = {
             { label: 'Modelo',           key: 'modelo'                                },
             { label: 'Memória RAM (GB)', key: 'ram'                                   },
             { label: 'Armazenamento (GB)',key: 'armazenamento'                         },
-            { label: 'Conector Carregador', key: 'conectividade', values: CONECTOR_CARREGADOR },
+            { label: 'Conector Carregador', key: 'conectividade', values: CONECTOR_CARR },
             { label: 'Status',              key: 'status',        values: STATUS              },
             { label: 'Setor',               key: 'setor',         values: SETOR               },
             { label: 'Usuário',          key: 'usuario'                               },
@@ -854,7 +831,13 @@ function renderSlotsRAM(afterGroup, quantidade, valores = []) {
         const lbl       = document.createElement('label');
         lbl.textContent = `Slot ${i + 1}`;
         group.appendChild(lbl);
-        group.appendChild(criarSelect(`ram_slot_${i}`, TIPO_MEMORIA_RAM, valores[i] || ''));
+        // valores[i] vem do backend como int (ex: 8).
+        // Busca a opcao do banco cuja string contem esse numero para pre-selecionar o select.
+        const intVal = valores[i];
+        const strVal = intVal != null
+            ? (TIPO_MEMORIA_RAM.find(o => ramStringParaInt(o.value) === intVal)?.value || String(intVal))
+            : '';
+        group.appendChild(criarSelect(`ram_slot_${i}`, TIPO_MEMORIA_RAM, strVal));
         div.appendChild(group);
     }
 
@@ -2596,8 +2579,11 @@ function extrairIndexados(form, prefix) {
  */
 function mapFormToApi(categoria, form) {
     if (categoria === 'computadores') {
-        // Coleta slots de RAM (apenas os preenchidos)
-        const memoriaRAM = extrairIndexados(form, 'ram_slot_').filter(Boolean);
+        // Coleta slots de RAM — cada slot vem como string do select (ex: "8GB")
+        // e é convertido para int (ex: 8) para o backend receber List<int>
+        const memoriaRAM = extrairIndexados(form, 'ram_slot_')
+            .filter(Boolean)
+            .map(ramStringParaInt);
 
         // Coleta discos — envia { Tipo: "HDD", Tamanho: 512 } (DiscoInfo no backend)
         const discos = [];

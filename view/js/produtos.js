@@ -42,13 +42,24 @@ const Produtos = (() => {
     //  - nome       : nome exibido no card
     //  - descricao  : subtítulo do card
     //  - icone      : classe Font Awesome
-    //  - cor        : cor do ícone do card (classe CSS de cor)
+    //  - cor        : cor do ícone do card (classe CSS cc-*)
     //  - enums      : lista dos tipos dinâmicos (chaves do enumData)
     //                 que pertencem a esta classe
     //
     //  'Base' é especial: agrupa os enums comuns a todos os equipamentos.
     //  Classes sem enums dinâmicos aparecem como cards informativos
     //  e têm enums: [] — ao abrir mostram aviso de "sem configurações".
+    //
+    //  ── ENUMS MIGRADOS DE FIXOS PARA DINÂMICOS ──────────────────
+    //  Os seguintes tipos foram enums C# estáticos e agora vivem no
+    //  banco (OpcoesEnum). Precisam ser populados via tela Produtos
+    //  antes de usar os formulários de cadastro:
+    //
+    //    Base        → Status
+    //    Computador  → TipoComputador, TipoMemoriaRAM, TipoConectorVideo
+    //    Celular     → TipoConectorCarregador
+    //    Periférico  → TipoPeriferico, Conectividade, Switch
+    //    Monitor     → Resolucao
     // ============================================================
     const CLASSES = [
         {
@@ -57,15 +68,29 @@ const Produtos = (() => {
             descricao:  'Campos comuns a todos os equipamentos',
             icone:      'fa-layer-group',
             cor:        'slate',
-            enums:      ['Setor'],
+            enums:      [
+                'Setor',
+                'Status',           // era enum Status (EmUso, EmEstoque, Desativado...)
+            ],
         },
         {
             id:         'computador',
             nome:       'Computador',
             descricao:  'Desktops, notebooks e servidores',
-            icone:      'fa-desktop',
+            icone:      'fa-computer',
             cor:        'blue',
-            enums:      ['SistemaOperacional', 'AtivacaoSO', 'TipoOffice', 'AtivacaoOffice', 'GeracaoRAM', 'TipoDisco', 'TipoPlacaVideo'],
+            enums:      [
+                'TipoComputador',   // era enum TipoComputador (PC_Desktop, Notebook, All_in_One)
+                'GeracaoRAM',
+                'TipoMemoriaRAM',   // era enum TipoMemoriaRAM (GB4=4, GB8=8 ...) — valores: "4GB","8GB"...
+                'SistemaOperacional',
+                'AtivacaoSO',
+                'TipoOffice',
+                'AtivacaoOffice',
+                'TipoDisco',
+                'TipoPlacaVideo',
+                'TipoConectorVideo', // era enum TipoConectorVideo (HDMI, DisplayPort, VGA, DVI)
+            ],
         },
         {
             id:         'chip',
@@ -73,7 +98,9 @@ const Produtos = (() => {
             descricao:  'Chips de telefonia e dados',
             icone:      'fa-sim-card',
             cor:        'green',
-            enums:      ['Operadora'],
+            enums:      [
+                'Operadora',
+            ],
         },
         {
             id:         'celular',
@@ -81,7 +108,9 @@ const Produtos = (() => {
             descricao:  'Smartphones corporativos',
             icone:      'fa-mobile-screen',
             cor:        'indigo',
-            enums:      [],
+            enums:      [
+                'TipoConectorCarregador', // era enum TipoConectorCarregador (USB_C, Lightning...)
+            ],
         },
         {
             id:         'monitor',
@@ -89,37 +118,27 @@ const Produtos = (() => {
             descricao:  'Monitores e displays',
             icone:      'fa-display',
             cor:        'cyan',
-            enums:      [],
+            enums:      [
+                'Resolucao',        // era enum Resolucao (HD, FHD, QHD, UHD4K)
+            ],
         },
         {
-            id:         'teclado',
-            nome:       'Teclado',
-            descricao:  'Teclados com fio e sem fio',
+            id:         'periferico',
+            nome:       'Periférico',
+            descricao:  'Mouse, teclado e fone de ouvido',
             icone:      'fa-keyboard',
             cor:        'violet',
-            enums:      [],
-        },
-        {
-            id:         'mouse',
-            nome:       'Mouse',
-            descricao:  'Mouses com fio e sem fio',
-            icone:      'fa-computer-mouse',
-            cor:        'purple',
-            enums:      [],
-        },
-        {
-            id:         'fone',
-            nome:       'Fone',
-            descricao:  'Headsets e fones de ouvido',
-            icone:      'fa-headphones',
-            cor:        'pink',
-            enums:      [],
+            enums:      [
+                'TipoPeriferico',   // era enum TipoPeriferico (Gamer, Escritorio)
+                'Conectividade',    // era enum Conectividade (Bluetooth, Cabo, USB, TriMode)
+                'Switch',           // era enum Switch (Red, Blue, Brown...)
+            ],
         },
         {
             id:         'ramal',
             nome:       'Ramal',
-            descricao:  'Ramais telefônicos IP',
-            icone:      'fa-phone-office',
+            descricao:  'Ramais telefônicos',
+            icone:      'fa-phone',
             cor:        'orange',
             enums:      [],
         },

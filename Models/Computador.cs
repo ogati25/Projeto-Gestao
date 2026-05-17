@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Projeto_Gestao.Enums;
 using Projeto_Gestao.Models.Base;
 using Projeto_Gestao.Validations;
 
@@ -10,18 +9,19 @@ public class Computador : Equipamento
     [Required]
     public string Modelo { get; set; } = null!;
 
-    [Required]
-    public TipoComputador Tipo { get; set; }
+    public string? Tipo { get; set; }              // dinâmico → string? (era TipoComputador)
 
     public string? ProcessadorId { get; set; }
 
-    public string? GeracaoRAM { get; set; }  // dinâmico → string?
+    public string? GeracaoRAM { get; set; }        // dinâmico → string?
 
     [Range(0, 16)]
     public int QuantidadeSlots { get; set; }
 
+    // Cada slot armazena o tamanho em GB como inteiro (ex: 8, 16, 32).
+    // O frontend envia strings do tipo "8GB" que são convertidas para int antes do envio.
     [ListaSize(nameof(QuantidadeSlots))]
-    public List<TipoMemoriaRAM> MemoriaRAM { get; set; } = new();
+    public List<int> MemoriaRAM { get; set; } = new();
 
     public int MemoriaRAMTotal { get; set; }
 
@@ -42,8 +42,9 @@ public class Computador : Equipamento
     [Range(0, 15)]
     public int QuantidadeConectoresVideo { get; set; }
 
+    // Conectores de vídeo como lista de strings dinâmicas (era List<TipoConectorVideo>)
     [ListaSize(nameof(QuantidadeConectoresVideo))]
-    public List<TipoConectorVideo> ConectoresVideo { get; set; } = new();
+    public List<string> ConectoresVideo { get; set; } = new();
 
     public string? SistemaOperacional { get; set; }  // dinâmico → string?
     public string? AtivacaoSO         { get; set; }  // dinâmico → string?

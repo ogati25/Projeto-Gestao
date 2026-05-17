@@ -124,34 +124,52 @@ function setLoading(carregando) {
 // =============================================================================
 
 /**
- * Salva o usuário autenticado no sessionStorage.
+ * Salva o usuário autenticado em sessionStorage e localStorage.
+ * Normaliza PascalCase (.NET) → camelCase para compatibilidade com todas as telas.
  * Chamada após autenticação bem-sucedida em handleLogin().
  * @param {Object} usuario — UsuarioResponseDto retornado pela API
  */
 function salvarSessao(usuario) {
-    sessionStorage.setItem('usuarioLogado', JSON.stringify(usuario));
+    // Normaliza PascalCase → camelCase (o backend .NET serializa em PascalCase
+    // pois não há JsonNamingPolicy.CamelCase configurado no Program.cs)
+    const normalizado = {
+        id:             usuario.id          ?? usuario.Id          ?? null,
+        nome:           usuario.nome        ?? usuario.Nome        ?? '',
+        sobrenome:      usuario.sobrenome   ?? usuario.Sobrenome   ?? '',
+        email:          usuario.email       ?? usuario.Email       ?? '',
+        setor:          usuario.setor       ?? usuario.Setor       ?? '',
+        criadoEm:       usuario.criadoEm    ?? usuario.CriadoEm    ?? null,
+        emailVerificado: usuario.emailVerificado ?? usuario.EmailVerificado ?? false,
+    };
+
+    // sessionStorage — usado por perfil.js e verificarSessao()
+    sessionStorage.setItem('usuarioLogado', JSON.stringify(normalizado));
+
+    // localStorage — usado por dashboard.html e outras telas internas
+    localStorage.setItem('tl_user', JSON.stringify(normalizado));
 }
 
 /**
- * Recupera o usuário logado do sessionStorage.
+ * Recupera o usuário logado do sessionStorage (ou localStorage como fallback).
  * Use nas demais telas para verificar autenticação e obter dados do usuário.
  * Retorna null se não houver sessão ativa.
- * @returns {Object|null} UsuarioResponseDto ou null
+ * @returns {Object|null} dados do usuário normalizados em camelCase, ou null
  */
 function getUsuarioLogado() {
-    const raw = sessionStorage.getItem('usuarioLogado');
-    if (!raw) return null;
-    try { return JSON.parse(raw); } catch (_) { return null; }
+    try {
+        const raw = sessionStorage.getItem('usuarioLogado') ?? localStorage.getItem('tl_user');
+        return raw ? JSON.parse(raw) : null;
+    } catch (_) { return null; }
 }
 
 /**
  * Encerra a sessão do usuário e redireciona para o login.
+ * Remove os dados de sessionStorage e localStorage.
  * Chame em qualquer tela que tenha botão de logout.
- * Exemplo de uso nas telas internas:
- *   document.getElementById('btnLogout').addEventListener('click', logout);
  */
 function logout() {
     sessionStorage.removeItem('usuarioLogado');
+    localStorage.removeItem('tl_user');
     window.location.href = 'login.html';
 }
 

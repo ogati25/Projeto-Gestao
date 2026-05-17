@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Projeto_Gestao.Enums;
 
 namespace Projeto_Gestao.Models.Base;
 
@@ -29,7 +28,7 @@ public abstract class Equipamento
     public string Setor { get; set; } = null!;  // dinâmico → string
 
     [Required]
-    public Status Status { get; set; }
+    public string Status { get; set; } = null!;  // dinâmico → string (era enum Status)
 
     public string? Observacoes { get; set; }
 

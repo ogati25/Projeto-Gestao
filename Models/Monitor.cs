@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Projeto_Gestao.Enums;
 using Projeto_Gestao.Models.Base;
 
 namespace Projeto_Gestao.Models;
@@ -12,7 +11,7 @@ public class Monitor : Equipamento
     [Range(0, 100)]
     public float Tamanho { get; set; }
 
-    public Resolucao Resolucao { get; set; }
+    public string? Resolucao { get; set; }  // dinâmico → string? (era enum Resolucao)
 
     public int Frequencia { get; set; }
 

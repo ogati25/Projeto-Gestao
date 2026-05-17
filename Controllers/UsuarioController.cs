@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Driver;
 using Projeto_Gestao.Dtos;
 using Projeto_Gestao.Models;
 using Projeto_Gestao.Services;
@@ -32,7 +33,14 @@ public class UsuariosController : ControllerBase
             Senha = dto.Senha
         };
 
-        await _usuarioService.CreateAsync(usuario);
+        try
+        {
+            await _usuarioService.CreateAsync(usuario);
+        }
+        catch (MongoWriteException ex) when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
+        {
+            return Conflict(new { message = "Este e-mail já está cadastrado." });
+        }
 
         // Após criação, o Id foi gerado pelo MongoDB
         var response = MapToResponse(usuario);
@@ -212,7 +220,8 @@ public class UsuariosController : ControllerBase
             Sobrenome = usuario.Sobrenome,
             Email = usuario.Email,
             Setor = usuario.Setor,
-            CriadoEm = usuario.CriadoEm
+            CriadoEm = usuario.CriadoEm,
+            EmailVerificado = usuario.EmailVerificado
         };
     }
 }
