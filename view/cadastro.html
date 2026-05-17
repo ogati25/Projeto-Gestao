@@ -3,22 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- Ícones Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-    <!-- Estilos base compartilhados por todas as telas -->
     <link rel="stylesheet" href="style.css">
-
     <title>Cadastro — Tech Logistics</title>
-
     <style>
-        /* ================================================================
-           ESTILOS EXCLUSIVOS DA TELA DE CADASTRO
-           Complementam o style.css base sem sobrescrever variáveis globais.
-        ================================================================ */
-
-        /* Centraliza o conteúdo verticalmente e permite rolagem em telas pequenas */
         body {
             display: flex;
             align-items: center;
@@ -26,14 +14,13 @@
             min-height: 100vh;
             background: var(--background-color);
             overflow: auto;
-            padding: 24px 16px;
+            padding: 20px 16px;
         }
 
-        /* Container principal dividido em dois painéis (brand | formulário) */
         .cadastro-wrapper {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            width: 920px;
+            width: 820px;
             max-width: 98vw;
             background: var(--secondary-color);
             border-radius: 16px;
@@ -42,125 +29,72 @@
             overflow: hidden;
         }
 
-        /* ---- Painel esquerdo — identidade visual / brand ---- */
+        /* ---- Painel esquerdo ---- */
         .cad-brand {
             background: var(--primary-color);
-            padding: 48px 40px;
+            padding: 36px 32px;
             display: flex;
             flex-direction: column;
-            gap: 32px;
+            gap: 24px;
         }
-
-        /* Logotipo + nome do sistema */
-        .cad-brand-top {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .cad-brand-top { display: flex; align-items: center; gap: 10px; }
         .cad-brand-top .brand-icon {
-            width: 40px;
-            height: 40px;
+            width: 36px; height: 36px;
             background: var(--quinary-color);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
         }
-        .cad-brand-top .brand-icon i { font-size: 20px; color: #fff; }
-        .cad-brand-top h2 { font-size: 18px; font-weight: 700; color: #fff; }
+        .cad-brand-top .brand-icon i { font-size: 17px; color: #fff; }
+        .cad-brand-top h2 { font-size: 16px; font-weight: 700; color: #fff; }
 
-        /* Título e descrição do painel brand */
-        .cad-brand-body h1 {
-            font-size: 22px;
-            font-weight: 700;
-            color: #fff;
-            line-height: 1.35;
-            margin-bottom: 10px;
-        }
-        .cad-brand-body p { font-size: 13px; color: #94a3b8; line-height: 1.6; }
+        .cad-brand-body h1 { font-size: 20px; font-weight: 700; color: #fff; line-height: 1.35; margin-bottom: 8px; }
+        .cad-brand-body p  { font-size: 12px; color: #94a3b8; line-height: 1.6; }
 
-        /* Lista de passos exibida no painel brand */
-        .step-list { display: flex; flex-direction: column; gap: 16px; }
-        .step-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-        /* Número do passo (círculo) */
+        .step-list { display: flex; flex-direction: column; gap: 12px; }
+        .step-item { display: flex; align-items: flex-start; gap: 10px; }
         .step-num {
-            width: 26px;
-            height: 26px;
+            width: 22px; height: 22px;
             border-radius: 50%;
             background: var(--quinary-color);
-            color: #fff;
-            font-size: 12px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            margin-top: 1px;
+            color: #fff; font-size: 11px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; margin-top: 1px;
         }
-        .step-item-text strong { display: block; font-size: 13px; color: #e2e8f0; font-weight: 700; }
-        .step-item-text span   { font-size: 12px; color: #64748b; }
+        .step-num.done { background: #10b981; }
+        .step-num.active { background: var(--quinary-color); box-shadow: 0 0 0 3px rgba(62,96,143,0.3); }
+        .step-item-text strong { display: block; font-size: 12px; color: #e2e8f0; font-weight: 700; }
+        .step-item-text span   { font-size: 11px; color: #64748b; }
 
-        /* ---- Painel direito — formulário de cadastro ---- */
+        /* ---- Painel direito ---- */
         .cad-form-panel {
-            padding: 44px;
+            padding: 32px 36px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             overflow-y: auto;
         }
-        .cad-form-panel h2 {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 4px;
-        }
-        .cad-form-panel p.subtitle {
-            font-size: 13px;
-            color: var(--text-muted);
-            margin-bottom: 24px;
-        }
+        .cad-form-panel h2 { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 3px; }
+        .cad-form-panel p.subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 18px; }
 
-        /* ---- Grid de campos do formulário ---- */
-        /* Dois campos por linha; campos com .field-full ocupam a linha toda */
-        .fields-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px 16px;
-        }
+        /* ---- Grid de campos ---- */
+        .fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; }
         .fields-grid .field-full { grid-column: 1 / -1; }
 
-        /* Wrapper de cada campo: label + input */
-        .field { display: flex; flex-direction: column; gap: 5px; }
-        .field label {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-primary);
-            letter-spacing: 0.3px;
-        }
+        .field { display: flex; flex-direction: column; gap: 4px; }
+        .field label { font-size: 11px; font-weight: 700; color: var(--text-primary); letter-spacing: 0.3px; }
 
-        /* Posicionamento do ícone interno e botão de toggle de senha */
         .field-input-wrap { position: relative; }
         .field-input-wrap i.fi {
-            position: absolute;
-            left: 11px;
-            top: 50%;
+            position: absolute; left: 10px; top: 50%;
             transform: translateY(-50%);
-            font-size: 13px;
-            color: var(--text-muted);
-            pointer-events: none; /* ícone decorativo, não interativo */
+            font-size: 12px; color: var(--text-muted); pointer-events: none;
         }
-
-        /* Estilo base dos inputs e selects do formulário */
         .field-input-wrap input,
         .field-input-wrap select {
             width: 100%;
-            padding: 9px 12px 9px 34px; /* espaço à esquerda para o ícone */
+            padding: 8px 10px 8px 30px;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 7px;
             font-size: 13px;
             background: var(--background-color);
             color: var(--text-primary);
@@ -174,113 +108,130 @@
             box-shadow: 0 0 0 3px rgba(62,96,143,0.15);
             background: var(--secondary-color);
         }
-
-        /* Botão que alterna visibilidade do campo de senha */
         .field-input-wrap .toggle-pass {
-            position: absolute;
-            right: 11px;
-            top: 50%;
+            position: absolute; right: 10px; top: 50%;
             transform: translateY(-50%);
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--text-muted);
-            font-size: 13px;
-            padding: 4px;
-            transition: color 0.2s;
-            z-index: 2;
+            background: none; border: none; cursor: pointer;
+            color: var(--text-muted); font-size: 12px; padding: 4px;
+            transition: color 0.2s; z-index: 2;
         }
         .field-input-wrap .toggle-pass:hover { color: var(--text-primary); }
+        .field-input-wrap input.has-toggle { padding-right: 32px; }
 
-        /* Input com botão de toggle precisa de padding extra à direita */
-        .field-input-wrap input.has-toggle { padding-right: 36px; }
+        /* ---- Força de senha ---- */
+        .strength-bar { height: 3px; background: var(--border-color); border-radius: 2px; margin-top: 4px; overflow: hidden; }
+        .strength-fill { height: 100%; border-radius: 2px; transition: width 0.3s, background 0.3s; width: 0%; }
+        .strength-label { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
 
-        /* ---- Indicador de força de senha ---- */
-        .strength-bar {
-            height: 4px;
-            background: var(--border-color);
-            border-radius: 2px;
-            margin-top: 5px;
-            overflow: hidden;
-        }
-        /* Barra colorida que varia conforme a força (width e color definidos pelo JS) */
-        .strength-fill {
-            height: 100%;
-            border-radius: 2px;
-            transition: width 0.3s, background 0.3s;
-            width: 0%;
-        }
-        .strength-label { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
-
-        /* ---- Linha de aceite dos termos de uso ---- */
+        /* ---- Termos ---- */
         .terms-row {
-            margin: 16px 0 0;
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            font-size: 12px;
-            color: var(--text-muted);
+            margin: 12px 0 0;
+            display: flex; align-items: flex-start; gap: 7px;
+            font-size: 11px; color: var(--text-muted);
         }
         .terms-row input[type="checkbox"] {
             accent-color: var(--quinary-color);
-            width: 14px;
-            height: 14px;
-            margin-top: 2px;
-            flex-shrink: 0;
-            cursor: pointer;
+            width: 13px; height: 13px; margin-top: 2px; flex-shrink: 0; cursor: pointer;
         }
         .terms-row a { color: var(--quinary-color); text-decoration: none; font-weight: 600; }
 
-        /* ---- Botão de submissão ---- */
+        /* ---- Botão ---- */
         .btn-cadastrar {
-            width: 100%;
-            padding: 11px;
+            width: 100%; padding: 10px;
             background: var(--quinary-color);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
+            color: #fff; border: none; border-radius: 8px;
+            font-size: 13px; font-weight: 700; cursor: pointer;
             transition: background 0.2s, transform 0.1s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 18px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            margin-top: 14px;
         }
-        .btn-cadastrar:hover   { background: #2d4f7a; }
-        .btn-cadastrar:active  { transform: scale(0.98); }
+        .btn-cadastrar:hover  { background: #2d4f7a; }
+        .btn-cadastrar:active { transform: scale(0.98); }
+        .btn-cadastrar:disabled { opacity: 0.7; cursor: not-allowed; }
 
-        /* ---- Caixas de alerta (erro / sucesso) ---- */
-        /* Ocultadas por padrão; exibidas via classe .show adicionada pelo JS */
+        /* ---- Alertas ---- */
         .alert-box {
-            display: none;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            margin-bottom: 16px;
+            display: none; align-items: center; gap: 8px;
+            padding: 9px 12px; border-radius: 7px;
+            font-size: 12px; margin-bottom: 14px;
         }
-        .alert-box.show        { display: flex; }
+        .alert-box.show    { display: flex; }
         .alert-error   { background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; }
         .alert-success { background: #d1fae5; border: 1px solid #a7f3d0; color: #065f46; }
 
-        /* ---- Rodapé do formulário (link para login) ---- */
-        .form-footer {
-            margin-top: 16px;
-            text-align: center;
-            font-size: 13px;
-            color: var(--text-muted);
-        }
+        /* ---- Rodapé ---- */
+        .form-footer { margin-top: 14px; text-align: center; font-size: 12px; color: var(--text-muted); }
         .form-footer a { color: var(--quinary-color); font-weight: 700; text-decoration: none; }
 
-        /* ---- Responsivo: esconde o painel brand em telas pequenas ---- */
-        @media (max-width: 720px) {
+        /* ================================================================
+           TELA DE VERIFICAÇÃO DE E-MAIL (step 2)
+           Oculta por padrão; exibida pelo JS após o cadastro
+        ================================================================ */
+        .verification-panel { display: none; }
+        .verification-panel.show { display: flex; flex-direction: column; }
+
+        .verify-icon {
+            width: 56px; height: 56px;
+            background: #dbeafe;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 16px;
+        }
+        .verify-icon i { font-size: 24px; color: #3b82f6; }
+
+        .verify-email-dest {
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Inputs de código — 6 caixas individuais */
+        .code-inputs {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .code-inputs input {
+            width: 44px; height: 52px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            text-align: center;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+            background: var(--background-color);
+            outline: none;
+            transition: border 0.2s, box-shadow 0.2s;
+            font-family: monospace;
+            caret-color: transparent;
+        }
+        .code-inputs input:focus {
+            border-color: var(--quinary-color);
+            box-shadow: 0 0 0 3px rgba(62,96,143,0.15);
+            background: var(--secondary-color);
+        }
+        .code-inputs input.filled {
+            border-color: var(--quinary-color);
+            background: var(--secondary-color);
+        }
+
+        .resend-row {
+            font-size: 12px; color: var(--text-muted);
+            text-align: center; margin-top: 4px;
+        }
+        .btn-resend {
+            background: none; border: none; cursor: pointer;
+            color: var(--quinary-color); font-weight: 700; font-size: 12px;
+            padding: 0; transition: color 0.2s;
+        }
+        .btn-resend:hover { color: #2d4f7a; }
+        .btn-resend:disabled { color: var(--text-muted); cursor: default; }
+
+        /* ---- Responsivo ---- */
+        @media (max-width: 680px) {
             .cadastro-wrapper { grid-template-columns: 1fr; }
             .cad-brand        { display: none; }
-            .cad-form-panel   { padding: 28px 20px; }
+            .cad-form-panel   { padding: 24px 18px; }
             .fields-grid      { grid-template-columns: 1fr; }
         }
     </style>
@@ -289,204 +240,179 @@
 
 <div class="cadastro-wrapper">
 
-    <!-- =====================================================================
-         PAINEL ESQUERDO — Brand / identidade visual
-         Exibe logotipo, slogan e os três passos de integração.
-         Decorativo, sem interação JS.
-    ====================================================================== -->
+    <!-- Painel esquerdo -->
     <div class="cad-brand">
-
-        <!-- Logotipo + nome -->
         <div class="cad-brand-top">
-            <div class="brand-icon">
-                <i class="fa-solid fa-boxes-stacked"></i>
-            </div>
+            <div class="brand-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
             <h2>Tech Logistics</h2>
         </div>
-
-        <!-- Título e descrição -->
         <div class="cad-brand-body">
             <h1>Crie sua conta<br>e comece agora</h1>
             <p>Gerencie todo o inventário de TI da sua empresa com facilidade.</p>
         </div>
-
-        <!-- Lista de passos do onboarding -->
         <div class="step-list">
             <div class="step-item">
-                <div class="step-num">1</div>
+                <div class="step-num" id="stepNum1">1</div>
                 <div class="step-item-text">
                     <strong>Crie sua conta</strong>
                     <span>Preencha seus dados básicos</span>
                 </div>
             </div>
             <div class="step-item">
-                <div class="step-num">2</div>
+                <div class="step-num" id="stepNum2">2</div>
                 <div class="step-item-text">
                     <strong>Confirme o e-mail</strong>
                     <span>Verifique sua caixa de entrada</span>
                 </div>
             </div>
             <div class="step-item">
-                <div class="step-num">3</div>
+                <div class="step-num" id="stepNum3">3</div>
                 <div class="step-item-text">
                     <strong>Acesse o painel</strong>
                     <span>Comece a gerir seus ativos</span>
                 </div>
             </div>
         </div>
+    </div>
 
-    </div><!-- /cad-brand -->
-
-
-    <!-- =====================================================================
-         PAINEL DIREITO — Formulário de cadastro
-         Todos os campos são acessados pelo JS via ID.
-         Nenhum atributo de evento (onclick, oninput etc.) nos elementos HTML.
-    ====================================================================== -->
+    <!-- Painel direito -->
     <div class="cad-form-panel">
 
-        <h2>Criar conta</h2>
-        <p class="subtitle">Preencha os dados para criar seu acesso</p>
+        <!-- ==================== STEP 1: FORMULÁRIO ==================== -->
+        <div id="formPanel">
+            <h2>Criar conta</h2>
+            <p class="subtitle">Preencha os dados para criar seu acesso</p>
 
-        <!-- Alerta de erro — oculto por padrão, exibido pelo JS via .show -->
-        <div class="alert-box alert-error" id="alertError">
-            <i class="fa-solid fa-circle-exclamation"></i>
-            <!-- Mensagem de erro dinâmica, substituída pelo JS -->
-            <span id="alertErrorMsg">Verifique os campos e tente novamente.</span>
+            <div class="alert-box alert-error" id="alertError">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span id="alertErrorMsg">Verifique os campos e tente novamente.</span>
+            </div>
+
+            <div class="fields-grid">
+                <div class="field">
+                    <label for="nome">Nome</label>
+                    <div class="field-input-wrap">
+                        <i class="fa-solid fa-user fi"></i>
+                        <input type="text" id="nome" placeholder="João">
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="sobrenome">Sobrenome</label>
+                    <div class="field-input-wrap">
+                        <i class="fa-solid fa-user fi"></i>
+                        <input type="text" id="sobrenome" placeholder="Silva">
+                    </div>
+                </div>
+                <div class="field field-full">
+                    <label for="email">E-mail corporativo</label>
+                    <div class="field-input-wrap">
+                        <i class="fa-solid fa-envelope fi"></i>
+                        <input type="email" id="email" placeholder="joao.silva@empresa.com">
+                    </div>
+                </div>
+                <div class="field field-full">
+                    <label for="setor">Setor</label>
+                    <div class="field-input-wrap">
+                        <i class="fa-solid fa-briefcase fi"></i>
+                        <select id="setor">
+                            <option value="">Selecione o setor...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field field-full">
+                    <label for="telefone">Telefone <span style="font-weight:400;color:var(--text-muted)">(opcional)</span></label>
+                    <div class="field-input-wrap">
+                        <i class="fa-solid fa-phone fi"></i>
+                        <input type="tel" id="telefone" placeholder="(11) 99999-9999">
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="senha">Senha</label>
+                    <div class="field-input-wrap">
+                        <i class="fa-solid fa-lock fi"></i>
+                        <input type="password" id="senha" class="has-toggle" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+                        <button type="button" class="toggle-pass" id="togglePass1" tabindex="-1">
+                            <i class="fa-solid fa-eye" id="eye1"></i>
+                        </button>
+                    </div>
+                    <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+                    <span class="strength-label" id="strengthLabel"></span>
+                </div>
+                <div class="field">
+                    <label for="confirmar">Confirmar senha</label>
+                    <div class="field-input-wrap">
+                        <i class="fa-solid fa-lock fi"></i>
+                        <input type="password" id="confirmar" class="has-toggle" placeholder="Repita a senha" autocomplete="new-password">
+                        <button type="button" class="toggle-pass" id="togglePass2" tabindex="-1">
+                            <i class="fa-solid fa-eye" id="eye2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="terms-row">
+                <input type="checkbox" id="termos">
+                <label for="termos">Li e aceito os <a href="#">Termos de Uso</a> e a <a href="#">Política de Privacidade</a></label>
+            </div>
+
+            <button class="btn-cadastrar" id="btnCadastrar">
+                <i class="fa-solid fa-user-plus" id="btnCadastrarIcon"></i>
+                <span id="btnCadastrarLabel">Criar conta</span>
+            </button>
+
+            <div class="form-footer">Já tem conta? <a href="login.html">Fazer login</a></div>
         </div>
 
-        <!-- Alerta de sucesso — oculto por padrão, exibido pelo JS via .show -->
-        <div class="alert-box alert-success" id="alertSuccess">
-            <i class="fa-solid fa-circle-check"></i>
-            <span>Conta criada! Redirecionando para o login...</span>
+        <!-- ==================== STEP 2: VERIFICAÇÃO ==================== -->
+        <div class="verification-panel" id="verificationPanel">
+            <div class="verify-icon">
+                <i class="fa-solid fa-envelope-open-text"></i>
+            </div>
+
+            <h2>Verifique seu e-mail</h2>
+            <p class="subtitle">
+                Enviamos um código de 6 dígitos para<br>
+                <span class="verify-email-dest" id="verifyEmailDest"></span>
+            </p>
+
+            <div class="alert-box alert-error" id="alertErrorVerify">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span id="alertErrorVerifyMsg">Código inválido.</span>
+            </div>
+
+            <div class="alert-box alert-success" id="alertSuccessVerify">
+                <i class="fa-solid fa-circle-check"></i>
+                <span>E-mail verificado! Redirecionando...</span>
+            </div>
+
+            <!-- 6 inputs individuais para o código -->
+            <div class="code-inputs" id="codeInputs">
+                <input type="text" maxlength="1" inputmode="numeric" id="c0">
+                <input type="text" maxlength="1" inputmode="numeric" id="c1">
+                <input type="text" maxlength="1" inputmode="numeric" id="c2">
+                <input type="text" maxlength="1" inputmode="numeric" id="c3">
+                <input type="text" maxlength="1" inputmode="numeric" id="c4">
+                <input type="text" maxlength="1" inputmode="numeric" id="c5">
+            </div>
+
+            <button class="btn-cadastrar" id="btnVerificar">
+                <i class="fa-solid fa-check-circle"></i>
+                <span id="btnVerificarLabel">Verificar e-mail</span>
+            </button>
+
+            <div class="resend-row" style="margin-top:14px;">
+                Não recebeu? <button class="btn-resend" id="btnReenviar">Reenviar código</button>
+            </div>
+
+            <div class="form-footer" style="margin-top:10px;">
+                <a href="login.html">← Voltar para o login</a>
+            </div>
         </div>
 
-        <!-- Grid de campos do formulário -->
-        <div class="fields-grid">
+    </div>
+</div>
 
-            <!-- Nome -->
-            <div class="field">
-                <label for="nome">Nome</label>
-                <div class="field-input-wrap">
-                    <i class="fa-solid fa-user fi"></i>
-                    <input type="text" id="nome" placeholder="João">
-                </div>
-            </div>
-
-            <!-- Sobrenome -->
-            <div class="field">
-                <label for="sobrenome">Sobrenome</label>
-                <div class="field-input-wrap">
-                    <i class="fa-solid fa-user fi"></i>
-                    <input type="text" id="sobrenome" placeholder="Silva">
-                </div>
-            </div>
-
-            <!-- E-mail (ocupa linha inteira) -->
-            <div class="field field-full">
-                <label for="email">E-mail corporativo</label>
-                <div class="field-input-wrap">
-                    <i class="fa-solid fa-envelope fi"></i>
-                    <input type="email" id="email" placeholder="joao.silva@empresa.com">
-                </div>
-            </div>
-
-            <!-- Setor (ocupa linha inteira) -->
-            <!-- As opções são carregadas dinamicamente pelo JS via API (/api/opcoes/Setor) -->
-            <div class="field field-full">
-                <label for="setor">Setor</label>
-                <div class="field-input-wrap">
-                    <i class="fa-solid fa-briefcase fi"></i>
-                    <select id="setor">
-                        <!-- Opção padrão; demais opções inseridas pelo cadastro.js -->
-                        <option value="">Selecione o setor...</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Telefone (opcional, linha inteira) -->
-            <div class="field field-full">
-                <label for="telefone">Telefone <span style="font-weight:400;color:var(--text-muted)">(opcional)</span></label>
-                <div class="field-input-wrap">
-                    <i class="fa-solid fa-phone fi"></i>
-                    <input type="tel" id="telefone" placeholder="(11) 99999-9999">
-                </div>
-            </div>
-
-            <!-- Senha + indicador de força -->
-            <div class="field">
-                <label for="senha">Senha</label>
-                <div class="field-input-wrap">
-                    <i class="fa-solid fa-lock fi"></i>
-                    <input
-                        type="password"
-                        id="senha"
-                        class="has-toggle"
-                        placeholder="Mínimo 8 caracteres"
-                        autocomplete="new-password"
-                    >
-                    <!-- Botão de alternância olho aberto/fechado — JS acessa via id -->
-                    <button type="button" class="toggle-pass" id="togglePass1" tabindex="-1">
-                        <i class="fa-solid fa-eye" id="eye1"></i>
-                    </button>
-                </div>
-                <!-- Barra de força da senha; width e cor controlados pelo JS -->
-                <div class="strength-bar">
-                    <div class="strength-fill" id="strengthFill"></div>
-                </div>
-                <!-- Texto descritivo da força (ex: "Fraca", "Forte") — preenchido pelo JS -->
-                <span class="strength-label" id="strengthLabel"></span>
-            </div>
-
-            <!-- Confirmar senha -->
-            <div class="field">
-                <label for="confirmar">Confirmar senha</label>
-                <div class="field-input-wrap">
-                    <i class="fa-solid fa-lock fi"></i>
-                    <input
-                        type="password"
-                        id="confirmar"
-                        class="has-toggle"
-                        placeholder="Repita a senha"
-                        autocomplete="new-password"
-                    >
-                    <button type="button" class="toggle-pass" id="togglePass2" tabindex="-1">
-                        <i class="fa-solid fa-eye" id="eye2"></i>
-                    </button>
-                </div>
-            </div>
-
-        </div><!-- /fields-grid -->
-
-        <!-- Aceite dos termos de uso -->
-        <div class="terms-row">
-            <input type="checkbox" id="termos">
-            <label for="termos">
-                Li e aceito os <a href="#">Termos de Uso</a> e a <a href="#">Política de Privacidade</a>
-            </label>
-        </div>
-
-        <!-- Botão de submissão — estado de loading controlado pelo JS -->
-        <button class="btn-cadastrar" id="btnCadastrar">
-            <i class="fa-solid fa-user-plus" id="btnCadastrarIcon"></i>
-            <span id="btnCadastrarLabel">Criar conta</span>
-        </button>
-
-        <!-- Link de volta para o login -->
-        <div class="form-footer">
-            Já tem conta? <a href="login.html">Fazer login</a>
-        </div>
-
-    </div><!-- /cad-form-panel -->
-
-</div><!-- /cadastro-wrapper -->
-
-
-<!-- api.js — funções de comunicação com o backend (compartilhado por todas as telas) -->
 <script src="js/api.js"></script>
-
-<!-- cadastro.js — lógica de frontend + chamadas à API específicas desta tela -->
 <script src="js/cadastro.js"></script>
-
 </body>
 </html>

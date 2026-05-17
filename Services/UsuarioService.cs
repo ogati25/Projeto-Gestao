@@ -153,12 +153,12 @@ public class UsuarioService
         var usuario = await GetByIdAsync(usuarioId);
         if (usuario == null) return string.Empty;
 
-        var token = GerarTokenSeguro();
-        usuario.EmailVerificacaoToken       = token;
+        var codigo = GerarCodigoVerificacao();
+        usuario.EmailVerificacaoToken       = codigo;
         usuario.EmailVerificacaoTokenExpiry = DateTime.UtcNow.AddHours(24);
 
         await _usuarios.ReplaceOneAsync(u => u.Id == usuario.Id, usuario);
-        return token;
+        return codigo;
     }
 
     /// <summary>
@@ -197,5 +197,16 @@ public class UsuarioService
             .Replace('+', '-')
             .Replace('/', '_')
             .TrimEnd('=');
+    }
+
+    /// <summary>
+    /// Gera um código numérico de 6 dígitos para verificação de e-mail.
+    /// </summary>
+    private static string GerarCodigoVerificacao()
+    {
+        var bytes = new byte[4];
+        System.Security.Cryptography.RandomNumberGenerator.Fill(bytes);
+        var num = BitConverter.ToUInt32(bytes, 0) % 1_000_000;
+        return num.ToString("D6");
     }
 }

@@ -43,7 +43,18 @@ public class UsuariosController : ControllerBase
             return Conflict(new { message = "Este e-mail já está cadastrado." });
         }
 
-        // Após criação, o Id foi gerado pelo MongoDB
+        // Gera código de verificação e envia por e-mail
+        var codigo = await _usuarioService.GerarTokenVerificacaoEmailAsync(usuario.Id!);
+        try
+        {
+            await _emailService.EnviarEmailVerificacaoAsync(usuario.Email, usuario.Nome, codigo);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[EmailService] Erro ao enviar e-mail de verificação: {ex.Message}");
+        }
+
+        // Retorna o usuário criado com o Id para o frontend iniciar a verificação
         var response = MapToResponse(usuario);
         return CreatedAtAction(nameof(GetById), new { id = usuario.Id }, response);
     }

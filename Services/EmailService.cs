@@ -55,12 +55,10 @@ public class EmailService
     /// Envia e-mail de verificação após o cadastro do usuário.
     /// Link gerado: {UrlBase}/view/verificar-email.html?token={token}
     /// </summary>
-    public async Task EnviarEmailVerificacaoAsync(string destinatario, string nomeUsuario, string token)
+    public async Task EnviarEmailVerificacaoAsync(string destinatario, string nomeUsuario, string codigo)
     {
-        var link = $"{_settings.UrlBase}/view/verificar-email.html?token={Uri.EscapeDataString(token)}";
-
         var assunto = "Confirme seu e-mail — Tech Logistics";
-        var corpo   = MontarCorpoVerificacaoEmail(nomeUsuario, link);
+        var corpo   = MontarCorpoVerificacaoEmail(nomeUsuario, codigo);
 
         await EnviarAsync(destinatario, assunto, corpo);
     }
@@ -143,7 +141,7 @@ public class EmailService
 </body>
 </html>";
 
-    private static string MontarCorpoVerificacaoEmail(string nome, string link) => $@"
+    private static string MontarCorpoVerificacaoEmail(string nome, string codigo) => $@"
 <!DOCTYPE html>
 <html lang=""pt-br"">
 <head><meta charset=""UTF-8""></head>
@@ -167,18 +165,20 @@ public class EmailService
           <div style=""text-align:center;margin-bottom:28px;"">
             <div style=""display:inline-block;background:#d1fae5;border-radius:50%;width:72px;height:72px;line-height:72px;font-size:32px;"">✉️</div>
           </div>
-          <h2 style=""font-size:22px;font-weight:700;color:#0f172a;margin:0 0 8px;"">Confirme seu e-mail</h2>
-          <p style=""font-size:14px;color:#64748b;margin:0 0 24px;"">Olá, <strong>{nome}</strong>!</p>
+          <h2 style=""font-size:22px;font-weight:700;color:#0f172a;margin:0 0 8px;text-align:center;"">Confirme seu e-mail</h2>
+          <p style=""font-size:14px;color:#64748b;margin:0 0 16px;text-align:center;"">Olá, <strong>{nome}</strong>!</p>
           <p style=""font-size:14px;color:#475569;margin:0 0 28px;line-height:1.6;"">
-            Obrigado por se cadastrar no Tech Logistics! Para ativar sua conta, confirme seu endereço de e-mail clicando no botão abaixo. O link é válido por <strong>24 horas</strong>.
+            Obrigado por se cadastrar no Tech Logistics! Use o código abaixo para confirmar seu e-mail. O código é válido por <strong>24 horas</strong>.
           </p>
           <div style=""text-align:center;margin-bottom:28px;"">
-            <a href=""{link}"" style=""display:inline-block;background:#10b981;color:#fff;text-decoration:none;padding:13px 32px;border-radius:8px;font-size:15px;font-weight:700;"">
-              Confirmar e-mail
-            </a>
+            <div style=""display:inline-block;background:#f0fdf4;border:2px dashed #10b981;border-radius:12px;padding:18px 40px;"">
+              <p style=""margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:1px;color:#6b7280;text-transform:uppercase;"">Código de verificação</p>
+              <p style=""margin:0;font-size:36px;font-weight:800;letter-spacing:10px;color:#0f172a;font-family:monospace;"">{codigo}</p>
+            </div>
           </div>
-          <p style=""font-size:12px;color:#94a3b8;margin:0 0 8px;"">Se o botão não funcionar, copie e cole este link no navegador:</p>
-          <p style=""font-size:12px;color:#3e608f;word-break:break-all;margin:0 0 28px;""><a href=""{link}"" style=""color:#3e608f;"">{link}</a></p>
+          <p style=""font-size:13px;color:#475569;margin:0 0 28px;line-height:1.6;text-align:center;"">
+            Digite este código na tela de cadastro para ativar sua conta.
+          </p>
           <hr style=""border:none;border-top:1px solid #e2e8f0;margin:0 0 20px;"">
           <p style=""font-size:12px;color:#94a3b8;margin:0;"">Se você não criou esta conta, ignore este e-mail.</p>
         </td></tr>

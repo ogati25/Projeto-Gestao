@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupForcaSenha();
     setupMascaraTelefone();
     setupBotaoCadastrar();
+    setupVerificacao();
     carregarSetors();
 
 });
@@ -313,11 +314,10 @@ async function handleCadastro() {
 
     try {
         // criarUsuario() definida em api.js → POST /api/usuarios
-        await criarUsuario({ nome, sobrenome, email, setor, telefone, senha });
+        const response = await criarUsuario({ nome, sobrenome, email, setor, telefone, senha });
 
-        // Exibe mensagem de sucesso e redireciona após 1,8 s
-        document.getElementById('alertSuccess')?.classList.add('show');
-        setTimeout(() => { window.location.href = 'login.html'; }, 1800);
+        // Exibe a tela de verificação de e-mail (step 2)
+        exibirVerificacao(email, response.id ?? response.Id);
 
     } catch (err) {
         if (err.status === 0) {
@@ -347,4 +347,206 @@ function setupBotaoCadastrar() {
     const btn = document.getElementById('btnCadastrar');
     if (!btn) return;
     btn.addEventListener('click', handleCadastro);
+}
+
+
+// =============================================================================
+// SEÇÃO 4 — VERIFICAÇÃO DE E-MAIL (step 2)
+// Exibida após o cadastro bem-sucedido.
+// =============================================================================
+
+// Guarda o id do usuário recém-criado para chamadas de reenvio
+let _usuarioId = null;
+
+/**
+ * Configura os inputs de código e o botão de verificação.
+ * Chamada no DOMContentLoaded.
+ */
+function setupVerificacao() {
+    const inputs = obterInputsCodigo();
+
+    // Navegação automática entre os inputs + aceitar só dígitos
+    inputs.forEach((input, i) => {
+        input.addEventListener('keydown', e => {
+            // Backspace: volta ao anterior se vazio
+            if (e.key === 'Backspace' && !input.value && i > 0) {
+                inputs[i - 1].focus();
+            }
+        });
+        input.addEventListener('input', e => {
+            // Aceita só números
+            input.value = input.value.replace(/\D/, '');
+            if (input.value) {
+                input.classList.add('filled');
+                if (i < 5) inputs[i + 1].focus();
+            } else {
+                input.classList.remove('filled');
+            }
+        });
+        // Suporte a colar (ctrl+v) no primeiro campo
+        input.addEventListener('paste', e => {
+            e.preventDefault();
+            const texto = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+            texto.split('').forEach((ch, j) => {
+                if (inputs[j]) {
+                    inputs[j].value = ch;
+                    inputs[j].classList.add('filled');
+                }
+            });
+            if (inputs[Math.min(texto.length, 5)]) inputs[Math.min(texto.length, 5)].focus();
+        });
+    });
+
+    document.getElementById('btnVerificar')?.addEventListener('click', handleVerificar);
+    document.getElementById('btnReenviar')?.addEventListener('click', handleReenviar);
+}
+
+/**
+ * Exibe o painel de verificação e oculta o formulário.
+ * Atualiza os indicadores de step no painel brand.
+ * @param {string} email - e-mail exibido ao usuário
+ * @param {string} usuarioId - id do usuário criado (para reenvio)
+ */
+function exibirVerificacao(email, usuarioId) {
+    _usuarioId = usuarioId;
+
+    document.getElementById('verifyEmailDest').textContent = email;
+    document.getElementById('formPanel').style.display = 'none';
+    document.getElementById('verificationPanel').classList.add('show');
+
+    // Atualiza indicadores de step
+    const s1 = document.getElementById('stepNum1');
+    const s2 = document.getElementById('stepNum2');
+    if (s1) { s1.classList.remove('active'); s1.classList.add('done'); s1.innerHTML = '<i class="fa-solid fa-check" style="font-size:10px"></i>'; }
+    if (s2) { s2.classList.add('active'); }
+
+    // Foca no primeiro input de código
+    obterInputsCodigo()[0]?.focus();
+}
+
+/**
+ * Retorna o código de 6 dígitos digitado (string).
+ */
+function lerCodigo() {
+    return obterInputsCodigo().map(i => i.value).join('');
+}
+
+function obterInputsCodigo() {
+    return [0,1,2,3,4,5].map(i => document.getElementById(`c${i}`)).filter(Boolean);
+}
+
+function mostrarErroVerify(msg) {
+    const el = document.getElementById('alertErrorVerify');
+    const span = document.getElementById('alertErrorVerifyMsg');
+    if (span) span.textContent = msg;
+    el?.classList.add('show');
+    document.getElementById('alertSuccessVerify')?.classList.remove('show');
+}
+
+function ocultarAlertasVerify() {
+    document.getElementById('alertErrorVerify')?.classList.remove('show');
+    document.getElementById('alertSuccessVerify')?.classList.remove('show');
+}
+
+function setLoadingVerify(carregando) {
+    const btn   = document.getElementById('btnVerificar');
+    const label = document.getElementById('btnVerificarLabel');
+    if (!btn || !label) return;
+    if (carregando) {
+        btn.disabled     = true;
+        label.textContent = 'Verificando...';
+        btn.querySelector('i').className = 'fa-solid fa-spinner fa-spin';
+    } else {
+        btn.disabled     = false;
+        label.textContent = 'Verificar e-mail';
+        btn.querySelector('i').className = 'fa-solid fa-check-circle';
+    }
+}
+
+/**
+ * Handler do botão "Verificar e-mail".
+ * Chama confirmarEmail() (api.js) com o código digitado.
+ *
+ * POST /api/usuarios/confirmar-email
+ * Body:    { token: "123456" }
+ * Sucesso: 200 → redireciona para login.html
+ * Erros:
+ *   - 400 : código inválido/expirado
+ *   - 0   : sem conexão
+ */
+async function handleVerificar() {
+    ocultarAlertasVerify();
+    const codigo = lerCodigo();
+
+    if (codigo.length < 6) {
+        mostrarErroVerify('Digite todos os 6 dígitos do código.');
+        obterInputsCodigo().find(i => !i.value)?.focus();
+        return;
+    }
+
+    setLoadingVerify(true);
+    try {
+        // confirmarEmail() definida em api.js → POST /api/usuarios/confirmar-email
+        await confirmarEmail(codigo);
+
+        document.getElementById('alertSuccessVerify')?.classList.add('show');
+        document.getElementById('alertErrorVerify')?.classList.remove('show');
+
+        // Atualiza step 3 e redireciona
+        const s3 = document.getElementById('stepNum3');
+        if (s3) s3.classList.add('active');
+
+        setTimeout(() => { window.location.href = 'login.html'; }, 1800);
+
+    } catch (err) {
+        if (err.status === 0) {
+            mostrarErroVerify('Sem conexão com o servidor. Tente novamente.');
+        } else if (err.status === 400) {
+            mostrarErroVerify(err.corpo?.message || 'Código inválido ou expirado.');
+            // Limpa os inputs para nova tentativa
+            obterInputsCodigo().forEach(i => { i.value = ''; i.classList.remove('filled'); });
+            obterInputsCodigo()[0]?.focus();
+        } else {
+            mostrarErroVerify('Erro ao verificar. Tente novamente.');
+        }
+        setLoadingVerify(false);
+    }
+}
+
+/**
+ * Handler do botão "Reenviar código".
+ * Chama enviarVerificacaoEmail() (api.js) com o id do usuário.
+ * Aplica cooldown de 30s para evitar spam.
+ *
+ * POST /api/usuarios/{id}/enviar-verificacao
+ */
+async function handleReenviar() {
+    if (!_usuarioId) return;
+
+    const btn = document.getElementById('btnReenviar');
+    btn.disabled = true;
+
+    try {
+        await enviarVerificacaoEmail(_usuarioId);
+        ocultarAlertasVerify();
+        // Limpa inputs para o novo código
+        obterInputsCodigo().forEach(i => { i.value = ''; i.classList.remove('filled'); });
+        obterInputsCodigo()[0]?.focus();
+    } catch (_) {
+        // Falha silenciosa no reenvio
+    }
+
+    // Cooldown 30s
+    let s = 30;
+    btn.textContent = `Reenviar em ${s}s`;
+    const t = setInterval(() => {
+        s--;
+        if (s <= 0) {
+            clearInterval(t);
+            btn.disabled = false;
+            btn.textContent = 'Reenviar código';
+        } else {
+            btn.textContent = `Reenviar em ${s}s`;
+        }
+    }, 1000);
 }
