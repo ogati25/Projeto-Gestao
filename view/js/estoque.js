@@ -45,6 +45,11 @@ if (typeof currentCategory === 'undefined') var currentCategory = 'computadores'
 if (typeof currentMode     === 'undefined') var currentMode     = 'gestao';
 if (typeof activeFilters   === 'undefined') var activeFilters   = [];
 
+// ── Paginação ──────────────────────────────────────────────
+let _paginaAtual  = 1;
+let _itensPorPagina = 25;
+let _dadosPaginados = []; // snapshot dos dados filtrados/ordenados
+
 // ── Enums DINÂMICOS ─────────────────────────────────────────────────────────
 // Populados via GET /api/opcoes ao carregar a página.
 // Os arrays começam vazios e são preenchidos por carregarOpcoesDinamicas().
@@ -2280,10 +2285,112 @@ function aplicarFiltrosNaTabela() {
         return;
     }
 
+    // Guarda snapshot para paginação e renderiza página 1
+    _dadosPaginados = dados;
+    _paginaAtual = 1;
+    _renderPagina();
+}
+
+// ── Renderiza a página atual com base em _dadosPaginados ──
+function _renderPagina() {
+    const categoria = currentCategory;
+    const modo      = currentMode;
+    const tableId   = `${categoria}-${modo}`;
+    const tbody     = document.querySelector(`#${tableId} tbody`);
+    if (!tbody) return;
+
+    const total   = _dadosPaginados.length;
+    const inicio  = (_paginaAtual - 1) * _itensPorPagina;
+    const fim     = Math.min(inicio + _itensPorPagina, total);
+    const pagina  = _dadosPaginados.slice(inicio, fim);
+
     tbody.innerHTML = '';
-    dados.forEach(item => tbody.appendChild(renderRow(currentCategory, item, currentMode)));
-    document.getElementById('tableInfo').textContent  = `${dados.length} registro(s)`;
-    document.getElementById('footerInfo').textContent = `${dados.length} registro(s)`;
+    pagina.forEach(item => tbody.appendChild(renderRow(categoria, item, modo)));
+
+    // Contador de registros
+    const info = total === 0
+        ? '0 registros'
+        : `${inicio + 1}–${fim} de ${total} registro(s)`;
+    document.getElementById('tableInfo').textContent  = info;
+    document.getElementById('footerInfo').textContent = `${total} registro(s)`;
+
+    _renderPaginationControls(total);
+}
+
+// ── Renderiza os botões de páginas no rodapé ──────────────
+function _renderPaginationControls(total) {
+    const container = document.getElementById('paginationControls');
+    if (!container) return;
+
+    const totalPages = Math.ceil(total / _itensPorPagina);
+    container.innerHTML = '';
+
+    if (totalPages <= 1) return;
+
+    // Botão anterior
+    const prev = document.createElement('button');
+    prev.className = 'page-btn';
+    prev.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+    prev.disabled  = _paginaAtual === 1;
+    prev.onclick   = () => { _paginaAtual--; _renderPagina(); };
+    container.appendChild(prev);
+
+    // Páginas numeradas (máximo 5 visíveis)
+    const maxVisible = 5;
+    let startPage = Math.max(1, _paginaAtual - Math.floor(maxVisible / 2));
+    let endPage   = Math.min(totalPages, startPage + maxVisible - 1);
+    if (endPage - startPage < maxVisible - 1) startPage = Math.max(1, endPage - maxVisible + 1);
+
+    if (startPage > 1) {
+        const btn = document.createElement('button');
+        btn.className = 'page-btn';
+        btn.textContent = '1';
+        btn.onclick = () => { _paginaAtual = 1; _renderPagina(); };
+        container.appendChild(btn);
+        if (startPage > 2) {
+            const dots = document.createElement('span');
+            dots.textContent = '…';
+            dots.style.cssText = 'font-size:12px;color:var(--text-muted);padding:0 2px;';
+            container.appendChild(dots);
+        }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        const btn = document.createElement('button');
+        btn.className = `page-btn${i === _paginaAtual ? ' active' : ''}`;
+        btn.textContent = i;
+        btn.onclick = ((pg) => () => { _paginaAtual = pg; _renderPagina(); })(i);
+        container.appendChild(btn);
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            const dots = document.createElement('span');
+            dots.textContent = '…';
+            dots.style.cssText = 'font-size:12px;color:var(--text-muted);padding:0 2px;';
+            container.appendChild(dots);
+        }
+        const btn = document.createElement('button');
+        btn.className = 'page-btn';
+        btn.textContent = totalPages;
+        btn.onclick = () => { _paginaAtual = totalPages; _renderPagina(); };
+        container.appendChild(btn);
+    }
+
+    // Botão próximo
+    const next = document.createElement('button');
+    next.className = 'page-btn';
+    next.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+    next.disabled  = _paginaAtual === totalPages;
+    next.onclick   = () => { _paginaAtual++; _renderPagina(); };
+    container.appendChild(next);
+}
+
+// ── Muda o número de itens por página ────────────────────
+function setPageSize(val) {
+    _itensPorPagina = parseInt(val);
+    _paginaAtual    = 1;
+    _renderPagina();
 }
 
 

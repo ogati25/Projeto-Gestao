@@ -702,9 +702,7 @@
                     <div class="config-nav-header">Categorias</div>
                     <ul class="config-nav-list" id="configNavList">
                         <li class="active"><a id="navAparencia"><i class="fa-solid fa-palette"></i> Aparência</a></li>
-                        <li><a id="navNotif"><i class="fa-solid fa-bell"></i> Notificações</a></li>
                         <li><a id="navSistema"><i class="fa-solid fa-sliders"></i> Sistema</a></li>
-                        <li><a id="navSeguranca"><i class="fa-solid fa-shield-halved"></i> Segurança</a></li>
                         <li><a id="navDados"><i class="fa-solid fa-database"></i> Dados</a></li>
                     </ul>
                 </div>
@@ -734,114 +732,6 @@
                                         <div class="theme-opt light-opt" id="themeOptLight" title="Claro">☀️</div>
                                         <div class="theme-opt dark-opt"  id="themeOptDark"  title="Escuro">🌙</div>
                                     </div>
-                                </div>
-                            </div>
-
-                            <!-- Idioma da interface -->
-                            <div class="config-row">
-                                <div class="cr-info">
-                                    <strong>Idioma</strong>
-                                    <span>Idioma da interface do sistema</span>
-                                </div>
-                                <div class="cr-control">
-                                    <select class="cr-select" id="cfgIdioma">
-                                        <option value="pt-br" selected>🇧🇷 Português (BR)</option>
-                                        <option value="en">🇺🇸 English</option>
-                                        <option value="es">🇪🇸 Español</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!-- Sidebar recolhida por padrão -->
-                            <div class="config-row">
-                                <div class="cr-info">
-                                    <strong>Sidebar recolhida por padrão</strong>
-                                    <span>Iniciar com o menu lateral fechado</span>
-                                </div>
-                                <div class="cr-control">
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" id="cfgSidebarClosed">
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <!-- Animações da interface -->
-                            <div class="config-row">
-                                <div class="cr-info">
-                                    <strong>Animações</strong>
-                                    <span>Exibir transições e animações na interface</span>
-                                </div>
-                                <div class="cr-control">
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" id="cfgAnimacoes" checked>
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <!-- NOTIFICAÇÕES -->
-                    <div class="config-section" id="sec-notif">
-                        <div class="cs-header">
-                            <div class="cs-header-icon orange"><i class="fa-solid fa-bell"></i></div>
-                            <div><h3>Notificações</h3><p>Controle os alertas do sistema</p></div>
-                        </div>
-                        <div class="cs-body">
-
-                            <div class="config-row">
-                                <div class="cr-info">
-                                    <strong>Alertas de estoque baixo</strong>
-                                    <span>Notificar quando itens atingirem quantidade mínima</span>
-                                </div>
-                                <div class="cr-control">
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" id="cfgAlertaEstoque" checked>
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="config-row">
-                                <div class="cr-info">
-                                    <strong>Novos pedidos</strong>
-                                    <span>Receber alertas sobre pedidos criados</span>
-                                </div>
-                                <div class="cr-control">
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" id="cfgAlertaPedidos" checked>
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="config-row">
-                                <div class="cr-info">
-                                    <strong>Notificações por e-mail</strong>
-                                    <span>Enviar resumo diário por e-mail</span>
-                                </div>
-                                <div class="cr-control">
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" id="cfgEmailNotif">
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="config-row">
-                                <div class="cr-info">
-                                    <strong>Frequência dos resumos</strong>
-                                    <span>Com que frequência receber o resumo por e-mail</span>
-                                </div>
-                                <div class="cr-control">
-                                    <select class="cr-select" id="cfgFreqEmail">
-                                        <option>Diário</option>
-                                        <option>Semanal</option>
-                                        <option>Quinzenal</option>
-                                        <option>Mensal</option>
-                                    </select>
                                 </div>
                             </div>
 
@@ -905,59 +795,6 @@
                                 </div>
                                 <div class="cr-control">
                                     <span class="status-tag tag-gray">v1.0.0</span>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <!-- SEGURANÇA -->
-                    <div class="config-section" id="sec-seguranca">
-                        <div class="cs-header">
-                            <div class="cs-header-icon green"><i class="fa-solid fa-shield-halved"></i></div>
-                            <div><h3>Segurança</h3><p>Controle de acesso e sessão</p></div>
-                        </div>
-                        <div class="cs-body">
-
-                            <div class="config-row">
-                                <div class="cr-info">
-                                    <strong>Tempo de sessão</strong>
-                                    <span>Deslogar automaticamente após inatividade</span>
-                                </div>
-                                <div class="cr-control">
-                                    <select class="cr-select" id="cfgSessao">
-                                        <option>30 minutos</option>
-                                        <option selected>1 hora</option>
-                                        <option>4 horas</option>
-                                        <option>8 horas</option>
-                                        <option>Nunca</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="config-row">
-                                <div class="cr-info">
-                                    <strong>Autenticação em dois fatores</strong>
-                                    <span>Aumenta a segurança da sua conta</span>
-                                </div>
-                                <div class="cr-control">
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" id="cfg2FA">
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="config-row">
-                                <div class="cr-info">
-                                    <strong>Log de acessos</strong>
-                                    <span>Registrar logins e ações do usuário</span>
-                                </div>
-                                <div class="cr-control">
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" id="cfgLog" checked>
-                                        <span class="toggle-slider"></span>
-                                    </label>
                                 </div>
                             </div>
 
@@ -1357,9 +1194,7 @@
         // ── NAVEGAÇÃO LATERAL ────────────────────────────────────────────────
         const navSections = [
             { navId: 'navAparencia', secId: 'sec-aparencia' },
-            { navId: 'navNotif',     secId: 'sec-notif'     },
             { navId: 'navSistema',   secId: 'sec-sistema'   },
-            { navId: 'navSeguranca', secId: 'sec-seguranca' },
             { navId: 'navDados',     secId: 'sec-dados'     },
         ];
 
@@ -1439,18 +1274,8 @@
          */
         function salvarConfiguracoes() {
             const cfg = {
-                idioma:        document.getElementById('cfgIdioma').value,
-                sidebarClosed: document.getElementById('cfgSidebarClosed').checked,
-                animacoes:     document.getElementById('cfgAnimacoes').checked,
-                alertaEstoque: document.getElementById('cfgAlertaEstoque').checked,
-                alertaPedidos: document.getElementById('cfgAlertaPedidos').checked,
-                emailNotif:    document.getElementById('cfgEmailNotif').checked,
-                freqEmail:     document.getElementById('cfgFreqEmail').value,
                 itensPagina:   document.getElementById('cfgItensPagina').value,
                 formatoData:   document.getElementById('cfgFormatoData').value,
-                sessao:        document.getElementById('cfgSessao').value,
-                fa2:           document.getElementById('cfg2FA').checked,
-                log:           document.getElementById('cfgLog').checked,
             };
             localStorage.setItem('tl_config', JSON.stringify(cfg));
 
@@ -1470,18 +1295,8 @@
          */
         function carregarConfiguracoes() {
             const cfg = JSON.parse(localStorage.getItem('tl_config') || '{}');
-            if (cfg.idioma)                      document.getElementById('cfgIdioma').value             = cfg.idioma;
-            if (cfg.sidebarClosed !== undefined)  document.getElementById('cfgSidebarClosed').checked   = cfg.sidebarClosed;
-            if (cfg.animacoes     !== undefined)  document.getElementById('cfgAnimacoes').checked        = cfg.animacoes;
-            if (cfg.alertaEstoque !== undefined)  document.getElementById('cfgAlertaEstoque').checked    = cfg.alertaEstoque;
-            if (cfg.alertaPedidos !== undefined)  document.getElementById('cfgAlertaPedidos').checked    = cfg.alertaPedidos;
-            if (cfg.emailNotif    !== undefined)  document.getElementById('cfgEmailNotif').checked       = cfg.emailNotif;
-            if (cfg.freqEmail)                    document.getElementById('cfgFreqEmail').value           = cfg.freqEmail;
             if (cfg.itensPagina)                  document.getElementById('cfgItensPagina').value         = cfg.itensPagina;
             if (cfg.formatoData)                  document.getElementById('cfgFormatoData').value         = cfg.formatoData;
-            if (cfg.sessao)                       document.getElementById('cfgSessao').value              = cfg.sessao;
-            if (cfg.fa2 !== undefined)            document.getElementById('cfg2FA').checked               = cfg.fa2;
-            if (cfg.log !== undefined)            document.getElementById('cfgLog').checked                = cfg.log;
         }
 
         /**

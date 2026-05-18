@@ -300,6 +300,43 @@
         }
         .btn-export:hover { background: var(--background-color); color: var(--text-primary); }
 
+        /* ---- Paginação ---- */
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .page-btn {
+            min-width: 30px;
+            height: 30px;
+            padding: 0 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--secondary-color);
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.15s;
+        }
+        .page-btn:hover:not(:disabled) { border-color: var(--quinary-color); color: var(--quinary-color); }
+        .page-btn.active { background: var(--quinary-color); color: #fff; border-color: var(--quinary-color); }
+        .page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .page-size-select {
+            padding: 4px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 12px;
+            background: var(--background-color);
+            color: var(--text-primary);
+            cursor: pointer;
+            outline: none;
+        }
+        .page-size-select:focus { border-color: var(--quinary-color); }
+
         /* ---- Modal de Exportação ---- */
         .modal-export {
             max-width: 400px;
@@ -1004,16 +1041,8 @@
 
         <div class="main">
 
-            <!-- Controls: view mode + export -->
-            <div class="inv-controls">
-                <div class="view-mode" id="viewMode">
-                    <button class="active" data-mode="gestao" onclick="setViewMode('gestao', this)">
-                        <i class="fa-solid fa-chart-line"></i> Gestão
-                    </button>
-                    <button data-mode="suporte" onclick="setViewMode('suporte', this)">
-                        <i class="fa-solid fa-screwdriver-wrench"></i> Suporte
-                    </button>
-                </div>
+            <!-- Controls: Novo Item -->
+            <div class="inv-controls" style="justify-content: flex-end;">
                 <button class="btn btn-primary" style="font-size:13px" onclick="openAddModal()">
                     <i class="fa-solid fa-plus"></i> Novo Item
                 </button>
@@ -1081,7 +1110,17 @@
             <!-- Table area -->
             <div class="inv-table-wrapper">
                 <div class="inv-table-header">
-                    <h3 id="tableTitle">Computadores</h3>
+                    <div style="display:flex; align-items:center; gap:14px;">
+                        <h3 id="tableTitle" style="font-size:17px;">Computadores</h3>
+                        <div class="view-mode" id="viewMode">
+                            <button class="active" data-mode="gestao" onclick="setViewMode('gestao', this)">
+                                <i class="fa-solid fa-chart-line"></i> Gestão
+                            </button>
+                            <button data-mode="suporte" onclick="setViewMode('suporte', this)">
+                                <i class="fa-solid fa-screwdriver-wrench"></i> Suporte
+                            </button>
+                        </div>
+                    </div>
                     <span class="table-info" id="tableInfo">Aguardando dados...</span>
                 </div>
 
@@ -1424,10 +1463,24 @@
                 </div><!-- /inv-table-scroll -->
 
                 <div class="inv-table-footer">
-                    <span id="footerInfo">0 registros</span>
-                    <button class="btn-export" id="btnExportar" onclick="openModal('modalExport')">
-                        <i class="fa-solid fa-file-export"></i> Exportar
-                    </button>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span id="footerInfo">0 registros</span>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <label style="font-size:12px; color:var(--text-muted);">Linhas:</label>
+                            <select class="page-size-select" id="pageSizeSelect" onchange="setPageSize(this.value)">
+                                <option value="10">10</option>
+                                <option value="25" selected>25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div class="pagination-controls" id="paginationControls"></div>
+                        <button class="btn-export" id="btnExportar" onclick="openModal('modalExport')">
+                            <i class="fa-solid fa-file-export"></i> Exportar
+                        </button>
+                    </div>
                 </div>
             </div><!-- /inv-table-wrapper -->
 
