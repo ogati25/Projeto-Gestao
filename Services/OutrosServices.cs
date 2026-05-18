@@ -29,7 +29,6 @@ public class MonitorService
     {
         var filtro = Builders<Projeto_Gestao.Models.Monitor>.Filter.Eq(m => m.Id, id);
         var update = Builders<Projeto_Gestao.Models.Monitor>.Update
-            .Set(m => m.Codigo,         monitor.Codigo)
             .Set(m => m.Usuario,        monitor.Usuario)
             .Set(m => m.Setor,          monitor.Setor)
             .Set(m => m.Status,         monitor.Status)
@@ -76,7 +75,6 @@ public class MouseService
     {
         var filtro = Builders<Mouse>.Filter.Eq(m => m.Id, id);
         var update = Builders<Mouse>.Update
-            .Set(m => m.Codigo,         mouse.Codigo)
             .Set(m => m.Usuario,        mouse.Usuario)
             .Set(m => m.Setor,          mouse.Setor)
             .Set(m => m.Status,         mouse.Status)
@@ -118,7 +116,6 @@ public class TecladoService
     {
         var filtro = Builders<Teclado>.Filter.Eq(t => t.Id, id);
         var update = Builders<Teclado>.Update
-            .Set(t => t.Codigo,         teclado.Codigo)
             .Set(t => t.Usuario,        teclado.Usuario)
             .Set(t => t.Setor,          teclado.Setor)
             .Set(t => t.Status,         teclado.Status)
@@ -162,7 +159,6 @@ public class FoneService
     {
         var filtro = Builders<Fone>.Filter.Eq(f => f.Id, id);
         var update = Builders<Fone>.Update
-            .Set(f => f.Codigo,         fone.Codigo)
             .Set(f => f.Usuario,        fone.Usuario)
             .Set(f => f.Setor,          fone.Setor)
             .Set(f => f.Status,         fone.Status)
@@ -205,7 +201,6 @@ public class RamalService
     {
         var filtro = Builders<Ramal>.Filter.Eq(r => r.Id, id);
         var update = Builders<Ramal>.Update
-            .Set(r => r.Codigo,         ramal.Codigo)
             .Set(r => r.Usuario,        ramal.Usuario)
             .Set(r => r.Setor,          ramal.Setor)
             .Set(r => r.Status,         ramal.Status)
@@ -252,7 +247,6 @@ public class ExtraService
     {
         var filtro = Builders<Extra>.Filter.Eq(e => e.Id, id);
         var update = Builders<Extra>.Update
-            .Set(e => e.Codigo,         extra.Codigo)
             .Set(e => e.Usuario,        extra.Usuario)
             .Set(e => e.Setor,          extra.Setor)
             .Set(e => e.Status,         extra.Status)

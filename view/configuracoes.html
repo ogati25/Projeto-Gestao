@@ -68,6 +68,8 @@
             border-radius: 12px;
             box-shadow: var(--card-shadow);
             overflow: hidden;
+            position: sticky;
+            top: 20px;
         }
         .config-nav-header {
             padding: 14px 16px;
@@ -614,6 +616,24 @@
             padding: 10px 14px; line-height: 1.6;
         }
         .import-hint strong { color: var(--text-primary); }
+
+        /* ---- Dark mode: modal exportar ---- */
+        body.dark .export-step-pill.active { background: var(--quinary-color); }
+        body.dark .export-step-pill.done   { color: var(--quinary-hover); }
+        body.dark .export-table-card:hover { border-color: var(--quinary-color); }
+        body.dark .export-table-card.selected {
+            border-color: var(--quinary-color);
+            background: rgba(29, 78, 216, 0.15);
+        }
+        body.dark .export-table-card input[type=checkbox] { accent-color: var(--quinary-color); }
+        body.dark .export-table-card.selected .export-table-card-icon { color: var(--quinary-hover); }
+        body.dark .export-select-all-row button { color: var(--quinary-hover); }
+        body.dark .export-field-chip:hover { border-color: var(--quinary-color); color: var(--text-primary); }
+        body.dark .export-field-chip.selected {
+            border-color: var(--quinary-color);
+            background: rgba(29, 78, 216, 0.15);
+            color: var(--quinary-hover);
+        }
     </style>
 </head>
 <body>
@@ -686,7 +706,6 @@
                         <li><a id="navSistema"><i class="fa-solid fa-sliders"></i> Sistema</a></li>
                         <li><a id="navSeguranca"><i class="fa-solid fa-shield-halved"></i> Segurança</a></li>
                         <li><a id="navDados"><i class="fa-solid fa-database"></i> Dados</a></li>
-                        <li><a id="navPerfil"><i class="fa-solid fa-user"></i> Meu Perfil</a></li>
                     </ul>
                 </div>
 
@@ -1336,13 +1355,65 @@
         document.getElementById('themeOptDark').addEventListener('click',  () => setTheme('dark'));
 
         // ── NAVEGAÇÃO LATERAL ────────────────────────────────────────────────
-        // Cada link da config-nav faz scroll suave até a seção correspondente.
-        document.getElementById('navAparencia').addEventListener('click', () => window.scrollTo(0, 0));
-        document.getElementById('navNotif').addEventListener('click',     () => document.getElementById('sec-notif').scrollIntoView({ behavior: 'smooth' }));
-        document.getElementById('navSistema').addEventListener('click',   () => document.getElementById('sec-sistema').scrollIntoView({ behavior: 'smooth' }));
-        document.getElementById('navSeguranca').addEventListener('click', () => document.getElementById('sec-seguranca').scrollIntoView({ behavior: 'smooth' }));
-        document.getElementById('navDados').addEventListener('click',     () => document.getElementById('sec-dados').scrollIntoView({ behavior: 'smooth' }));
-        document.getElementById('navPerfil').addEventListener('click',    () => { window.location.href = 'perfil.html'; });
+        const navSections = [
+            { navId: 'navAparencia', secId: 'sec-aparencia' },
+            { navId: 'navNotif',     secId: 'sec-notif'     },
+            { navId: 'navSistema',   secId: 'sec-sistema'   },
+            { navId: 'navSeguranca', secId: 'sec-seguranca' },
+            { navId: 'navDados',     secId: 'sec-dados'     },
+        ];
+
+        // O scroll acontece no .main, não no window
+        const scrollContainer = document.querySelector('.main');
+
+        let isScrollingFromClick = false;
+
+        function setActiveNav(navId) {
+            navSections.forEach(({ navId: id }) => {
+                const li = document.getElementById(id)?.closest('li');
+                if (li) li.classList.toggle('active', id === navId);
+            });
+        }
+
+        // Qual seção está mais próxima do topo do container (considerando 40% da altura)
+        function getActiveSection() {
+            const threshold = scrollContainer.scrollTop + scrollContainer.clientHeight * 0.4;
+            const nearBottom = scrollContainer.scrollTop + scrollContainer.clientHeight >= scrollContainer.scrollHeight - 10;
+
+            // Se chegou perto do fim, ativa sempre a última seção
+            if (nearBottom) return navSections[navSections.length - 1];
+
+            let best = navSections[0];
+            for (const s of navSections) {
+                const el = document.getElementById(s.secId);
+                if (!el) continue;
+                if (el.offsetTop <= threshold) best = s;
+            }
+            return best;
+        }
+
+        // Clique: scroll suave + bloqueia listener temporariamente
+        navSections.forEach(({ navId, secId }) => {
+            document.getElementById(navId)?.addEventListener('click', () => {
+                setActiveNav(navId);
+                isScrollingFromClick = true;
+                document.getElementById(secId)?.scrollIntoView({ behavior: 'smooth' });
+                clearTimeout(window._navClickTimer);
+                window._navClickTimer = setTimeout(() => { isScrollingFromClick = false; }, 800);
+            });
+        });
+
+        // Scroll: escuta no container .main
+        let rafPending = false;
+        scrollContainer.addEventListener('scroll', () => {
+            if (isScrollingFromClick) return;
+            if (rafPending) return;
+            rafPending = true;
+            requestAnimationFrame(() => {
+                rafPending = false;
+                setActiveNav(getActiveSection().navId);
+            });
+        }, { passive: true });
 
         // ── SAVE STRIP ───────────────────────────────────────────────────────
 

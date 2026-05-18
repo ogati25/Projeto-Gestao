@@ -321,9 +321,8 @@
                     </div>
                     <div>
                         <div class="profile-name" id="sidebarName">Carregando...</div>
-                        <div class="profile-role" id="sidebarRole">—</div>
                     </div>
-                    <span class="profile-badge"><i class="fa-solid fa-shield-halved"></i> <span id="sidebarNivel">Usuário</span></span>
+                    <span class="profile-badge"><i class="fa-solid fa-building"></i> <span id="sidebarNivel">—</span></span>
                     <hr class="profile-divider">
                     <div class="profile-stat-list">
                         <div class="profile-stat-item">
@@ -465,12 +464,11 @@
             const nomeCompleto = [u.nome, u.sobrenome].filter(Boolean).join(' ') || 'Usuário';
             document.getElementById('avatarBig').textContent   = nomeCompleto.charAt(0).toUpperCase();
             document.getElementById('sidebarName').textContent = nomeCompleto;
-            document.getElementById('sidebarRole').textContent = u.setor || '';
             document.getElementById('sidebarEmail').textContent = u.email || '—';
             document.getElementById('sidebarSetor').textContent = u.setor || '—';
             const criadoEm = u.criadoEm ? new Date(u.criadoEm).toLocaleDateString('pt-BR') : '—';
             document.getElementById('sidebarMembro').textContent = criadoEm;
-            document.getElementById('sidebarNivel').textContent  = u.nivel || 'Usuário';
+            document.getElementById('sidebarNivel').textContent  = u.setor || '—';
 
             // Avatar no header
             const av = document.querySelector('.user-avatar');

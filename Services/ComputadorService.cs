@@ -67,8 +67,10 @@ public class ComputadorService
 
     public async Task UpdateAsync(string id, Computador computador)
     {
+        var anterior = await GetByIdAsync(id);
         computador.MemoriaRAMTotal = computador.MemoriaRAM?.Sum(m => (int)m) ?? 0;
-        computador.Id = id;
+        computador.Id     = id;
+        computador.Codigo = anterior?.Codigo ?? computador.Codigo; // preserva o Codigo original
         await _computadores.ReplaceOneAsync(c => c.Id == id, computador);
     }
 

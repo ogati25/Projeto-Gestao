@@ -123,15 +123,37 @@ const Produtos = (() => {
             ],
         },
         {
-            id:         'periferico',
-            nome:       'Periférico',
-            descricao:  'Mouse, teclado e fone de ouvido',
-            icone:      'fa-keyboard',
+            id:         'mouse',
+            nome:       'Mouse',
+            descricao:  'Mouses corporativos e gamer',
+            icone:      'fa-computer-mouse',
             cor:        'violet',
             enums:      [
-                'TipoPeriferico',   // era enum TipoPeriferico (Gamer, Escritorio)
-                'Conectividade',    // era enum Conectividade (Bluetooth, Cabo, USB, TriMode)
-                'Switch',           // era enum Switch (Red, Blue, Brown...)
+                'TipoPeriferico',   // Gamer, Escritorio
+                'Conectividade',    // Bluetooth, Cabo, USB, TriMode
+            ],
+        },
+        {
+            id:         'teclado',
+            nome:       'Teclado',
+            descricao:  'Teclados mecânicos e de membrana',
+            icone:      'fa-keyboard',
+            cor:        'purple',
+            enums:      [
+                'TipoPeriferico',   // Gamer, Escritorio
+                'Conectividade',    // Bluetooth, Cabo, USB, TriMode
+                'Switch',           // Red, Blue, Brown...
+            ],
+        },
+        {
+            id:         'fone',
+            nome:       'Fone de Ouvido',
+            descricao:  'Headsets e fones corporativos',
+            icone:      'fa-headphones',
+            cor:        'pink',
+            enums:      [
+                'TipoPeriferico',   // Gamer, Escritorio
+                'Conectividade',    // Bluetooth, Cabo, USB, TriMode
             ],
         },
         {

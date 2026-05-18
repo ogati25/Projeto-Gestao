@@ -18,8 +18,32 @@ public class CelularService
         _chipService = chipService;
     }
 
-    public async Task<List<Celular>> GetAllAsync() =>
-        await _celulares.Find(_ => true).ToListAsync();
+    public async Task<List<Celular>> GetAllAsync()
+    {
+        var celulares = await _celulares.Find(_ => true).ToListAsync();
+        // Sincroniza ChipIds de cada celular com base nos chips que apontam para ele
+        // Garante consistência mesmo para dados criados antes do fix de vinculação bidirecional
+        var todosChips = await _chipService.GetAllAsync();
+        foreach (var cel in celulares)
+        {
+            var chipsDoCelular = todosChips
+                .Where(c => c.CelularId == cel.Id && !string.IsNullOrEmpty(c.Id))
+                .Select(c => c.Id!)
+                .Distinct()
+                .ToList();
+
+            // Se o ChipIds do celular está desatualizado, corrige no banco silenciosamente
+            var faltando = chipsDoCelular.Except(cel.ChipIds).ToList();
+            var sobrando = cel.ChipIds.Except(chipsDoCelular).ToList();
+            if (faltando.Any() || sobrando.Any())
+            {
+                var upd = Builders<Celular>.Update.Set(c => c.ChipIds, chipsDoCelular);
+                await _celulares.UpdateOneAsync(c => c.Id == cel.Id, upd);
+                cel.ChipIds = chipsDoCelular;
+            }
+        }
+        return celulares;
+    }
 
     public async Task<Celular?> GetByIdAsync(string id) =>
         await _celulares.Find(c => c.Id == id).FirstOrDefaultAsync();
@@ -38,7 +62,7 @@ public class CelularService
 
         var filtro = Builders<Celular>.Filter.Eq(c => c.Id, id);
         var update = Builders<Celular>.Update
-            .Set(c => c.Codigo,         celular.Codigo)
+            .Set(c => c.Codigo,         anterior?.Codigo ?? celular.Codigo)  // preserva o Codigo original
             .Set(c => c.Usuario,        celular.Usuario)
             .Set(c => c.Setor,          celular.Setor)
             .Set(c => c.Status,         celular.Status)

@@ -230,12 +230,12 @@
             overflow-x: auto;
             overflow-y: auto;
             flex: 1;
-            max-height: calc(100vh - 380px);
+            max-height: calc(100vh - 280px);
         }
         .inv-table-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
-        .inv-table-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
-        .inv-table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        .inv-table-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .inv-table-scroll::-webkit-scrollbar-track { background: var(--background-color); }
+        .inv-table-scroll::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+        .inv-table-scroll::-webkit-scrollbar-thumb:hover { background: var(--tertiary-color); }
 
         /* Tables hidden by default */
         .inv-table { display: none; width: 100%; border-collapse: collapse; font-size: 13px; min-width: 600px; }
@@ -256,7 +256,7 @@
         }
         .inv-table tbody tr { border-bottom: 1px solid var(--border-color); }
         .inv-table tbody tr:last-child { border-bottom: none; }
-        .inv-table tbody tr:hover { background: #f8fafc; }
+        .inv-table tbody tr:hover { background: var(--background-color); }
         .inv-table tbody td {
             padding: 9px 14px;
             color: var(--text-primary);
@@ -280,7 +280,7 @@
             justify-content: space-between;
             padding: 10px 16px;
             border-top: 1px solid var(--border-color);
-            background: #fafbfc;
+            background: var(--secondary-color);
             flex-shrink: 0;
         }
         .inv-table-footer span { font-size: 12px; color: var(--text-muted); }
@@ -403,7 +403,7 @@
         }
         .modal-overlay.open { display: flex; }
         .modal {
-            background: #fff;
+            background: var(--secondary-color);
             border-radius: 14px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.2);
             width: 100%;
@@ -501,7 +501,7 @@
         .form-group textarea:focus {
             border-color: var(--info-color);
             box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
-            background: #fff;
+            background: var(--secondary-color);
         }
         .form-group textarea { resize: vertical; min-height: 70px; }
         .form-group input[type="checkbox"] {
@@ -864,6 +864,69 @@
             justify-content: flex-end;
             flex-shrink: 0;
         }
+
+        body.dark .btn-action.edit:hover         { background: #1e3a5f; }
+        body.dark .btn-action.toggle-active:hover { background: #451a03; }
+        body.dark .btn-action.toggle-active.is-inactive:hover { background: #052e16; }
+        body.dark .btn-action.info               { color: #e6edf3; }
+        body.dark .btn-action.info:hover         { background: #1e3a5f; }
+        /* ---- Logout ---- */
+        .btn-logout {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px;
+            background: rgba(239,68,68,0.12);
+            color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            text-decoration: none;
+        }
+        .btn-logout:hover { background: rgba(239,68,68,0.22); color: #fca5a5; }
+        /* ---- Dark mode: modais ---- */
+        body.dark .detail-field-value.accent { color: var(--quinary-hover); }
+        body.dark .modal-detail-icon { background: var(--quinary-color); }
+        body.dark .modal-detail-close:hover { background: #450a0a; border-color: #7f1d1d; color: #fca5a5; }
+
+        body.dark .modal {
+            background: #161b22;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+        }
+        body.dark .modal-close:hover { background: #450a0a; color: #fca5a5; }
+        body.dark .form-group input:focus,
+        body.dark .form-group select:focus,
+        body.dark .form-group textarea:focus { background: #0d1117; }
+        body.dark .modal-error {
+            background: #450a0a;
+            border-color: #7f1d1d;
+            color: #fca5a5;
+        }
+        body.dark .modal-error .error-detail {
+            background: #7f1d1d;
+            color: #fecaca;
+        }
+        body.dark .confirm-icon { background: #451a03; }
+        body.dark .confirm-icon.danger { background: #450a0a; }
+        /* ---- Dark mode overrides ---- */
+        body.dark .btn-clear-filters {
+            border-color: #7f1d1d;
+            color: #fca5a5;
+        }
+        body.dark .btn-clear-filters:hover {
+            background: #450a0a;
+            color: #fca5a5;
+        }
+        body.dark .btn-add-filter {
+            background: #1d4ed8;
+        }
+        body.dark .btn-add-filter:hover {
+            background: #1e40af;
+        }
+
     </style>
 </head>
 <body>
@@ -915,7 +978,12 @@
             </li>
         </ul>
 
-        <div class="sidebar-footer">NovaTech Solutions v1.0</div>
+        <div class="sidebar-footer">
+            <span>v1.0</span>
+            <a href="login.html" class="btn-logout" id="btnLogout">
+                <i class="fa-solid fa-right-from-bracket"></i> Sair
+            </a>
+        </div>
     </div>
 
     <!-- ==================== MAIN ==================== -->
@@ -1926,11 +1994,17 @@
 
                 // Cria um chip para cada filtro ativo
                 activeFilters.forEach((f, i) => {
+                    // Suporta tanto { displays, values } (backend) quanto { displayValue, value } (legado)
+                    const displayText = Array.isArray(f.displays) && f.displays.length
+                        ? f.displays.join(', ')
+                        : (Array.isArray(f.values) && f.values.length
+                            ? f.values.join(', ')
+                            : (f.displayValue || f.value || ''));
                     const chip = document.createElement('div');
                     chip.className = 'filter-chip';
                     chip.innerHTML = `
                         <span class="chip-label">${f.label}:</span>
-                        <span>${f.displayValue || f.value}</span>
+                        <span>${displayText}</span>
                         <button class="chip-remove" onclick="removeFilter(${i})" title="Remover filtro">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
