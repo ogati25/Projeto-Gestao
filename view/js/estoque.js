@@ -2280,7 +2280,6 @@ function aplicarFiltrosNaTabela() {
 
     if (dados.length === 0) {
         tbody.innerHTML = `<tr class="empty-row"><td colspan="20">Nenhum registro encontrado para os filtros aplicados.</td></tr>`;
-        document.getElementById('tableInfo').textContent  = '0 registros';
         document.getElementById('footerInfo').textContent = '0 registros';
         return;
     }
@@ -2311,7 +2310,6 @@ function _renderPagina() {
     const info = total === 0
         ? '0 registros'
         : `${inicio + 1}–${fim} de ${total} registro(s)`;
-    document.getElementById('tableInfo').textContent  = info;
     document.getElementById('footerInfo').textContent = `${total} registro(s)`;
 
     _renderPaginationControls(total);
@@ -2486,7 +2484,6 @@ async function carregarTabela(categoria, modo) {
 
         if (!dados || dados.length === 0) {
             tbody.innerHTML = `<tr class="empty-row"><td colspan="20">Nenhum registro encontrado.</td></tr>`;
-            document.getElementById('tableInfo').textContent  = '0 registros';
             document.getElementById('footerInfo').textContent = '0 registros';
             return;
         }
