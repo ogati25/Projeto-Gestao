@@ -16,7 +16,6 @@ public class CelularesController : ControllerBase
     public async Task<IActionResult> GetAll() =>
         Ok(await _service.GetAllAsync());
 
-    // retorna o celular com chips e contas whatsapp resolvidos
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(string id)
     {
@@ -27,8 +26,15 @@ public class CelularesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(Celular celular)
     {
-        await _service.CreateAsync(celular);
-        return CreatedAtAction(nameof(GetById), new { id = celular.Id }, celular);
+        try
+        {
+            await _service.CreateAsync(celular);
+            return CreatedAtAction(nameof(GetById), new { id = celular.Id }, celular);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
     }
 
     [HttpPut("{id}")]
@@ -36,8 +42,15 @@ public class CelularesController : ControllerBase
     {
         var existente = await _service.GetByIdAsync(id);
         if (existente is null) return NotFound();
-        await _service.UpdateAsync(id, celular);
-        return NoContent();
+        try
+        {
+            await _service.UpdateAsync(id, celular);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
     }
 
     [HttpDelete("{id}")]
