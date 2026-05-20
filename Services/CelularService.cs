@@ -26,8 +26,12 @@ public class CelularService
         var todosChips = await _chipService.GetAllAsync();
         foreach (var cel in celulares)
         {
+            // Chips que apontam para este celular, excluindo os que são apenas contas WhatsApp
+            // (o vínculo de WhatsApp não deve preencher o slot físico de chip do celular)
             var chipsDoCelular = todosChips
-                .Where(c => c.CelularId == cel.Id && !string.IsNullOrEmpty(c.Id))
+                .Where(c => c.CelularId == cel.Id
+                         && !string.IsNullOrEmpty(c.Id)
+                         && !cel.ContasWhatsapp.Contains(c.Id!))
                 .Select(c => c.Id!)
                 .Distinct()
                 .ToList();
@@ -58,7 +62,8 @@ public class CelularService
     {
         // Descobre quais chips estavam vinculados antes para desvincular os removidos
         var anterior = await GetByIdAsync(id);
-        var antigos  = (anterior?.ChipIds ?? new()).Union(anterior?.ContasWhatsapp ?? new()).ToList();
+        var antigosChipIds   = anterior?.ChipIds        ?? new List<string>();
+        var antigosWhatsapp  = anterior?.ContasWhatsapp ?? new List<string>();
 
         var filtro = Builders<Celular>.Filter.Eq(c => c.Id, id);
         var update = Builders<Celular>.Update
@@ -78,7 +83,7 @@ public class CelularService
             .Set(c => c.ContasWhatsapp, celular.ContasWhatsapp);
         await _celulares.UpdateOneAsync(filtro, update);
 
-        await VincularChipsAsync(id, celular.ChipIds, celular.ContasWhatsapp, antigos);
+        await VincularChipsAsync(id, celular.ChipIds, celular.ContasWhatsapp, antigosChipIds, antigosWhatsapp);
     }
 
     public async Task DeleteAsync(string id)
@@ -98,19 +103,23 @@ public class CelularService
         string celularId,
         List<string> chipIds,
         List<string> contasWhatsapp,
-        List<string>? antigos = null)
+        List<string>? antigosChipIds = null,
+        List<string>? antigosWhatsapp = null)
     {
-        var novos = chipIds.Union(contasWhatsapp).Where(id => !string.IsNullOrEmpty(id)).Distinct().ToList();
+        // Chips físicos (slot) e contas WhatsApp são tratados separadamente:
+        // - chipIds: chip inserido fisicamente → recebe CelularId
+        // - contasWhatsapp: apenas referência de conta → NÃO altera CelularId do chip
+        var novosChipsFisicos = chipIds.Where(id => !string.IsNullOrEmpty(id)).Distinct().ToList();
 
-        // Desvincular chips que saíram
-        if (antigos != null)
+        // Desvincular chips físicos que saíram
+        if (antigosChipIds != null)
         {
-            var removidos = antigos.Except(novos).ToList();
+            var removidos = antigosChipIds.Except(novosChipsFisicos).ToList();
             await DesvincularChipsAsync(removidos);
         }
 
-        // Vincular chips novos/mantidos
-        foreach (var chipId in novos)
+        // Vincular apenas chips físicos → atualiza CelularId no chip
+        foreach (var chipId in novosChipsFisicos)
             await _chipService.PatchCelularIdAsync(chipId, celularId);
     }
 
