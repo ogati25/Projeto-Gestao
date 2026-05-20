@@ -270,45 +270,40 @@
 
         <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" placeholder="Buscar...">
+            <input type="text" id="sidebarSearch" placeholder="Buscar..." autocomplete="off">
             <i class="fa-solid fa-xmark clear-btn"></i>
         </div>
 
         <ul class="menu">
             <li>
-                <a href="dashboard.html">
+                <a data-tooltip="Dashboard" href="dashboard.html">
                     <i class="material-icons" style="font-size:18px">dashboard</i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li>
-                <a href="estoque.html">
+                <a data-tooltip="Inventário" href="estoque.html">
                     <i class="fa-solid fa-box-archive"></i><span>Inventário</span>
                 </a>
             </li>
             <li>
-                <a href="produtos.html">
+                <a data-tooltip="Produtos" href="produtos.html">
                     <i class="fa-solid fa-tag"></i><span>Produtos</span>
                 </a>
             </li>
             <li>
-                <a href="relatorios.html">
+                <a data-tooltip="Relatórios" href="relatorios.html">
                     <i class="fa-solid fa-file-lines"></i><span>Relatórios</span>
                 </a>
             </li>
             <li>
-                <a href="configuracoes.html">
+                <a data-tooltip="Configurações" href="configuracoes.html">
                     <i class="fa-solid fa-gear"></i><span>Configurações</span>
                 </a>
             </li>
         </ul>
 
-        <div class="sidebar-footer">
-            <span>v1.0</span>
-            <a href="login.html" class="btn-logout">
-                <i class="fa-solid fa-right-from-bracket"></i> Sair
-            </a>
-        </div>
+        
     </div>
 
     <!-- ==================== MAIN ==================== -->
@@ -324,7 +319,19 @@
                     <button class="btn-config" onclick="window.location.href='configuracoes.html'" title="Configurações">
                         <i class="fa-solid fa-gear"></i>
                     </button>
-                    <div class="user-avatar" id="userAvatar" title="Perfil" onclick="window.location.href='perfil.html'" style="cursor:pointer">U</div>
+                    <div class="profile-wrap" id="profileWrap">
+                        <div class="user-avatar" id="userAvatar" onclick="toggleProfileDropdown()" style="width:34px;height:34px;background:var(--quinary-color);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0;">U</div>
+                        <div class="profile-dropdown" id="profileDropdown">
+                            <div class="profile-dropdown-header">
+                                <div class="pd-name" id="pdName">Usuário</div>
+                                <div class="pd-role">Administrador</div>
+                            </div>
+                            <div class="profile-dropdown-body">
+                                <a class="pd-btn" href="perfil.html"><i class="fa-solid fa-user"></i> Meu Perfil</a>
+                                <a class="pd-btn danger" href="login.html"><i class="fa-solid fa-right-from-bracket"></i> Encerrar Sessão</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
@@ -509,7 +516,6 @@
             // Avatar do usuário
             try {
                 const u = JSON.parse(localStorage.getItem('tl_user') || '{}');
-                if (u.nome) document.getElementById('userAvatar').textContent = u.nome.charAt(0).toUpperCase();
             } catch(_) {}
         })();
 
@@ -717,6 +723,27 @@
 
         // ========== INIT ==========
         atualizarCabecalho();
-    </script>
+    
+        // ── Dropdown de Perfil ───────────────────────────────
+        function toggleProfileDropdown() {
+            document.getElementById('profileDropdown').classList.toggle('open');
+        }
+        document.addEventListener('click', function(e) {
+            var wrap = document.getElementById('profileWrap');
+            var dd   = document.getElementById('profileDropdown');
+            if (dd && dd.classList.contains('open') && wrap && !wrap.contains(e.target)) {
+                dd.classList.remove('open');
+            }
+        });
+        try {
+            var u = JSON.parse(localStorage.getItem('tl_user') || '{}');
+            if (u.nome) {
+                var av = document.getElementById('userAvatar');
+                if (av) av.textContent = u.nome.charAt(0).toUpperCase();
+                var pn = document.getElementById('pdName');
+                if (pn) pn.textContent = u.nome;
+            }
+        } catch(e) {}
+</script>
 </body>
 </html>

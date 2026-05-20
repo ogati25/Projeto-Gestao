@@ -162,6 +162,67 @@
         }
         .btn-clear-filters:hover { background: #fee2e2; }
 
+        /* ---- Barra de controles superior ---- */
+        .top-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .top-controls-left  { display: flex; align-items: center; gap: 10px; }
+        .top-controls-right { display: flex; align-items: center; gap: 10px; }
+
+        /* ---- Botão filtro + dropdown ---- */
+        .filter-dropdown-wrap { position: relative; }
+        .btn-filter {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--secondary-color);
+            color: var(--text-primary);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .btn-filter:hover,
+        .btn-filter.has-filters { border-color: var(--quinary-color); color: var(--quinary-color); }
+        .btn-filter.has-filters { background: color-mix(in srgb, var(--quinary-color) 10%, transparent); }
+        .filter-badge {
+            background: var(--quinary-color);
+            color: #fff;
+            border-radius: 50%;
+            width: 16px; height: 16px;
+            font-size: 10px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 700;
+        }
+        .filter-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            z-index: 200;
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px 16px;
+            min-width: 440px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.13);
+            display: none;
+        }
+        .filter-dropdown.open { display: flex; flex-direction: column; gap: 10px; }
+        /* Dentro do dropdown, filter-bar fica sem borda/bg próprios */
+        .filter-dropdown .filter-bar {
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+        }
+
         /* ---- Nav bar ---- */
         .nav-scroll {
             overflow-x: auto;
@@ -982,45 +1043,40 @@
 
         <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" placeholder="Buscar...">
+            <input type="text" id="sidebarSearch" placeholder="Buscar..." autocomplete="off">
             <i class="fa-solid fa-xmark clear-btn"></i>
         </div>
 
         <ul class="menu">
             <li>
-                <a href="dashboard.html">
+                <a data-tooltip="Dashboard" href="dashboard.html">
                     <i class="material-icons" style="font-size:18px">dashboard</i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li>
-                <a href="estoque.html">
+                <a data-tooltip="Inventário" href="estoque.html">
                     <i class="fa-solid fa-box-archive"></i><span>Inventário</span>
                 </a>
             </li>
             <li>
-                <a href="produtos.html">
+                <a data-tooltip="Produtos" href="produtos.html">
                     <i class="fa-solid fa-tag"></i><span>Produtos</span>
                 </a>
             </li>
             <li>
-                <a href="relatorios.html">
+                <a data-tooltip="Relatórios" href="relatorios.html">
                     <i class="fa-solid fa-file-lines"></i><span>Relatórios</span>
                 </a>
             </li>
             <li>
-                <a href="configuracoes.html">
+                <a data-tooltip="Configurações" href="configuracoes.html">
                     <i class="fa-solid fa-gear"></i><span>Configurações</span>
                 </a>
             </li>
         </ul>
 
-        <div class="sidebar-footer">
-            <span>v1.0</span>
-            <a href="login.html" class="btn-logout" id="btnLogout">
-                <i class="fa-solid fa-right-from-bracket"></i> Sair
-            </a>
-        </div>
+        
     </div>
 
     <!-- ==================== MAIN ==================== -->
@@ -1035,7 +1091,19 @@
                 <button class="btn-config" onclick="window.location.href='configuracoes.html'" title="Configurações">
                     <i class="fa-solid fa-gear"></i>
                 </button>
-                <div class="user-avatar" id="userAvatar" title="Meu Perfil" onclick="window.location.href='perfil.html'" style="width:34px;height:34px;background:var(--quinary-color);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0;">U</div>
+                <div class="profile-wrap" id="profileWrap">
+                    <div class="user-avatar" id="userAvatar" onclick="toggleProfileDropdown()" style="width:34px;height:34px;background:var(--quinary-color);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0;">U</div>
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <div class="profile-dropdown-header">
+                            <div class="pd-name" id="pdName">Usuário</div>
+                            <div class="pd-role">Administrador</div>
+                        </div>
+                        <div class="profile-dropdown-body">
+                            <a class="pd-btn" href="perfil.html"><i class="fa-solid fa-user"></i> Meu Perfil</a>
+                            <a class="pd-btn danger" href="login.html"><i class="fa-solid fa-right-from-bracket"></i> Encerrar Sessão</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -1043,28 +1111,52 @@
 
 
 
-            <!-- Filter Bar -->
-            <div class="filter-bar">
-                <div class="filter-bar-header">
-                    <span><i class="fa-solid fa-filter"></i> Filtros ativos</span>
-                    <button class="btn-clear-filters" onclick="clearAllFilters()" style="display:none" id="clearAllBtn">
-                        <i class="fa-solid fa-trash"></i> Limpar todos
-                    </button>
-                </div>
+            <!-- Top controls: view-mode + filtro dropdown + novo item -->
+            <div class="top-controls">
+                <div class="top-controls-left">
+                    <!-- Gestão / Suporte -->
+                    <div class="view-mode" id="viewMode">
+                        <button class="active" data-mode="gestao" onclick="setViewMode('gestao', this)">
+                            <i class="fa-solid fa-chart-line"></i> Gestão
+                        </button>
+                        <button data-mode="suporte" onclick="setViewMode('suporte', this)">
+                            <i class="fa-solid fa-screwdriver-wrench"></i> Suporte
+                        </button>
+                    </div>
 
-                <!-- Active filter chips -->
-                <div class="filter-chips" id="filterChips">
-                    <span class="filter-empty" id="filterEmpty">Nenhum filtro aplicado. Adicione um filtro abaixo.</span>
+                    <!-- Botão Filtros com dropdown -->
+                    <div class="filter-dropdown-wrap" id="filterDropdownWrap">
+                        <button class="btn-filter" id="btnFiltro" onclick="toggleFilterDropdown()">
+                            <i class="fa-solid fa-filter"></i> Filtros
+                            <span class="filter-badge" id="filterBadge" style="display:none">0</span>
+                        </button>
+                        <div class="filter-dropdown" id="filterDropdown">
+                            <div class="filter-bar">
+                                <div class="filter-bar-header">
+                                    <span><i class="fa-solid fa-filter"></i> Filtros ativos</span>
+                                    <button class="btn-clear-filters" onclick="clearAllFilters()" style="display:none" id="clearAllBtn">
+                                        <i class="fa-solid fa-trash"></i> Limpar todos
+                                    </button>
+                                </div>
+                                <div class="filter-chips" id="filterChips">
+                                    <span class="filter-empty" id="filterEmpty">Nenhum filtro aplicado. Adicione um filtro abaixo.</span>
+                                </div>
+                                <div class="filter-add-row">
+                                    <select class="filter-select" id="filterProp" onchange="updateFilterValueOptions()">
+                                        <option value="">— Escolha a propriedade —</option>
+                                    </select>
+                                    <div id="filterValueArea" style="display:inline-flex;align-items:center;"></div>
+                                    <button class="btn-add-filter" onclick="addFilter()">
+                                        <i class="fa-solid fa-plus"></i> Adicionar Filtro
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
-                <!-- Add filter row -->
-                <div class="filter-add-row">
-                    <select class="filter-select" id="filterProp" onchange="updateFilterValueOptions()">
-                        <option value="">— Escolha a propriedade —</option>
-                    </select>
-                    <div id="filterValueArea" style="display:inline-flex;align-items:center;"></div>
-                    <button class="btn-add-filter" onclick="addFilter()">
-                        <i class="fa-solid fa-plus"></i> Adicionar Filtro
+                <div class="top-controls-right">
+                    <button class="btn btn-primary" style="font-size:13px" onclick="openAddModal()">
+                        <i class="fa-solid fa-plus"></i> Novo Item
                     </button>
                 </div>
             </div>
@@ -1104,22 +1196,7 @@
 
             <!-- Table area -->
             <div class="inv-table-wrapper">
-                <div class="inv-table-header">
-                    <div style="display:flex; align-items:center; gap:14px;">
-                        <h3 id="tableTitle" style="font-size:17px;">Computadores</h3>
-                        <div class="view-mode" id="viewMode">
-                            <button class="active" data-mode="gestao" onclick="setViewMode('gestao', this)">
-                                <i class="fa-solid fa-chart-line"></i> Gestão
-                            </button>
-                            <button data-mode="suporte" onclick="setViewMode('suporte', this)">
-                                <i class="fa-solid fa-screwdriver-wrench"></i> Suporte
-                            </button>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" style="font-size:13px" onclick="openAddModal()">
-                        <i class="fa-solid fa-plus"></i> Novo Item
-                    </button>
-                </div>
+
 
                 <div class="inv-table-scroll" id="tableScrollArea">
 
@@ -2037,10 +2114,20 @@
                 // Estado vazio: mostra placeholder e esconde botão "Limpar tudo"
                 container.querySelector('.filter-empty').style.display = '';
                 clearBtn.style.display = 'none';
+                // Badge
+                const badge = document.getElementById('filterBadge');
+                const btnF  = document.getElementById('btnFiltro');
+                if (badge) { badge.style.display = 'none'; }
+                if (btnF)  { btnF.classList.remove('has-filters'); }
             } else {
                 // Esconde placeholder e mostra botão "Limpar tudo"
                 container.querySelector('.filter-empty').style.display = 'none';
                 clearBtn.style.display = '';
+                // Badge
+                const badge = document.getElementById('filterBadge');
+                const btnF  = document.getElementById('btnFiltro');
+                if (badge) { badge.textContent = activeFilters.length; badge.style.display = 'inline-flex'; }
+                if (btnF)  { btnF.classList.add('has-filters'); }
 
                 // Cria um chip para cada filtro ativo
                 activeFilters.forEach((f, i) => {
@@ -2142,7 +2229,6 @@
 
             // Atualiza o título da seção
             const catName = (typeof categoryNames !== 'undefined' && categoryNames[category]) || category;
-            document.getElementById('tableTitle').textContent = catName;
 
             // Pede ao backend para atualizar o select de propriedades de filtro
             if (typeof buildFilterPropSelect === 'function') buildFilterPropSelect();
@@ -2193,7 +2279,6 @@
             // Avatar do usuário
             try {
                 const u = JSON.parse(localStorage.getItem('tl_user') || '{}');
-                if (u.nome) document.getElementById('userAvatar').textContent = u.nome.charAt(0).toUpperCase();
             } catch(_) {}
         })();
 
@@ -2202,8 +2287,32 @@
         //  SIDEBAR — ABRIR / FECHAR
         // ============================================================
 
+        // ── Dropdown de Filtros ─────────────────────────────────
+        function toggleFilterDropdown() {
+            const dd = document.getElementById('filterDropdown');
+            if (dd) dd.classList.toggle('open');
+        }
+        // Fechar dropdown ao clicar fora
+        document.addEventListener('click', e => {
+            const wrap = document.getElementById('filterDropdownWrap');
+            const dd   = document.getElementById('filterDropdown');
+            if (dd && dd.classList.contains('open') && wrap && !wrap.contains(e.target)) {
+                dd.classList.remove('open');
+            }
+        });
+
         document.getElementById('toggleSidebar').addEventListener('click', () => {
             document.getElementById('sidebar').classList.toggle('closed');
+        });
+
+        // Clicar na lupa quando sidebar fechada: abre e foca busca
+        document.querySelector('.search-box')?.addEventListener('click', () => {
+            const sidebar = document.getElementById('sidebar');
+            const input   = document.getElementById('sidebarSearch');
+            if (sidebar.classList.contains('closed')) {
+                sidebar.classList.remove('closed');
+                setTimeout(() => input?.focus(), 310);
+            }
         });
 
 
@@ -2224,9 +2333,34 @@
         //  CAMPO DE BUSCA — BOTÃO LIMPAR
         // ============================================================
 
-        document.querySelector('.clear-btn')?.addEventListener('click', () => {
-            document.querySelector('.search-box input').value = '';
-        });
+        // ── Busca no menu lateral ──────────────────────────────
+        (function () {
+            const input   = document.getElementById('sidebarSearch');
+            const clearBtn = document.querySelector('.clear-btn');
+            const menuItems = document.querySelectorAll('.menu li');
+
+            function filterMenu(q) {
+                const term = q.trim().toLowerCase();
+                menuItems.forEach(li => {
+                    const text = li.textContent.trim().toLowerCase();
+                    li.style.display = (!term || text.includes(term)) ? '' : 'none';
+                });
+                clearBtn.style.opacity = term ? '1' : '0.4';
+                clearBtn.style.pointerEvents = term ? 'auto' : 'none';
+            }
+
+            input?.addEventListener('input', e => filterMenu(e.target.value));
+
+            clearBtn?.addEventListener('click', () => {
+                input.value = '';
+                filterMenu('');
+                input.focus();
+            });
+
+            // Estado inicial do botão X
+            clearBtn.style.opacity = '0.4';
+            clearBtn.style.pointerEvents = 'none';
+        })();
 
 
         // ============================================================
@@ -2805,5 +2939,27 @@
         }
     </script>
     <script src="js/estoque.js"></script>
+    <script>
+        // ── Dropdown de Perfil ───────────────────────────────
+        function toggleProfileDropdown() {
+            document.getElementById('profileDropdown').classList.toggle('open');
+        }
+        document.addEventListener('click', function(e) {
+            var wrap = document.getElementById('profileWrap');
+            var dd   = document.getElementById('profileDropdown');
+            if (dd && dd.classList.contains('open') && wrap && !wrap.contains(e.target)) {
+                dd.classList.remove('open');
+            }
+        });
+        try {
+            var u = JSON.parse(localStorage.getItem('tl_user') || '{}');
+            if (u.nome) {
+                var av = document.getElementById('userAvatar');
+                if (av) av.textContent = u.nome.charAt(0).toUpperCase();
+                var pn = document.getElementById('pdName');
+                if (pn) pn.textContent = u.nome;
+            }
+        } catch(e) {}
+    </script>
 </body>
 </html>

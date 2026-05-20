@@ -170,7 +170,8 @@
         body.dark .toast { background:#22272e; border:1px solid #30363d; }
         body.dark .no-enums-state .hint { background:#1c2128; border-color:#30363d; }
         body.dark .no-enums-icon { background:#1c2128; border-color:#30363d; }
-    </style>
+    
+        </style>
 </head>
 <body>
 
@@ -186,22 +187,17 @@
         </div>
         <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" placeholder="Buscar...">
+            <input type="text" id="sidebarSearch" placeholder="Buscar..." autocomplete="off">
             <i class="fa-solid fa-xmark clear-btn"></i>
         </div>
         <ul class="menu">
-            <li><a href="dashboard.html"><i class="material-icons" style="font-size:18px">dashboard</i><span>Dashboard</span></a></li>
-            <li><a href="estoque.html"><i class="fa-solid fa-box-archive"></i><span>Inventário</span></a></li>
-            <li><a href="produtos.html"><i class="fa-solid fa-tag"></i><span>Produtos</span></a></li>
-            <li><a href="relatorios.html"><i class="fa-solid fa-file-lines"></i><span>Relatórios</span></a></li>
-            <li><a href="configuracoes.html"><i class="fa-solid fa-gear"></i><span>Configurações</span></a></li>
+            <li><a data-tooltip="Dashboard" href="dashboard.html"><i class="material-icons" style="font-size:18px">dashboard</i><span>Dashboard</span></a></li>
+            <li><a data-tooltip="Inventário" href="estoque.html"><i class="fa-solid fa-box-archive"></i><span>Inventário</span></a></li>
+            <li><a data-tooltip="Produtos" href="produtos.html"><i class="fa-solid fa-tag"></i><span>Produtos</span></a></li>
+            <li><a data-tooltip="Relatórios" href="relatorios.html"><i class="fa-solid fa-file-lines"></i><span>Relatórios</span></a></li>
+            <li><a data-tooltip="Configurações" href="configuracoes.html"><i class="fa-solid fa-gear"></i><span>Configurações</span></a></li>
         </ul>
-        <div class="sidebar-footer">
-            <span>v1.0</span>
-            <a href="login.html" class="btn-logout">
-                <i class="fa-solid fa-right-from-bracket"></i> Sair
-            </a>
-        </div>
+        
     </div>
 
     <!-- MAIN -->
@@ -220,7 +216,19 @@
                     <button class="btn-config" onclick="window.location.href='configuracoes.html'">
                         <i class="fa-solid fa-gear"></i>
                     </button>
-                    <div class="user-avatar" title="Meu Perfil" onclick="window.location.href='perfil.html'" id="userAvatar">U</div>
+                    <div class="profile-wrap" id="profileWrap">
+                <div class="user-avatar" id="userAvatar" onclick="toggleProfileDropdown()" style="width:34px;height:34px;background:var(--quinary-color);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0;">U</div>
+                <div class="profile-dropdown" id="profileDropdown">
+                    <div class="profile-dropdown-header">
+                        <div class="pd-name" id="pdName">Usuário</div>
+                        <div class="pd-role">Administrador</div>
+                    </div>
+                    <div class="profile-dropdown-body">
+                        <a class="pd-btn" href="perfil.html"><i class="fa-solid fa-user"></i> Meu Perfil</a>
+                        <a class="pd-btn danger" href="login.html"><i class="fa-solid fa-right-from-bracket"></i> Encerrar Sessão</a>
+                    </div>
+                </div>
+            </div>
                 </div>
             </div>
         </header>
@@ -230,7 +238,7 @@
             <!-- Breadcrumb + título da classe -->
             <div style="margin-bottom:4px;">
                 <div class="breadcrumb">
-                    <a href="produtos.html"><i class="fa-solid fa-tag"></i> Produtos</a>
+                    <a data-tooltip="Produtos" href="produtos.html"><i class="fa-solid fa-tag"></i> Produtos</a>
                     <i class="fa-solid fa-chevron-right"></i>
                     <span id="breadcrumbNome">—</span>
                 </div>
@@ -368,7 +376,6 @@
         }
         const userData = JSON.parse(localStorage.getItem('tl_user') || '{}');
         if (userData.nome) {
-            document.getElementById('userAvatar').textContent = userData.nome.charAt(0).toUpperCase();
         }
     })();
 
@@ -726,7 +733,7 @@
                 '<div class="page-error">' +
                   '<i class="fa-solid fa-triangle-exclamation"></i>' +
                   '<h3>Classe não encontrada</h3>' +
-                  '<p>A URL não contém um parâmetro <code>?classe=</code> válido. <a href="produtos.html">Voltar para Produtos</a>.</p>' +
+                  '<p>A URL não contém um parâmetro <code>?classe=</code> válido. <a data-tooltip="Produtos" href="produtos.html">Voltar para Produtos</a>.</p>' +
                 '</div>';
             return;
         }
@@ -757,6 +764,27 @@
     }
 
     inicializar();
-    </script>
+    
+        // ── Dropdown de Perfil ───────────────────────────────
+        function toggleProfileDropdown() {
+            document.getElementById('profileDropdown').classList.toggle('open');
+        }
+        document.addEventListener('click', function(e) {
+            var wrap = document.getElementById('profileWrap');
+            var dd   = document.getElementById('profileDropdown');
+            if (dd && dd.classList.contains('open') && wrap && !wrap.contains(e.target)) {
+                dd.classList.remove('open');
+            }
+        });
+        try {
+            var u = JSON.parse(localStorage.getItem('tl_user') || '{}');
+            if (u.nome) {
+                var av = document.getElementById('userAvatar');
+                if (av) av.textContent = u.nome.charAt(0).toUpperCase();
+                var pn = document.getElementById('pdName');
+                if (pn) pn.textContent = u.nome;
+            }
+        } catch(e) {}
+</script>
 </body>
 </html>
