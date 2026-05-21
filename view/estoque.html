@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
     <link rel="stylesheet" href="style.css">
+        <script src="js/dropdown.js"></script>
     <script src="js/api.js"></script>
     <style>
         /* ===== INVENTÁRIO ESPECÍFICO ===== */
@@ -386,17 +387,7 @@
         .page-btn:hover:not(:disabled) { border-color: var(--quinary-color); color: var(--quinary-color); }
         .page-btn.active { background: var(--quinary-color); color: #fff; border-color: var(--quinary-color); }
         .page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-        .page-size-select {
-            padding: 4px 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 12px;
-            background: var(--background-color);
-            color: var(--text-primary);
-            cursor: pointer;
-            outline: none;
-        }
-        .page-size-select:focus { border-color: var(--quinary-color); }
+
 
         /* ---- Modal de Exportação ---- */
         .modal-export {
@@ -533,20 +524,13 @@
         }
         .modal-header h2 i { color: var(--quinary-color); }
         .modal-close {
-            width: 30px;
-            height: 30px;
-            border: none;
-            background: var(--background-color);
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 30px; height: 30px; border: 1px solid var(--border-color);
+            background: var(--secondary-color); border-radius: 8px;
+            cursor: pointer; font-size: 14px; color: var(--text-muted);
+            display: flex; align-items: center; justify-content: center;
             transition: 0.15s;
         }
-        .modal-close:hover { background: #fee2e2; color: #ef4444; }
+        .modal-close:hover { background: color-mix(in srgb, #ef4444 15%, var(--secondary-color)); color: #ef4444; border-color: #ef4444; }
         .modal-body {
             padding: 20px 22px;
             overflow-y: auto;
@@ -583,7 +567,8 @@
         }
         .form-group input,
         .form-group select,
-        .form-group textarea {
+        .form-group textarea,
+        .form-group .cd-trigger {
             padding: 8px 10px;
             border: 1px solid var(--border-color);
             border-radius: 7px;
@@ -596,7 +581,8 @@
         }
         .form-group input:focus,
         .form-group select:focus,
-        .form-group textarea:focus {
+        .form-group textarea:focus,
+        .form-group .cd-trigger.open {
             border-color: var(--info-color);
             box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
             background: var(--secondary-color);
@@ -932,6 +918,10 @@
         .detail-chip-title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
         .detail-chip-sub   { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
         .detail-chip-badge { flex-shrink: 0; }
+        body.dark .detail-chip-num { background: var(--quinary-color); }
+        .detail-chip-sep   { color: var(--text-primary); margin: 0 5px; font-weight: 400; }
+        .detail-chip-value { font-weight: 600; color: #374151; }
+        body.dark .detail-chip-value { color: var(--quinary-hover); }
 
         /* ── Loader do modal de detalhes ── */
         .modal-detail-loading {
@@ -994,10 +984,11 @@
             background: #161b22;
             box-shadow: 0 20px 60px rgba(0,0,0,0.6);
         }
-        body.dark .modal-close:hover { background: #450a0a; color: #fca5a5; }
         body.dark .form-group input:focus,
         body.dark .form-group select:focus,
-        body.dark .form-group textarea:focus { background: #0d1117; }
+        body.dark .form-group textarea:focus,
+        body.dark .form-group .cd-trigger.open { background: #0d1117; }
+        body.dark .form-group .cd-trigger { background: var(--background-color); border-color: var(--border-color); }
         body.dark .modal-error {
             background: #450a0a;
             border-color: #7f1d1d;
@@ -1541,7 +1532,7 @@
                         <span id="footerInfo">0 registros</span>
                         <div style="display:flex; align-items:center; gap:6px;">
                             <label style="font-size:12px; color:var(--text-muted);">Linhas:</label>
-                            <select class="page-size-select" id="pageSizeSelect" onchange="setPageSize(this.value)">
+                            <select class="page-size-select" id="pageSizeSelect" data-cd-simple onchange="setPageSize(this.value)">
                                 <option value="10">10</option>
                                 <option value="25" selected>25</option>
                                 <option value="50">50</option>
@@ -2591,8 +2582,7 @@
                         <div class="detail-chip-item">
                             <div class="detail-chip-num">${dk.num}</div>
                             <div class="detail-chip-info">
-                                <div class="detail-chip-title">${dk.tipo}</div>
-                                <div class="detail-chip-sub">${dk.tamanho}</div>
+                                <div class="detail-chip-title">${dk.tipo} <span class="detail-chip-sep">—</span><span class="detail-chip-value">${dk.tamanho}</span></div>
                             </div>
                         </div>`).join('');
                     return `
@@ -2608,7 +2598,7 @@
                         ${d.discos?.length ? `
                         <div class="modal-detail-section">
                             <div class="modal-detail-section-label">
-                                <i class="fa-solid fa-hard-drive"></i> Discos individuais
+                                <i class="fa-solid fa-hard-drive"></i> Discos Individuais
                             </div>
                             <div class="detail-chip-list">${listaDiscos}</div>
                         </div>` : ''}`;
@@ -2623,13 +2613,10 @@
                         </div>`;
                     }
                     const items = detail.data.map(p => `
-                        <div class="modal-detail-section" style="margin-bottom:12px;">
-                            <div class="modal-detail-section-label">
-                                <i class="fa-solid fa-display"></i> GPU ${p.num}
-                            </div>
-                            <div class="detail-grid">
-                                ${detailField('Tipo', p.tipo, false)}
-                                ${detailField('VRAM', p.vram, false, 'accent')}
+                        <div class="detail-chip-item">
+                            <div class="detail-chip-num">${p.num}</div>
+                            <div class="detail-chip-info">
+                                <div class="detail-chip-title">${p.tipo} <span class="detail-chip-sep">—</span><span class="detail-chip-value">${p.vram}</span></div>
                             </div>
                         </div>`).join('');
                     return `
@@ -2637,36 +2624,51 @@
                             <div class="modal-detail-section-label">
                                 <i class="fa-solid fa-display"></i> Placas de Vídeo (${detail.data.length})
                             </div>
-                        </div>
-                        ${items}`;                }
+                            <div class="detail-chip-list">${items}</div>
+                        </div>`;
+                }
 
                 /* ── Sistema Operacional ── */
                 case 'so': {
                     const d = detail.data;
+                    const items = [
+                        { icon: 'fa-laptop-code', titulo: 'Sistema',  sub: d.so },
+                        { icon: 'fa-key',         titulo: 'Ativação', sub: d.ativacao },
+                    ].map(r => `
+                        <div class="detail-chip-item">
+                            <div class="detail-chip-num" style="font-size:12px;"><i class="fa-solid ${r.icon}"></i></div>
+                            <div class="detail-chip-info">
+                                <div class="detail-chip-title">${r.titulo} <span class="detail-chip-sep">—</span><span class="detail-chip-value">${r.sub}</span></div>
+                            </div>
+                        </div>`).join('');
                     return `
                         <div class="modal-detail-section">
                             <div class="modal-detail-section-label">
                                 <i class="fa-solid fa-laptop-code"></i> Sistema Operacional
                             </div>
-                            <div class="detail-grid">
-                                ${detailField('Sistema',  d.so,       true)}
-                                ${detailField('Ativação', d.ativacao, true, d.ativacao !== '—' ? 'accent' : '')}
-                            </div>
+                            <div class="detail-chip-list">${items}</div>
                         </div>`;
                 }
 
                 /* ── Office ── */
                 case 'office': {
                     const d = detail.data;
+                    const items = [
+                        { icon: 'fa-file-word', titulo: 'Versão',   sub: d.versao },
+                        { icon: 'fa-key',       titulo: 'Ativação', sub: d.ativacao },
+                    ].map(r => `
+                        <div class="detail-chip-item">
+                            <div class="detail-chip-num" style="font-size:12px;"><i class="fa-solid ${r.icon}"></i></div>
+                            <div class="detail-chip-info">
+                                <div class="detail-chip-title">${r.titulo} <span class="detail-chip-sep">—</span><span class="detail-chip-value">${r.sub}</span></div>
+                            </div>
+                        </div>`).join('');
                     return `
                         <div class="modal-detail-section">
                             <div class="modal-detail-section-label">
                                 <i class="fa-solid fa-file-word"></i> Microsoft Office
                             </div>
-                            <div class="detail-grid">
-                                ${detailField('Versão',   d.versao,   true)}
-                                ${detailField('Ativação', d.ativacao, true, d.ativacao !== '—' ? 'accent' : '')}
-                            </div>
+                            <div class="detail-chip-list">${items}</div>
                         </div>`;
                 }
 

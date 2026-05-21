@@ -625,3 +625,186 @@ body.dark { scrollbar-color: #30363d #0d1117; scrollbar-width: thin; }
 .pd-btn i { width: 16px; text-align: center; font-size: 13px; }
 body.dark .profile-dropdown { box-shadow: 0 8px 28px rgba(0,0,0,0.4); }
 body.dark .pd-btn.danger:hover { background: rgba(239,68,68,0.15); }
+
+
+/* ==================== CUSTOM DROPDOWN ==================== */
+/*
+ * Dropdown customizado reutilizável — substitui <select> nativos.
+ * Uso via JS: criarCustomDropdown(name, options, valor, placeholder)
+ * Seleção múltipla: criarCustomDropdownMulti(name, options, valores, placeholder)
+ */
+
+.cd-wrap {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.cd-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    padding: 7px 11px;
+    background: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.cd-trigger:hover,
+.cd-trigger.open { border-color: var(--quinary-color); }
+
+.cd-trigger.open { box-shadow: 0 0 0 2px rgba(62,96,143,0.15); }
+
+.cd-trigger span {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: inherit;
+}
+
+.cd-trigger span.cd-placeholder { color: var(--text-muted); }
+
+.cd-trigger i.cd-chevron {
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    transition: transform 0.2s;
+}
+
+.cd-trigger.open i.cd-chevron { transform: rotate(180deg); }
+
+/* No modo que abre para cima, chevron começa apontando para cima */
+.cd-panel--up ~ * { display: none; } /* unused, just anchor */
+[data-cd-name="pageSizeSelect"] .cd-chevron { transform: rotate(180deg); }
+[data-cd-name="pageSizeSelect"] .cd-trigger.open .cd-chevron { transform: rotate(0deg); }
+
+/* Panel */
+.cd-panel {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 100%;
+    min-width: 160px;
+    background: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+    z-index: 9999;
+    overflow: hidden;
+}
+
+.cd-panel.open { display: block; }
+
+.cd-panel--up {
+    top: auto;
+    bottom: calc(100% + 4px);
+    min-width: unset;
+}
+
+/* Search inside panel */
+.cd-search {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.cd-search input {
+    width: 100%;
+    padding: 5px 9px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 12px;
+    background: var(--background-color);
+    color: var(--text-primary);
+    outline: none;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.cd-search input:focus { border-color: var(--quinary-color); }
+
+/* Options list */
+.cd-list {
+    max-height: 220px;
+    overflow-y: auto;
+    padding: 4px 0;
+}
+
+.cd-list::-webkit-scrollbar { width: 4px; }
+.cd-list::-webkit-scrollbar-track { background: transparent; }
+.cd-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+.cd-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    font-size: 13px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background 0.1s;
+    user-select: none;
+}
+
+.cd-option:hover { background: var(--background-color); }
+
+.cd-option.cd-selected {
+    background: color-mix(in srgb, var(--quinary-color) 12%, transparent);
+    color: var(--quinary-color);
+    font-weight: 600;
+}
+
+.cd-option.cd-placeholder-opt { color: var(--text-muted); font-style: italic; }
+
+/* Checkbox for multi-select */
+.cd-option input[type=checkbox] {
+    accent-color: var(--quinary-color);
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* Apply button for multi-select */
+.cd-apply {
+    display: block;
+    width: 100%;
+    padding: 9px;
+    background: var(--quinary-color);
+    color: #fff;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    border-top: 1px solid var(--border-color);
+}
+
+.cd-apply:hover { opacity: 0.88; }
+
+/* Empty state */
+.cd-empty {
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* Dark mode overrides */
+body.dark .cd-trigger { background: var(--secondary-color); }
+body.dark .cd-panel { background: var(--secondary-color); }
+body.dark .cd-search input { background: var(--background-color); }
+body.dark .cd-option:hover { background: var(--background-color); }

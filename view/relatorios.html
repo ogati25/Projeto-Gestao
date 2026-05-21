@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+        <script src="js/dropdown.js"></script>
     <script src="js/api.js"></script>
     <title>Relatórios — NovaTech Solutions</title>
     <style>
@@ -745,5 +746,10 @@
             }
         } catch(e) {}
 </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initAllSelects(document, () => aplicarFiltros && aplicarFiltros());
+        });
+    </script>
 </body>
 </html>

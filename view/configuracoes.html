@@ -272,13 +272,13 @@
         }
         .modal-header h2 i { color: var(--quinary-color); }
         .modal-close {
-            width: 30px; height: 30px; border: none;
-            background: var(--background-color); border-radius: 8px;
+            width: 30px; height: 30px; border: 1px solid var(--border-color);
+            background: var(--secondary-color); border-radius: 8px;
             cursor: pointer; font-size: 14px; color: var(--text-muted);
             display: flex; align-items: center; justify-content: center;
             transition: 0.15s;
         }
-        .modal-close:hover { background: #fee2e2; color: #ef4444; }
+        .modal-close:hover { background: color-mix(in srgb, #ef4444 15%, var(--secondary-color)); color: #ef4444; border-color: #ef4444; }
         .modal-footer {
             display: flex; align-items: center; justify-content: flex-end;
             gap: 10px; padding: 14px 22px;
@@ -334,9 +334,18 @@
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 12px; font-size: 12px; color: var(--text-muted);
         }
-        .export-select-all-row button {
-            font-size: 12px; color: var(--primary-color);
-            background: none; border: none; cursor: pointer; padding: 0; font-weight: 600;
+
+        .export-sect-btn {
+            font-size: 11px; font-weight: 600;
+            color: var(--text-primary);
+            background: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 5px; padding: 3px 10px; cursor: pointer;
+            transition: 0.15s; line-height: 1.6; white-space: nowrap;
+        }
+        .export-sect-btn:hover {
+            border-color: var(--quinary-color);
+            color: var(--quinary-color);
         }
 
         /* Step 2 — chips de campos por tabela */
@@ -393,7 +402,7 @@
         }
         .exp-records-search input::placeholder { color: var(--text-muted); }
         .exp-records-count { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
-        .exp-records-count strong { color: var(--primary-color); }
+        .exp-records-count strong { color: var(--text-muted); font-weight: 400; }
 
         /* Tab bar de categorias dentro do step 3 */
         .exp-tab-bar { display: flex; gap: 4px; margin-bottom: 10px; flex-wrap: wrap; }
@@ -405,13 +414,18 @@
             color: var(--text-muted); transition: 0.15s; white-space: nowrap;
         }
         .exp-tab-btn.active {
-            border-color: var(--primary-color); color: var(--primary-color);
-            background: color-mix(in srgb, var(--primary-color) 8%, transparent);
+            border-color: var(--quinary-color); color: var(--quinary-color);
+            background: color-mix(in srgb, var(--quinary-color) 10%, transparent);
         }
         .exp-tab-btn .badge {
-            display: inline-block; background: var(--primary-color); color: #fff;
-            border-radius: 99px; font-size: 10px; padding: 0 5px;
-            margin-left: 3px; min-width: 16px; text-align: center;
+            display: inline-inline-flex; align-items: center; justify-content: center;
+            background: var(--border-color); color: var(--text-muted);
+            border-radius: 99px; font-size: 10px; padding: 1px 6px;
+            margin-left: 4px; min-width: 18px; text-align: center; font-weight: 700;
+            transition: 0.15s;
+        }
+        .exp-tab-btn.active .badge {
+            background: var(--quinary-color); color: #fff;
         }
 
         /* Lista de registros no step 3 */
@@ -446,61 +460,78 @@
             padding: 6px 0 8px; font-size: 12px; color: var(--text-muted);
         }
         .exp-records-selbar button {
-            font-size: 12px; font-weight: 600; color: var(--primary-color);
-            background: none; border: none; cursor: pointer; padding: 0;
+            font-size: 11px; font-weight: 600;
+            color: var(--text-primary);
+            background: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 5px; padding: 3px 10px; cursor: pointer;
+            transition: 0.15s; line-height: 1.6; white-space: nowrap;
         }
+        .exp-records-selbar button:hover {
+            border-color: var(--quinary-color);
+            color: var(--quinary-color);
+        }
+        body.dark .exp-records-selbar button { background: var(--secondary-color); color: var(--text-primary); }
+        body.dark .exp-records-selbar button:hover { color: var(--quinary-hover); border-color: var(--quinary-hover); }
         .exp-records-selbar .selbar-actions { display: flex; gap: 10px; }
 
         /* Bloco de filtro por tabela (step 3) */
         .exp-filter-block {
             border: 1px solid var(--border-color); border-radius: 10px;
-            margin-bottom: 12px; overflow: visible; background: var(--secondary-color);
+            margin-bottom: 8px; overflow: visible; background: var(--secondary-color);
         }
         .exp-filter-header {
-            display: flex; align-items: center; gap: 8px;
-            padding: 9px 12px; cursor: pointer; user-select: none;
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px; cursor: pointer; user-select: none;
             border-bottom: 1px solid transparent; transition: border-color 0.15s;
+            border-radius: 10px;
         }
-        .exp-filter-header.open { border-bottom-color: var(--border-color); }
-        .exp-filter-header-icon { font-size: 14px; color: var(--primary-color); width: 18px; text-align:center; }
+        .exp-filter-header:hover { background: var(--background-color); }
+        .exp-filter-header.open { border-bottom-color: var(--border-color); border-radius: 10px 10px 0 0; }
+        .exp-filter-header-icon { font-size: 14px; color: var(--text-primary); width: 18px; text-align:center; flex-shrink:0; }
         .exp-filter-header strong { font-size: 13px; color: var(--text-primary); flex: 1; }
-        .exp-filter-header .toggle-icon { font-size: 11px; color: var(--text-muted); }
-        .exp-filter-body { display: none; padding: 12px; }
+        .exp-filter-active-label { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+        .exp-filter-header .toggle-icon { font-size: 11px; color: var(--text-muted); flex-shrink:0; }
+        .exp-filter-body { display: none; padding: 12px 14px 14px; }
         .exp-filter-body.open { display: block; }
 
+        /* Tab bar step 3 */
+        .exp-tab-bar { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; padding-bottom: 4px; border-bottom: 1px solid var(--border-color); }
+
+        /* Toolbar busca + contador */
+        .exp-records-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+
+        /* Barra selecionados */
+        .exp-records-selbar { display: flex; align-items: center; justify-content: space-between; padding: 4px 0 8px; font-size: 12px; color: var(--text-muted); border-bottom: 1px solid var(--border-color); margin-bottom: 6px; }
+
         /* Linha de seleção do campo a filtrar */
-        .exp-filter-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .exp-filter-prop-select {
-            flex: 1; min-width: 160px; padding: 7px 10px;
-            border: 1.5px solid var(--border-color); border-radius: 8px;
-            background: var(--background-color); color: var(--text-primary);
-            font-size: 13px; outline: none; cursor: pointer; transition: border-color 0.15s;
-        }
-        .exp-filter-prop-select:focus { border-color: var(--primary-color); }
+        .exp-filter-row { display: grid; grid-template-columns: 1fr 0 auto; align-items: center; gap: 8px; transition: grid-template-columns 0.2s ease; }
+        .exp-filter-row.has-value { grid-template-columns: 1fr 1fr auto; }
+
 
         /* Chip de filtro ativo */
         .exp-filter-active { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
         .exp-filter-chip {
             display: inline-flex; align-items: center; gap: 5px;
-            padding: 3px 10px;
-            background: color-mix(in srgb, var(--primary-color) 12%, transparent);
-            border: 1.5px solid var(--primary-color); border-radius: 99px;
-            font-size: 12px; font-weight: 600; color: var(--primary-color);
+            padding: 4px 10px;
+            background: color-mix(in srgb, var(--quinary-color) 15%, transparent);
+            border: 1.5px solid var(--quinary-color); border-radius: 99px;
+            font-size: 12px; font-weight: 600; color: var(--text-primary);
         }
         .exp-filter-chip button {
             background: none; border: none; cursor: pointer;
-            color: var(--primary-color); font-size: 11px; padding: 0; line-height: 1;
+            color: var(--text-muted); font-size: 11px; padding: 0; line-height: 1;
         }
         .exp-filter-chip button:hover { color: #ef4444; }
 
         /* Dropdown de seleção de valores para filtro */
-        .exp-filter-dropdown-wrap { position: relative; display: inline-block; }
+        .exp-filter-dropdown-wrap { position: relative; display: block; width: 100%; }
         .exp-filter-value-btn {
             display: flex; align-items: center; gap: 6px;
-            padding: 7px 10px;
+            padding: 7px 10px; width: 100%; box-sizing: border-box;
             border: 1.5px solid var(--border-color); border-radius: 8px;
             background: var(--background-color); color: var(--text-primary);
-            font-size: 13px; cursor: pointer; min-width: 200px;
+            font-size: 13px; cursor: pointer;
             transition: border-color 0.15s; white-space: nowrap;
         }
         .exp-filter-value-btn:hover { border-color: var(--primary-color); }
@@ -508,7 +539,7 @@
         .exp-filter-value-panel {
             display: none;
             position: absolute; top: calc(100% + 4px); left: 0;
-            min-width: 270px; max-width: 360px;
+            width: 100%;
             background: var(--secondary-color);
             border: 1px solid var(--border-color); border-radius: 10px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.14);
@@ -628,6 +659,13 @@
         body.dark .export-table-card input[type=checkbox] { accent-color: var(--quinary-color); }
         body.dark .export-table-card.selected .export-table-card-icon { color: var(--quinary-hover); }
         body.dark .export-select-all-row button { color: var(--quinary-hover); }
+        body.dark .exp-tab-btn { background: var(--secondary-color); color: var(--text-muted); }
+        body.dark .exp-tab-btn.active { color: var(--quinary-hover); border-color: var(--quinary-hover); }
+        body.dark .exp-records-selbar { border-color: var(--border-color); }
+        body.dark .exp-filter-block { background: var(--secondary-color); }
+        body.dark .exp-filter-header:hover { background: rgba(255,255,255,0.04); }
+        body.dark .export-sect-btn { background: var(--secondary-color); color: var(--text-primary); }
+        body.dark .export-sect-btn:hover { background: var(--background-color); color: var(--quinary-hover); border-color: var(--quinary-hover); }
         body.dark .export-field-chip:hover { border-color: var(--quinary-color); color: var(--text-primary); }
         body.dark .export-field-chip.selected {
             border-color: var(--quinary-color);
@@ -919,8 +957,8 @@
                     <span id="expTableCount">0 tabelas selecionadas</span>
                     <div>
                         <!-- Botões vinculados pelo JS via id -->
-                        <button id="btnExportSelecionarTodas">Selecionar todas</button>
-                        <button id="btnExportLimparTodas" style="margin-left:8px;">Limpar</button>
+                        <button id="btnExportSelecionarTodas" class="export-sect-btn">Selecionar todas</button>
+                        <button id="btnExportLimparTodas" class="export-sect-btn" style="margin-left:6px;">Limpar</button>
                     </div>
                 </div>
                 <!-- Cards de tabelas gerados pelo JS -->
@@ -1091,6 +1129,7 @@
 
 
     <!-- api.js — funções de comunicação com o backend (compartilhado por todas as telas) -->
+        <script src="js/dropdown.js"></script>
     <script src="js/api.js"></script>
 
     <!-- login.js — disponibiliza logout() e getUsuarioLogado() usados nesta tela -->
@@ -1123,20 +1162,18 @@
         // =====================================================================
 
         // ── TEMA PERSISTENTE ─────────────────────────────────────────────────
-        // Aplica o tema salvo imediatamente para evitar flash de layout.
         (function () {
             const salvo = localStorage.getItem('tl_theme') || 'light';
             if (salvo === 'dark') document.body.classList.add('dark');
-
             const btn = document.getElementById('themeToggle');
             if (salvo === 'light') btn.classList.add('light');
 
-            // Alterna o tema ao clicar no botão do header
+            // Toggle do header — usa window.syncThemeOpts para chamar depois que a função existir
             btn.addEventListener('click', () => {
                 const escuro = document.body.classList.toggle('dark');
                 btn.classList.toggle('light', !escuro);
                 localStorage.setItem('tl_theme', escuro ? 'dark' : 'light');
-                syncThemeOpts();
+                if (typeof syncThemeOpts === 'function') syncThemeOpts();
             });
         })();
 
@@ -1212,8 +1249,6 @@
             if (clearBtn) { clearBtn.style.opacity = '0.4'; clearBtn.style.pointerEvents = 'none'; }
         })();
 
-        // Logout — usa a função global definida em login.js
-        document.getElementById('btnLogout').addEventListener('click', logout);
 
         // ── AVATAR ───────────────────────────────────────────────────────────
         // Exibe a inicial do nome do usuário logado no avatar do header.
@@ -1257,6 +1292,7 @@
         // Vincula cliques no picker de tema
         document.getElementById('themeOptLight').addEventListener('click', () => setTheme('light'));
         document.getElementById('themeOptDark').addEventListener('click',  () => setTheme('dark'));
+
 
         // ── NAVEGAÇÃO LATERAL ────────────────────────────────────────────────
         const navSections = [
@@ -1566,9 +1602,9 @@
                                   id="expFieldCount_${cat.key}">(${nSel}/${cat.campos.length})</span>
                         </strong>
                         <div style="display:flex;gap:8px;align-items:center">
-                            <button class="export-select-all-row" style="margin:0;"
+                            <button class="export-sect-btn"
                                 onclick="event.stopPropagation();exportToggleAllFields('${cat.key}',true)">Todos</button>
-                            <button class="export-select-all-row" style="margin:0;"
+                            <button class="export-sect-btn"
                                 onclick="event.stopPropagation();exportToggleAllFields('${cat.key}',false)">Nenhum</button>
                             <i class="fa-solid fa-chevron-up sect-toggle"></i>
                         </div>
@@ -1709,11 +1745,8 @@
                         <i class="fa-solid fa-chevron-down toggle-icon"></i>
                     </div>
                     <div class="exp-filter-body" id="expFilterBody_${cat.key}">
-                        <div class="exp-filter-row">
-                            <select class="exp-filter-prop-select" id="expFilterProp_${cat.key}">
-                                <option value="">— Escolha um campo —</option>
-                                ${defs.map(d => `<option value="${d.key}">${d.label}</option>`).join('')}
-                            </select>
+                        <div class="exp-filter-row" id="expFilterRow_${cat.key}">
+                            <div class="exp-filter-dropdown-wrap exp-prop-wrap" id="expPropWrap_${cat.key}"></div>
                             <div class="exp-filter-dropdown-wrap" id="expFilterWrap_${cat.key}"></div>
                         </div>
                         <div class="exp-filter-active" id="expFilterChips_${cat.key}"></div>
@@ -1725,9 +1758,8 @@
                 document.getElementById(`expFilterHeader_${cat.key}`)
                     .addEventListener('click', () => expToggleFiltroBlock(cat.key));
 
-                // Vincula mudança de campo do filtro
-                document.getElementById(`expFilterProp_${cat.key}`)
-                    .addEventListener('change', () => expFiltroAtualizarDropdown(cat.key));
+                // Monta o dropdown customizado de escolha de campo
+                expMontarPropDropdown(cat.key, defs);
             });
         }
 
@@ -1746,10 +1778,110 @@
          * Os valores são extraídos dos dados já em cache (_expCache).
          * @param {string} catKey key da categoria
          */
-        function expFiltroAtualizarDropdown(catKey) {
+        /** Monta o dropdown customizado de seleção de campo (igual ao de valor). */
+        function expMontarPropDropdown(catKey, defs) {
+            const wrapEl = document.getElementById(`expPropWrap_${catKey}`);
+            if (!wrapEl) return;
+
+            // Estado interno
+            let valorAtual = '';
+
+            // Trigger
+            const trigger = document.createElement('button');
+            trigger.type = 'button';
+            trigger.className = 'exp-filter-value-btn';
+            trigger.id = `expFilterPropBtn_${catKey}`;
+            trigger.innerHTML = `<span id="expFilterPropLabel_${catKey}">— Escolha um campo —</span><i class="fa-solid fa-chevron-down" style="font-size:11px;color:var(--text-muted);"></i>`;
+
+            // Panel
+            const panel = document.createElement('div');
+            panel.className = 'exp-filter-value-panel';
+            panel.id = `expFilterPropPanel_${catKey}`;
+
+            // Search
+            const searchWrap = document.createElement('div');
+            searchWrap.className = 'exp-filter-value-search';
+            const searchInput = document.createElement('input');
+            searchInput.type = 'text';
+            searchInput.placeholder = 'Pesquisar campo…';
+            searchWrap.appendChild(searchInput);
+            panel.appendChild(searchWrap);
+
+            // List
+            const listEl = document.createElement('div');
+            listEl.className = 'exp-filter-value-list';
+            panel.appendChild(listEl);
+
+            const renderOpcoes = (filtro = '') => {
+                listEl.innerHTML = '';
+
+                // Opção vazia
+                const emptyOpt = document.createElement('div');
+                emptyOpt.className = 'exp-filter-value-item';
+                emptyOpt.style.cssText = 'color:var(--text-muted);font-style:italic;';
+                emptyOpt.textContent = '— Escolha um campo —';
+                emptyOpt.addEventListener('click', () => {
+                    valorAtual = '';
+                    document.getElementById(`expFilterPropLabel_${catKey}`).textContent = '— Escolha um campo —';
+                    panel.classList.remove('open');
+                    // Dispara atualização do dropdown de valores
+                    const row = wrapEl.closest('.exp-filter-row');
+                    row.classList.remove('has-value');
+                    const valWrap = document.getElementById(`expFilterWrap_${catKey}`);
+                    if (valWrap) valWrap.innerHTML = '';
+                });
+                listEl.appendChild(emptyOpt);
+
+                const filtrados = filtro
+                    ? defs.filter(d => d.label.toLowerCase().includes(filtro.toLowerCase()))
+                    : defs;
+
+                filtrados.forEach(def => {
+                    const item = document.createElement('div');
+                    item.className = 'exp-filter-value-item';
+                    if (def.key === valorAtual) item.style.background = 'color-mix(in srgb, var(--primary-color) 12%, transparent)';
+                    item.textContent = def.label;
+                    item.style.cursor = 'pointer';
+                    item.addEventListener('click', () => {
+                        valorAtual = def.key;
+                        document.getElementById(`expFilterPropLabel_${catKey}`).textContent = def.label;
+                        panel.classList.remove('open');
+                        searchInput.value = '';
+                        renderOpcoes();
+                        // Dispara atualização do dropdown de valores
+                        expFiltroAtualizarDropdown(catKey, def.key);
+                    });
+                    listEl.appendChild(item);
+                });
+            };
+
+            renderOpcoes();
+
+            searchInput.addEventListener('input', () => renderOpcoes(searchInput.value));
+            searchInput.addEventListener('click', e => e.stopPropagation());
+
+            trigger.addEventListener('click', e => {
+                e.stopPropagation();
+                const isOpen = panel.classList.toggle('open');
+                if (isOpen) { searchInput.focus(); renderOpcoes(searchInput.value); }
+            });
+
+            document.addEventListener('click', function fecharProp(e) {
+                if (!wrapEl.contains(e.target)) {
+                    panel.classList.remove('open');
+                    document.removeEventListener('click', fecharProp);
+                }
+            });
+
+            wrapEl.appendChild(trigger);
+            wrapEl.appendChild(panel);
+        }
+
+        function expFiltroAtualizarDropdown(catKey, prop) {
             const wrap = document.getElementById(`expFilterWrap_${catKey}`);
-            const prop = document.getElementById(`expFilterProp_${catKey}`).value;
+            const row  = wrap.closest('.exp-filter-row');
             wrap.innerHTML = '';
+            row.classList.toggle('has-value', !!prop);
             if (!prop) return;
 
             const cache = _expCache[catKey];
@@ -2194,5 +2326,11 @@
         syncThemeOpts();
     </script>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Substitui selects estáticos (configurações, importar)
+            initAllSelects(document);
+        });
+    </script>
 </body>
 </html>

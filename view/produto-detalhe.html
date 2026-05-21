@@ -110,8 +110,14 @@
         .modal-header-icon i { font-size:16px; color:#fff; }
         .modal-header h3 { font-size:15px; font-weight:700; color:var(--text-primary); }
         .modal-header p  { font-size:12px; color:var(--text-muted); margin-top:2px; }
-        .modal-close { width:32px; height:32px; border-radius:8px; border:1px solid var(--border-color); background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:14px; transition:0.2s; }
-        .modal-close:hover { background:var(--background-color); color:var(--text-primary); }
+        .modal-close {
+            width: 30px; height: 30px; border: 1px solid var(--border-color);
+            background: var(--secondary-color); border-radius: 8px;
+            cursor: pointer; font-size: 14px; color: var(--text-muted);
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.15s;
+        }
+        .modal-close:hover { background: color-mix(in srgb, #ef4444 15%, var(--secondary-color)); color: #ef4444; border-color: #ef4444; }
         .modal-body { padding:20px 24px; }
         .form-field { display:flex; flex-direction:column; gap:5px; margin-bottom:14px; }
         .form-field:last-child { margin-bottom:0; }
@@ -356,6 +362,7 @@
     </div>
 
     <!-- Scripts -->
+        <script src="js/dropdown.js"></script>
     <script src="js/api.js"></script>
     <script src="js/produtos.js"></script>
     <script>

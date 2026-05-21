@@ -735,27 +735,8 @@ const filterDefs = {
  * @returns {HTMLSelectElement}
  */
 function criarSelect(name, options, valor = '') {
-    const sel   = document.createElement('select');
-    sel.name    = name;
-    const blank = document.createElement('option');
-    blank.value = ''; blank.textContent = '— Selecione —';
-    sel.appendChild(blank);
-
-    options.forEach(opt => {
-        const o = document.createElement('option');
-        if (typeof opt === 'object') {
-            o.value       = opt.value;
-            o.textContent = opt.label;
-            if (valor === opt.value) o.selected = true;
-        } else {
-            o.value       = opt;
-            o.textContent = opt;
-            if (valor === opt) o.selected = true;
-        }
-        sel.appendChild(o);
-    });
-
-    return sel;
+    // Usa o dropdown customizado (dropdown.js) no lugar do <select> nativo
+    return criarCustomDropdown(name, options, valor, '— Selecione —');
 }
 
 /**
@@ -1143,14 +1124,15 @@ function renderFields(containerId, category, mode, prefillData = {}) {
         let input;
 
         if (f.type === 'select') {
-            // Select comum com opções do enum de domínio
+            // Dropdown customizado com opções do enum de domínio
             input = criarSelect(f.key, f.options || [], prefillData[f.key] || '');
 
             // Alguns selects disparam geração dinâmica de campos ao mudar valor
-            if (f.key === 'quant_slots')     input.addEventListener('change', () => renderSlotsRAM(group, parseInt(input.value) || 0));
-            if (f.key === 'quant_discos')    input.addEventListener('change', () => renderDiscos(group, parseInt(input.value) || 0));
-            if (f.key === 'quant_gpus')      input.addEventListener('change', () => renderPlacasVideo(group, parseInt(input.value) || 0));
-            if (f.key === 'quant_conectores')input.addEventListener('change', () => renderConectoresVideo(group, parseInt(input.value) || 0));
+            // O cd-wrap borbulha o evento 'change' do hidden input → captura aqui
+            if (f.key === 'quant_slots')     input.addEventListener('change', (e) => { if (e.target.name === f.key) renderSlotsRAM(group, parseInt(e.target.value) || 0); });
+            if (f.key === 'quant_discos')    input.addEventListener('change', (e) => { if (e.target.name === f.key) renderDiscos(group, parseInt(e.target.value) || 0); });
+            if (f.key === 'quant_gpus')      input.addEventListener('change', (e) => { if (e.target.name === f.key) renderPlacasVideo(group, parseInt(e.target.value) || 0); });
+            if (f.key === 'quant_conectores')input.addEventListener('change', (e) => { if (e.target.name === f.key) renderConectoresVideo(group, parseInt(e.target.value) || 0); });
 
             // Office Nenhum → força "Não Possui" na ativação e desabilita o select
             if (f.key === 'office') {
@@ -1166,20 +1148,21 @@ function renderFields(containerId, category, mode, prefillData = {}) {
             input.appendChild(loading);
 
             getProcessadores().then(lista => {
-                input.innerHTML = '';
-                const blank       = document.createElement('option');
-                blank.value       = '';
-                blank.textContent = '— Selecione o processador —';
-                input.appendChild(blank);
-                (lista || []).forEach(p => {
-                    const o       = document.createElement('option');
-                    o.value       = p.id;
-                    o.textContent = `${p.nome} ${p.velocidade}GHz (${p.nucleosThreads?.nucleos}c/${p.nucleosThreads?.threads}t)`;
-                    if (prefillData[f.key] === p.id) o.selected = true;
-                    input.appendChild(o);
-                });
+                const opcoes = (lista || []).map(p => ({
+                    value: p.id,
+                    label: `${p.nome} ${p.velocidade}GHz (${p.nucleosThreads?.nucleos}c/${p.nucleosThreads?.threads}t)`
+                }));
+                // Substitui o select nativo pelo dropdown customizado
+                const cd = criarCustomDropdown(f.key, opcoes, prefillData[f.key] || '', '— Selecione o processador —');
+                if (input.parentNode) input.parentNode.replaceChild(cd, input);
+                input = cd;
             }).catch(() => {
-                input.innerHTML = '<option value="">Erro ao carregar processadores</option>';
+                if (input.parentNode) {
+                    const err = document.createElement('div');
+                    err.style.cssText = 'padding:7px 11px;color:var(--danger-color);font-size:13px;';
+                    err.textContent = 'Erro ao carregar processadores';
+                    input.parentNode.replaceChild(err, input);
+                }
             });
 
         } else if (f.type === 'textarea') {
@@ -2524,8 +2507,11 @@ function abrirEdicao(btn) {
         const qtdGPUs   = item.placasVideo?.length    || 0;
         const qtdConn   = item.conectoresVideo?.length || 0;
 
-        // Seta os selects de quantidade para refletir os dados existentes
+        // Seta os dropdowns de quantidade para refletir os dados existentes
         const setarSelect = (name, val) => {
+            // Suporta tanto cd-wrap (customizado) quanto select nativo
+            const cdWrap = document.querySelector(`#formEditFields .cd-wrap[data-cd-name="${name}"]`);
+            if (cdWrap?.setValue) { cdWrap.setValue(String(val)); return; }
             const sel = document.querySelector(`#formEditFields select[name="${name}"]`);
             if (sel) sel.value = String(val);
         };
@@ -2535,7 +2521,11 @@ function abrirEdicao(btn) {
         setarSelect('quant_conectores',qtdConn);
 
         // Recupera os grupos de referência para inserir os campos dinâmicos
-        const grupo = name => document.querySelector(`#formEditFields select[name="${name}"]`)?.closest('.form-group');
+        const grupo = name => {
+            const cdWrap = document.querySelector(`#formEditFields .cd-wrap[data-cd-name="${name}"]`);
+            if (cdWrap) return cdWrap.closest('.form-group');
+            return document.querySelector(`#formEditFields select[name="${name}"]`)?.closest('.form-group');
+        };
 
         if (grupo('quant_slots')     && slotsRAM  > 0) renderSlotsRAM(grupo('quant_slots'),      slotsRAM,  item.memoriaRAM     || []);
         if (grupo('quant_discos')    && qtdDiscos  > 0) renderDiscos(grupo('quant_discos'),        qtdDiscos, item.discos          || []);
@@ -3090,17 +3080,33 @@ var _filterDropdownAberto = null;
  * Usa filterDefs[currentCategory][currentMode] para obter os filtros disponíveis.
  * NÃO limpa activeFilters — trocar modo/categoria é responsabilidade do HTML.
  */
+// Helper: obtém valor do filterProp seja cd-wrap ou select nativo
+function getFilterPropValue() {
+    const cdWrap = document.querySelector('[data-original-id="filterProp"]');
+    if (cdWrap && typeof cdWrap.getValue === 'function') return cdWrap.getValue();
+    const sel = document.getElementById('filterProp');
+    return sel ? sel.value : '';
+}
+
 function buildFilterPropSelect() {
-    const sel  = document.getElementById('filterProp');
     const defs = (filterDefs[currentCategory] || {})[currentMode] || [];
 
-    sel.innerHTML = '<option value="">— Escolha a propriedade —</option>';
-    defs.forEach(def => {
-        const opt       = document.createElement('option');
-        opt.value       = def.key;
-        opt.textContent = def.label;
-        sel.appendChild(opt);
-    });
+    // Suporte ao dropdown customizado (cd-wrap) ou select nativo
+    const cdWrap = document.querySelector('[data-original-id="filterProp"]');
+    if (cdWrap && typeof cdWrap.setOptions === 'function') {
+        const options = defs.map(d => ({ value: d.key, label: d.label }));
+        cdWrap.setOptions(options, '');
+    } else {
+        const sel = document.getElementById('filterProp');
+        if (!sel) return;
+        sel.innerHTML = '<option value="">— Escolha a propriedade —</option>';
+        defs.forEach(def => {
+            const opt       = document.createElement('option');
+            opt.value       = def.key;
+            opt.textContent = def.label;
+            sel.appendChild(opt);
+        });
+    }
 
     // Reseta apenas a área de valor, sem fechar nem limpar filtros ativos
     const valueArea = document.getElementById('filterValueArea');
@@ -3115,7 +3121,7 @@ function buildFilterPropSelect() {
 function updateFilterValueOptions() {
     fecharFilterDropdown();
 
-    const key  = document.getElementById('filterProp').value;
+    const key  = getFilterPropValue();
     const defs = (filterDefs[currentCategory] || {})[currentMode] || [];
     const def  = defs.find(d => d.key === key);
 
@@ -3390,9 +3396,8 @@ function atualizarLabelTrigger(trigger, checks) {
  * e atualiza o sort se um novo foi escolhido.
  */
 function addFilterBackend() {
-    const propSel = document.getElementById('filterProp');
-    const key     = propSel.value;
-    if (!key) { propSel.focus(); return; }
+    const key     = getFilterPropValue();
+    if (!key) return;
 
     const defs = (filterDefs[currentCategory] || {})[currentMode] || [];
     const def  = defs.find(d => d.key === key);
@@ -3658,3 +3663,17 @@ carregarOpcoesDinamicas().then(() => {
     buildFilterPropSelect();
 });
 
+
+// Substitui selects estáticos remanescentes (filterProp, pageSizeSelect)
+document.addEventListener('DOMContentLoaded', () => {
+    // page-size-select e filter-select fixos no HTML
+    document.querySelectorAll('select:not([data-cd-skip])').forEach(sel => {
+        const onChange = sel.id === 'pageSizeSelect'
+            ? (v) => setPageSize(v)
+            : sel.id === 'filterProp'
+            ? () => updateFilterValueOptions()
+            : null;
+        const simples = sel.hasAttribute('data-cd-simple');
+        substituirSelect(sel, onChange, simples);
+    });
+});
