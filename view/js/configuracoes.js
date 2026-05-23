@@ -205,8 +205,9 @@ const EXPORT_CAMPOS = [
         fn: () => request('extras'),
         campos: [
             ..._camposBase(),
-            { key: 'categoria', label: 'Categoria', selected: true },
-            { key: 'descricao', label: 'Descrição', selected: true },
+            { key: 'categoria',  label: 'Categoria',  selected: true },
+            { key: 'descricao',  label: 'Descrição',  selected: true },
+            { key: 'quantidade', label: 'Quantidade', selected: true },
         ],
     },
 ];
@@ -360,7 +361,7 @@ function _filtrarCampos(item, camposSelecionados) {
         .filter(f => f.selected)
         .forEach(f => {
             if (Object.prototype.hasOwnProperty.call(item, f.key)) {
-                out[f.label] = _flattenValue(item[f.key]);
+                out[f.key] = _flattenValue(item[f.key]);
             }
         });
     return out;
@@ -385,7 +386,7 @@ function _exportarCSVFiltrado(resultados, selecionadas, sufixo) {
     selecionadas.forEach((cat, i) => {
         const dados     = resultados[i].status === 'fulfilled' ? (resultados[i].value || []) : [];
         const camposSel = cat.campos.filter(f => f.selected);
-        const headers   = camposSel.map(f => f.label);
+        const headers   = camposSel.map(f => f.key);
 
         let conteudo = '\uFEFF'; // BOM UTF-8 — garante acentos no Excel
         conteudo += headers.map(escapar).join(',') + '\r\n';
@@ -417,7 +418,7 @@ async function _exportarXLSXFiltrado(resultados, selecionadas, sufixo) {
         const cat       = selecionadas[i];
         const dados     = resultados[i].status === 'fulfilled' ? (resultados[i].value || []) : [];
         const camposSel = cat.campos.filter(f => f.selected);
-        const headers   = camposSel.map(f => f.label);
+        const headers   = camposSel.map(f => f.key);
 
         // Converte para número quando possível (melhora formatação no Excel)
         const rows = dados.map(item =>
@@ -471,26 +472,124 @@ async function _exportarXLSXFiltrado(resultados, selecionadas, sufixo) {
  * Chamada por: btnConfirmarImport (vinculado no script inline do HTML)
  * Usa: importArquivo (File) declarado no script inline do HTML
  */
+/**
+ * Busca os enums dinâmicos da API e valida os registros do CSV.
+ * Retorna array de strings descrevendo cada problema encontrado.
+ */
+async function _validarEnums(registros, categoria) {
+    let opcoes = {};
+    try { opcoes = await getOpcoes(); } catch (_) { return []; } // sem conexão: não bloqueia
+
+    const get = tipo => {
+        const camel = tipo.charAt(0).toLowerCase() + tipo.slice(1);
+        return new Set((opcoes[tipo] ?? opcoes[camel] ?? []).map(v => String(v).trim()));
+    };
+
+    // Monta sets de valores válidos por campo
+    const enums = {
+        computadores: {
+            tipo:               get('TipoComputador'),
+            geracaoRAM:         get('GeracaoRAM'),
+            'discos[].tipo':    get('TipoDisco'),
+            'placasVideo[].tipo': get('TipoPlacaVideo'),
+            'conectoresVideo[]': get('TipoConectorVideo'),
+            sistemaOperacional: get('SistemaOperacional'),
+            ativacaoSO:         get('AtivacaoSO'),
+            office:             get('TipoOffice'),
+            ativacaoOffice:     get('AtivacaoOffice'),
+            status:             get('Status'),
+            setor:              get('Setor'),
+            'memoriaRAM[]':     new Set(get('TipoMemoriaRAM').size
+                ? [...get('TipoMemoriaRAM')].map(v => String(parseInt(v, 10)))
+                : []),
+        },
+        celulares: {
+            operadora: get('Operadora'),
+            status:    get('Status'),
+            setor:     get('Setor'),
+        },
+        monitores: { status: get('Status'), setor: get('Setor') },
+        mouses:    { status: get('Status'), setor: get('Setor') },
+        teclados:  { status: get('Status'), setor: get('Setor') },
+        fones:     { status: get('Status'), setor: get('Setor') },
+        ramais:    { status: get('Status'), setor: get('Setor') },
+        chips:     { status: get('Status') },
+        extras:    { status: get('Status'), setor: get('Setor') },
+    };
+
+    const regras = enums[categoria] || {};
+    const erros  = [];
+
+    const splitPipe = v => String(v || '').split('|').map(s => s.trim()).filter(Boolean);
+    const parsearObjetos = v => {
+        if (!v || String(v).trim() === '') return [];
+        return String(v).split('|').map(s => s.trim()).filter(Boolean).map(s => {
+            try { return JSON.parse(s); } catch (_) { return null; }
+        }).filter(Boolean);
+    };
+
+    registros.forEach((reg, idx) => {
+        const linha = idx + 2; // +2 porque linha 1 é cabeçalho
+
+        Object.entries(regras).forEach(([campo, validos]) => {
+            if (!validos.size) return; // enum vazio = não valida
+
+            if (campo === 'memoriaRAM[]') {
+                const slots = splitPipe(reg.memoriaRAM || reg.MemoriaRAM || '');
+                slots.forEach(v => {
+                    const num = String(parseInt(v, 10));
+                    if (v && !validos.has(num) && !validos.has(v)) {
+                        erros.push(`Linha ${linha}: memoriaRAM "${v}" não existe no cadastro`);
+                    }
+                });
+            } else if (campo === 'discos[].tipo') {
+                parsearObjetos(reg.discos || reg.Discos || '').forEach(d => {
+                    if (d?.tipo && !validos.has(d.tipo)) {
+                        erros.push(`Linha ${linha}: disco tipo "${d.tipo}" não existe no cadastro`);
+                    }
+                });
+            } else if (campo === 'placasVideo[].tipo') {
+                parsearObjetos(reg.placasVideo || reg.PlacasVideo || '').forEach(p => {
+                    if (p?.tipo && !validos.has(p.tipo)) {
+                        erros.push(`Linha ${linha}: placa de vídeo tipo "${p.tipo}" não existe no cadastro`);
+                    }
+                });
+            } else if (campo === 'conectoresVideo[]') {
+                splitPipe(reg.conectoresVideo || reg.ConectoresVideo || '').forEach(c => {
+                    if (c && !validos.has(c)) {
+                        erros.push(`Linha ${linha}: conector de vídeo "${c}" não existe no cadastro`);
+                    }
+                });
+            } else {
+                const val = String(reg[campo] ?? reg[campo.charAt(0).toUpperCase() + campo.slice(1)] ?? '').trim();
+                if (val && !validos.has(val)) {
+                    erros.push(`Linha ${linha}: ${campo} "${val}" não existe no cadastro`);
+                }
+            }
+        });
+    });
+
+    return erros;
+}
+
 async function confirmarImport() {
-    // importArquivo é declarado no script inline do HTML
     if (!importArquivo) return;
 
-    const categoria = document.getElementById('importCategoria').value;
+    const _importCatEl  = document.getElementById('importCategoria');
+    const _importCatWrap = document.querySelector('[data-original-id="importCategoria"]');
+    const categoria = _importCatWrap?.getValue?.() ?? _importCatWrap?.querySelector('input[type=hidden]')?.value ?? _importCatEl?.value ?? '';
     const ext       = importArquivo.name.split('.').pop().toLowerCase();
 
-    // Inicia barra de progresso (funções de UI definidas no script inline do HTML)
-    mostrarProgressoImport('Lendo arquivo…', 20);
+    mostrarProgressoImport('Lendo arquivo…', 10);
     document.getElementById('btnConfirmarImport').disabled = true;
 
     try {
         let registros = [];
 
         if (ext === 'csv') {
-            // Lê o arquivo como texto e usa o parser interno
             const texto = await importArquivo.text();
             registros   = _parseCSV(texto);
         } else {
-            // XLSX / XLS — usa SheetJS carregado dinamicamente
             await _carregarScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
             const buffer = await importArquivo.arrayBuffer();
             const wb     = XLSX.read(buffer, { type: 'array' });
@@ -498,40 +597,188 @@ async function confirmarImport() {
             registros    = XLSX.utils.sheet_to_json(ws, { defval: '' });
         }
 
-        mostrarProgressoImport(`Enviando ${registros.length} registros para /${categoria}…`, 50);
+        // ── Validação de enums dinâmicos ──────────────────────────────
+        mostrarProgressoImport('Validando campos…', 25);
+        const errosValidacao = await _validarEnums(registros, categoria);
+        if (errosValidacao.length > 0) {
+            atualizarProgressoImport(100);
+            const linhas = errosValidacao.slice(0, 10).map(e => `• ${e}`).join('<br>');
+            const extra  = errosValidacao.length > 10 ? `<br>… e mais ${errosValidacao.length - 10} problema(s).` : '';
+            mostrarResultadoImport('error',
+                `<i class="fa-solid fa-circle-xmark"></i> <b>Importação cancelada — valores inválidos:</b><div style="margin-top:8px;font-size:12px;">${linhas}${extra}</div>`
+            );
+            document.getElementById('btnConfirmarImport').disabled = false;
+            return;
+        }
 
-        // Sanitiza cada registro antes de enviar:
-        //   - remove _id/id para que o backend gere um novo ID
-        //   - converte tipos para o formato esperado pelo backend .NET
+        // ── Validação de celularId (apenas chips) ──────────────────────
+        let celularesDisponiveis = null;
+        const _carregarCelulares = async () => {
+            if (celularesDisponiveis !== null) return;
+            try {
+                const lista = await getCelulares();
+                celularesDisponiveis = new Map((lista || []).map(c => [String(c._id || c.id), c]));
+            } catch (_) { celularesDisponiveis = new Map(); }
+        };
+
+        let celularesIgnorados = 0;
+        if (categoria === 'chips') {
+            const idsReferenciados = new Set();
+            registros.forEach(r => {
+                const id = String(r.celularId || r.CelularId || '').trim();
+                if (id) idsReferenciados.add(id);
+            });
+
+            if (idsReferenciados.size > 0) {
+                mostrarProgressoImport('Validando celulares…', 35);
+                await _carregarCelulares();
+                celularesIgnorados = [...idsReferenciados].filter(id => !celularesDisponiveis.has(id)).length;
+            }
+        }
+        let chipsDisponiveis = null;
+        const _carregarChips = async () => {
+            if (chipsDisponiveis !== null) return;
+            try {
+                const lista = await getChips();
+                chipsDisponiveis = new Map((lista || []).map(c => [String(c._id || c.id), c]));
+            } catch (_) { chipsDisponiveis = new Map(); }
+        };
+
+        let chipsIgnorados = 0;
+        if (categoria === 'celulares') {
+            const idsReferenciados = new Set();
+            const splitPipe = v => String(v || '').split('|').map(s => s.trim()).filter(Boolean);
+            registros.forEach(r => {
+                splitPipe(r.chipIds        || r.ChipIds        || '').forEach(id => idsReferenciados.add(id));
+                splitPipe(r.contasWhatsapp || r.ContasWhatsapp || '').forEach(id => idsReferenciados.add(id));
+            });
+
+            if (idsReferenciados.size > 0) {
+                mostrarProgressoImport('Validando chips…', 35);
+                await _carregarChips();
+                chipsIgnorados = [...idsReferenciados].filter(id => !chipsDisponiveis.has(id)).length;
+            }
+        }
+
+        mostrarProgressoImport(`Enviando ${registros.length} registros…`, 50);
+
         const registrosSanitizados = registros.map(r =>
             _coercirTipos(_sanitizarRegistro(r), categoria)
         );
 
         // Envia em sequência — POST /api/{categoria}
-        let ok = 0, erros = 0;
-        for (const reg of registrosSanitizados) {
+        let ok = 0, erros = 0, duplicados = 0;
+        const errosMensagens = new Map();
+        for (let idx = 0; idx < registrosSanitizados.length; idx++) {
+            const reg    = registrosSanitizados[idx];
+            const regRaw = registros[idx];
+
+            // Remove campos internos antes de enviar ao backend
+            const { _celularIdPendente, _chipIdsPendentes, _contasWhatsappPendentes, ...regParaEnvio } = reg;
+
             try {
-                // request() definida em api.js
-                await request(categoria, 'POST', reg);
+                const criado = await request(categoria, 'POST', regParaEnvio);
                 ok++;
+
+                // ── Vínculo de chips para celulares ──────────────────
+                if (categoria === 'celulares' && criado?._id) {
+                    const todosIds = [...new Set([
+                        ...(_chipIdsPendentes        || []),
+                        ...(_contasWhatsappPendentes || []),
+                    ])].filter(id => chipsDisponiveis?.has(id));
+
+                    for (const chipId of todosIds) {
+                        try {
+                            const chip = chipsDisponiveis.get(chipId);
+                            if (chip) await atualizarChip(chipId, { ...chip, celularId: criado._id });
+                        } catch (e) {
+                            console.warn(`Falha ao vincular chip ${chipId}:`, e);
+                        }
+                    }
+                }
+
+                // ── Vínculo de celularId para chips ──────────────────
+                if (categoria === 'chips' && criado?._id) {
+                    const celularId = _celularIdPendente;
+                    if (celularId && celularesDisponiveis?.has(celularId)) {
+                        try {
+                            const celular = celularesDisponiveis.get(celularId);
+                            const chipIdsAtuais = [...(celular.chipIds || [])];
+                            if (!chipIdsAtuais.includes(criado._id)) {
+                                chipIdsAtuais.push(criado._id);
+                                await request('celulares/' + celularId, 'PUT', { ...celular, chipIds: chipIdsAtuais });
+                            }
+                            // Atualiza o chip recém-criado com o celularId
+                            await atualizarChip(criado._id, { ...criado, celularId });
+                        } catch (e) {
+                            console.warn(`Falha ao vincular chip ao celular ${celularId}:`, e);
+                        }
+                    }
+                }
             } catch (e) {
-                console.warn('Falha ao importar registro:', reg, e);
-                erros++;
+                // Detecta duplicata pela mensagem do backend ou status 409
+                const msg = (
+                    e.corpo?.message || e.corpo?.Message ||
+                    e.corpo?.error   || e.corpo?.Error   ||
+                    (typeof e.corpo === 'string' ? e.corpo : '') ||
+                    e.message || ''
+                ).toLowerCase();
+
+                const isDuplicado = e.status === 409 ||
+                    msg.includes('duplicad') ||
+                    msg.includes('duplicate') ||
+                    msg.includes('já exist') ||
+                    msg.includes('already exist') ||
+                    msg.includes('unique');
+
+                if (isDuplicado) {
+                    duplicados++;
+                } else {
+                    erros++;
+                    // Agrupa erros iguais para não poluir
+                    const msgExibir = (
+                        e.corpo?.message || e.corpo?.Message ||
+                        e.corpo?.error   || e.corpo?.Error   ||
+                        (typeof e.corpo === 'string' ? e.corpo : '') ||
+                        `HTTP ${e.status || 'desconhecido'}`
+                    );
+                    errosMensagens.set(msgExibir, (errosMensagens.get(msgExibir) || 0) + 1);
+                    console.warn('Falha ao importar registro:', reg, e);
+                }
             }
-            const pct = 50 + Math.round((ok + erros) / registros.length * 50);
+            const pct = 50 + Math.round((ok + erros + duplicados) / registros.length * 50);
             atualizarProgressoImport(pct);
         }
 
         atualizarProgressoImport(100, 'Concluído.');
 
-        // Exibe resultado final via função de UI do script inline do HTML
-        if (erros === 0) {
+        // Monta mensagem de resultado
+        const partes = [];
+        if (ok > 0)                partes.push(`<b>${ok}</b> importado(s) com sucesso`);
+        if (duplicados > 0)        partes.push(`<b>${duplicados}</b> duplicado(s) ignorado(s)`);
+        if (chipsIgnorados > 0)    partes.push(`<b>${chipsIgnorados}</b> vínculo(s) de chip ignorado(s) — ID não encontrado`);
+        if (celularesIgnorados > 0) partes.push(`<b>${celularesIgnorados}</b> vínculo(s) de celular ignorado(s) — ID não encontrado`);
+        if (erros > 0)             partes.push(`<b>${erros}</b> com erro`);
+
+        let detalhesErro = '';
+        if (errosMensagens.size > 0) {
+            const linhas = [...errosMensagens.entries()]
+                .map(([msg, qtd]) => `• ${qtd}x: ${msg}`)
+                .join('<br>');
+            detalhesErro = `<div style="margin-top:8px;font-size:12px;opacity:0.85;">${linhas}</div>`;
+        }
+
+        if (erros === 0 && duplicados === 0 && chipsIgnorados === 0 && celularesIgnorados === 0) {
             mostrarResultadoImport('success',
-                `<i class="fa-solid fa-circle-check"></i> ${ok} registro(s) importado(s) com sucesso!`
+                `<i class="fa-solid fa-circle-check"></i> ${partes.join(', ')}.`
+            );
+        } else if (erros === 0) {
+            mostrarResultadoImport('warning',
+                `<i class="fa-solid fa-triangle-exclamation"></i> ${partes.join(', ')}.`
             );
         } else {
             mostrarResultadoImport('error',
-                `<i class="fa-solid fa-triangle-exclamation"></i> ${ok} importado(s), ${erros} com erro. Verifique o console para detalhes.`
+                `<i class="fa-solid fa-triangle-exclamation"></i> ${partes.join(', ')}.${detalhesErro}`
             );
         }
 
@@ -632,7 +879,6 @@ function _parseCSV(texto) {
  */
 function _coercirTipos(reg, categoria) {
 
-    // ── Helpers de conversão de tipo ────────────────────────────────
     const toBool = v =>
         v === true || v === 1 ||
         String(v).trim().toLowerCase() === 'true' ||
@@ -641,91 +887,122 @@ function _coercirTipos(reg, categoria) {
     const toInt = v => { const n = parseInt(v, 10);   return isNaN(n) ? 0 : n; };
     const toFlt = v => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? 0 : n; };
 
-    /**
-     * Extrai colunas indexadas do CSV (ex: ram_slot_0, ram_slot_1…) em array.
-     * @param {string} prefix prefixo das colunas indexadas
-     * @returns {Array}
-     */
+    // Parseia "val1 | val2 | val3" → ['val1','val2','val3'] (strings não vazias)
+    const splitPipe = v => String(v || '').split('|').map(s => s.trim()).filter(Boolean);
+
+    // Parseia campo de discos/placasVideo do CSV: '{"tipo":"SSD","tamanho":480} | {...}'
+    const parsearObjetos = (v) => {
+        if (!v || String(v).trim() === '') return [];
+        // Se já é array, retorna direto
+        if (Array.isArray(v)) return v;
+        return String(v).split('|').map(s => s.trim()).filter(Boolean).map(s => {
+            try { return JSON.parse(s); } catch (_) { return null; }
+        }).filter(Boolean);
+    };
+
+    // Extrai colunas indexadas legadas (ram_slot_0, disco_tipo_0…)
     const extrairIndexados = (prefix) => {
         const lista = [];
         let i = 0;
-        while (reg[`${prefix}${i}`] !== undefined) {
-            lista.push(reg[`${prefix}${i}`]);
-            i++;
-        }
+        while (reg[`${prefix}${i}`] !== undefined) { lista.push(reg[`${prefix}${i}`]); i++; }
         return lista;
     };
 
-    // ── Campos base de Equipamento (comuns a todas as categorias) ────
     const base = {
-        codigo:         reg.Codigo         || reg.codigo         || undefined,
-        usuario:        reg.Usuario        || reg.usuario        || '',
-        dataAquisicao:  reg.DataAquisicao  || reg.dataAquisicao  || new Date().toISOString(),
-        precoAquisicao: toFlt(reg.PrecoAquisicao ?? reg.precoAquisicao ?? 0),
-        ativo:          toBool(reg.Ativo   ?? reg.ativo          ?? true),
-        setor:          reg.Setor          || reg.setor          || '',
-        status:         reg.Status         || reg.status         || '',
-        observacoes:    reg.Observacoes    || reg.observacoes    || null,
+        codigo:         reg.codigo         || reg.Codigo         || undefined,
+        usuario:        reg.usuario        || reg.Usuario        || '',
+        dataAquisicao:  reg.dataAquisicao  || reg.DataAquisicao  || new Date().toISOString(),
+        precoAquisicao: toFlt(reg.precoAquisicao ?? reg.PrecoAquisicao ?? 0),
+        ativo:          toBool(reg.ativo   ?? reg.Ativo          ?? true),
+        setor:          reg.setor          || reg.Setor          || '',
+        status:         reg.status         || reg.Status         || '',
+        observacoes:    reg.observacoes    || reg.Observacoes    || null,
     };
 
-    // ── Computadores ─────────────────────────────────────────────────
     if (categoria === 'computadores') {
-        const memoriaRAM      = extrairIndexados('ram_slot_').filter(Boolean);
-        const conectoresVideo = extrairIndexados('conector_video_').filter(Boolean);
+        // memoriaRAM: "26 | 28 | 5" → [26, 28, 5]
+        const memoriaRAMRaw = reg.memoriaRAM || reg.MemoriaRAM || '';
+        const memoriaRAM = Array.isArray(memoriaRAMRaw)
+            ? memoriaRAMRaw.map(toInt)
+            : splitPipe(memoriaRAMRaw).map(toInt).filter(n => !isNaN(n));
+        // fallback legado
+        const memoriaRAMLegado = extrairIndexados('ram_slot_').filter(Boolean).map(toInt);
+        const ramFinal = memoriaRAM.length ? memoriaRAM : memoriaRAMLegado;
 
-        const discos = [];
-        let i = 0;
-        while (reg[`disco_tipo_${i}`] !== undefined) {
-            discos.push({
-                tipo:    reg[`disco_tipo_${i}`]              || 'HDD',
-                tamanho: toInt(reg[`disco_tamanho_${i}`] ?? 0),
-            });
-            i++;
+        // conectoresVideo: "HDMI | DVI | VGA" → ['HDMI','DVI','VGA']
+        const conectoresRaw = reg.conectoresVideo || reg.ConectoresVideo || '';
+        const conectoresVideo = Array.isArray(conectoresRaw)
+            ? conectoresRaw
+            : splitPipe(conectoresRaw);
+        const conectoresLegado = extrairIndexados('conector_video_').filter(Boolean);
+        const conectoresFinal = conectoresVideo.length ? conectoresVideo : conectoresLegado;
+
+        // discos: '{"tipo":"SSD","tamanho":480} | {...}' → [{tipo,tamanho}]
+        const discosRaw = reg.discos || reg.Discos || '';
+        let discos = Array.isArray(discosRaw) ? discosRaw : parsearObjetos(discosRaw);
+        if (!discos.length) {
+            // fallback legado: disco_tipo_0, disco_tamanho_0
+            let i = 0;
+            while (reg[`disco_tipo_${i}`] !== undefined) {
+                discos.push({ tipo: reg[`disco_tipo_${i}`] || 'HDD', tamanho: toInt(reg[`disco_tamanho_${i}`] ?? 0) });
+                i++;
+            }
+        } else {
+            discos = discos.map(d => ({ tipo: d.tipo || 'HDD', tamanho: toInt(d.tamanho ?? 0) }));
         }
 
-        const placasVideo = [];
-        i = 0;
-        while (reg[`gpu_tipo_${i}`] !== undefined) {
-            placasVideo.push({
-                tipo: reg[`gpu_tipo_${i}`] || 'Integrada',
-                vram: toInt(reg[`gpu_vram_${i}`] ?? 0),
-            });
-            i++;
+        // placasVideo: '{"tipo":"Dedicada","vram":4} | {...}' → [{tipo,vram}]
+        const placasRaw = reg.placasVideo || reg.PlacasVideo || '';
+        let placasVideo = Array.isArray(placasRaw) ? placasRaw : parsearObjetos(placasRaw);
+        if (!placasVideo.length) {
+            let i = 0;
+            while (reg[`gpu_tipo_${i}`] !== undefined) {
+                placasVideo.push({ tipo: reg[`gpu_tipo_${i}`] || 'Integrada', vram: toInt(reg[`gpu_vram_${i}`] ?? 0) });
+                i++;
+            }
+        } else {
+            placasVideo = placasVideo.map(p => ({ tipo: p.tipo || 'Integrada', vram: toInt(p.vram ?? 0) }));
         }
 
         return {
             ...base,
-            modelo:                    reg.Modelo              || reg.modelo              || '',
-            tipo:                      reg.Tipo                || reg.tipo                || '',
-            processadorId:             reg.ProcessadorId       || reg.processadorId       || null,
-            geracaoRAM:                reg.GeracaoRAM          || reg.geracaoRAM          || null,
-            quantidadeSlots:           memoriaRAM.length       || toInt(reg.QuantidadeSlots    ?? reg.quantidadeSlots    ?? 0),
-            memoriaRAM,
-            memoriaRAMTotal:           toInt(reg.MemoriaRAMTotal  ?? reg.memoriaRAMTotal  ?? 0),
-            velocidadeRAM:             toInt(reg.VelocidadeRAM    ?? reg.velocidadeRAM    ?? 0),
-            quantidadeDiscos:          discos.length           || toInt(reg.QuantidadeDiscos   ?? reg.quantidadeDiscos   ?? 0),
+            modelo:                    reg.modelo                    || reg.Modelo                    || '',
+            tipo:                      reg.tipo                      || reg.Tipo                      || '',
+            processadorId:             reg.processadorId             || reg.ProcessadorId             || null,
+            geracaoRAM:                reg.geracaoRAM                || reg.GeracaoRAM                || null,
+            quantidadeSlots:           ramFinal.length               || toInt(reg.quantidadeSlots     ?? reg.QuantidadeSlots    ?? 0),
+            memoriaRAM:                ramFinal,
+            memoriaRAMTotal:           toInt(reg.memoriaRAMTotal     ?? reg.MemoriaRAMTotal           ?? 0),
+            velocidadeRAM:             toInt(reg.velocidadeRAM       ?? reg.VelocidadeRAM             ?? 0),
+            quantidadeDiscos:          discos.length                 || toInt(reg.quantidadeDiscos    ?? reg.QuantidadeDiscos   ?? 0),
             discos,
-            quantidadePlacasVideo:     placasVideo.length      || toInt(reg.QuantidadePlacasVideo ?? reg.quantidadePlacasVideo ?? 0),
+            quantidadePlacasVideo:     placasVideo.length            || toInt(reg.quantidadePlacasVideo ?? reg.QuantidadePlacasVideo ?? 0),
             placasVideo,
-            quantidadeConectoresVideo: conectoresVideo.length  || toInt(reg.QuantidadeConectoresVideo ?? reg.quantidadeConectoresVideo ?? 0),
-            conectoresVideo,
-            sistemaOperacional:        reg.SistemaOperacional  || reg.sistemaOperacional  || null,
-            ativacaoSO:                reg.AtivacaoSO          || reg.ativacaoSO          || null,
-            office:                    reg.Office              || reg.office              || null,
-            ativacaoOffice:            reg.AtivacaoOffice      || reg.ativacaoOffice      || null,
-            ip:                        reg.IP                  || reg.ip                  || null,
+            quantidadeConectoresVideo: conectoresFinal.length        || toInt(reg.quantidadeConectoresVideo ?? reg.QuantidadeConectoresVideo ?? 0),
+            conectoresVideo:           conectoresFinal,
+            sistemaOperacional:        reg.sistemaOperacional        || reg.SistemaOperacional        || null,
+            ativacaoSO:                reg.ativacaoSO                || reg.AtivacaoSO                || null,
+            office:                    reg.office                    || reg.Office                    || null,
+            ativacaoOffice:            reg.ativacaoOffice            || reg.AtivacaoOffice            || null,
+            ip:                        reg.ip                        || reg.IP                        || null,
         };
     }
 
     // ── Celulares ────────────────────────────────────────────────────
     if (categoria === 'celulares') {
+        const splitPipe = v => String(v || '').split('|').map(s => s.trim()).filter(Boolean);
         return {
             ...base,
-            modelo:        reg.Modelo        || reg.modelo        || '',
-            memoriaRAM:    toInt(reg.MemoriaRAM    ?? reg.memoriaRAM    ?? 0),
-            armazenamento: toInt(reg.Armazenamento ?? reg.armazenamento ?? 0),
-            conectividade: reg.Conectividade  || reg.conectividade  || null,
-            operadora:     reg.Operadora      || reg.operadora      || null,
+            modelo:         reg.modelo        || reg.Modelo        || '',
+            memoriaRAM:     toInt(reg.memoriaRAM    ?? reg.MemoriaRAM    ?? 0),
+            armazenamento:  toInt(reg.armazenamento ?? reg.Armazenamento ?? 0),
+            conectividade:  reg.conectividade  || reg.Conectividade  || null,
+            operadora:      reg.operadora      || reg.Operadora      || null,
+            chipIds:        [],
+            contasWhatsapp: [],
+            // campos internos, removidos antes do POST
+            _chipIdsPendentes:        splitPipe(reg.chipIds        || reg.ChipIds        || ''),
+            _contasWhatsappPendentes: splitPipe(reg.contasWhatsapp || reg.ContasWhatsapp || ''),
         };
     }
 
@@ -794,13 +1071,16 @@ function _coercirTipos(reg, categoria) {
 
     // ── Chips ────────────────────────────────────────────────────────
     if (categoria === 'chips') {
+        const celularIdRaw = String(reg.CelularId || reg.celularId || '').trim();
         return {
             ...base,
             operadora: reg.Operadora || reg.operadora || '',
             numero:    reg.Numero    || reg.numero    || '',
             dono:      reg.Dono      || reg.dono      || null,
             plano:     toFlt(reg.Plano ?? reg.plano ?? 0),
-            celularId: reg.CelularId || reg.celularId || null,
+            // celularId será preenchido pós-criação se válido; envia null para o backend não rejeitar
+            celularId: null,
+            _celularIdPendente: celularIdRaw || null, // campo interno, removido antes do POST
         };
     }
 
@@ -808,8 +1088,9 @@ function _coercirTipos(reg, categoria) {
     if (categoria === 'extras') {
         return {
             ...base,
-            categoria: reg.Categoria || reg.categoria || '',
-            descricao: reg.Descricao || reg.descricao || null,
+            categoria:  reg.categoria  || reg.Categoria  || '',
+            descricao:  reg.descricao  || reg.Descricao  || null,
+            quantidade: toInt(reg.quantidade ?? reg.Quantidade ?? 1),
         };
     }
 

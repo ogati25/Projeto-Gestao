@@ -2717,11 +2717,16 @@
                                 ${detailField('Total',  d.disco.total, false, 'accent')}
                                 ${detailField('Discos', d.disco.discos?.length ?? '—')}
                             </div>
-                            ${d.disco.discos?.length ? d.disco.discos.map(dk => `
-                                <div class="detail-grid" style="margin-top:8px;">
-                                    ${detailField(`Disco ${dk.num} — Tipo`, dk.tipo, false)}
-                                    ${detailField(`Disco ${dk.num} — Tamanho`, dk.tamanho, false, 'accent')}
-                                </div>`).join('') : ''}
+                            ${d.disco.discos?.length ? `
+                            <div class="detail-chip-list" style="margin-top:10px;">
+                                ${d.disco.discos.map(dk => `
+                                <div class="detail-chip-item">
+                                    <div class="detail-chip-num">${dk.num}</div>
+                                    <div class="detail-chip-info">
+                                        <div class="detail-chip-title">${dk.tipo} <span class="detail-chip-sep">—</span><span class="detail-chip-value">${dk.tamanho}</span></div>
+                                    </div>
+                                </div>`).join('')}
+                            </div>` : ''}
                         </div>
 
                         <div class="modal-detail-section">
@@ -2729,11 +2734,15 @@
                                 <i class="fa-solid fa-display"></i> Placas de Vídeo
                             </div>
                             ${d.vram && d.vram.length
-                                ? d.vram.map(p => `
-                                    <div class="detail-grid" style="margin-bottom:8px;">
-                                        ${detailField('Tipo', p.tipo, false)}
-                                        ${detailField('VRAM', p.vram, false, 'accent')}
-                                    </div>`).join('')
+                                ? `<div class="detail-chip-list">
+                                    ${d.vram.map(p => `
+                                    <div class="detail-chip-item">
+                                        <div class="detail-chip-num">${p.num}</div>
+                                        <div class="detail-chip-info">
+                                            <div class="detail-chip-title">${p.tipo} <span class="detail-chip-sep">—</span><span class="detail-chip-value">${p.vram}</span></div>
+                                        </div>
+                                    </div>`).join('')}
+                                  </div>`
                                 : `<div class="detail-grid">${detailField('GPU', '—', true)}</div>`}
                         </div>
 
@@ -2741,11 +2750,33 @@
                             <div class="modal-detail-section-label">
                                 <i class="fa-solid fa-laptop-code"></i> SO &amp; Office
                             </div>
-                            <div class="detail-grid">
-                                ${detailField('Sistema',         d.so.so)}
-                                ${detailField('Ativação SO',     d.so.ativacao,     false, d.so.ativacao     !== '—' ? 'accent' : '')}
-                                ${detailField('Office',          d.office.versao)}
-                                ${detailField('Ativação Office', d.office.ativacao, false, d.office.ativacao !== '—' ? 'accent' : '')}
+                            <div style="display:flex;gap:8px;margin-bottom:8px;">
+                                <div class="detail-chip-item" style="flex:1;">
+                                    <div class="detail-chip-num" style="font-size:12px;"><i class="fa-solid fa-laptop-code"></i></div>
+                                    <div class="detail-chip-info">
+                                        <div class="detail-chip-title">Sistema <span class="detail-chip-sep">—</span><span class="detail-chip-value">${d.so.so}</span></div>
+                                    </div>
+                                </div>
+                                <div class="detail-chip-item" style="flex:1;">
+                                    <div class="detail-chip-num" style="font-size:12px;"><i class="fa-solid fa-key"></i></div>
+                                    <div class="detail-chip-info">
+                                        <div class="detail-chip-title"><span class="detail-chip-value">${d.so.ativacao}</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display:flex;gap:8px;">
+                                <div class="detail-chip-item" style="flex:1;">
+                                    <div class="detail-chip-num" style="font-size:12px;"><i class="fa-solid fa-file-word"></i></div>
+                                    <div class="detail-chip-info">
+                                        <div class="detail-chip-title">Office <span class="detail-chip-sep">—</span><span class="detail-chip-value">${d.office.versao}</span></div>
+                                    </div>
+                                </div>
+                                <div class="detail-chip-item" style="flex:1;">
+                                    <div class="detail-chip-num" style="font-size:12px;"><i class="fa-solid fa-key"></i></div>
+                                    <div class="detail-chip-info">
+                                        <div class="detail-chip-title"><span class="detail-chip-value">${d.office.ativacao}</span></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -2753,11 +2784,26 @@
                             <div class="modal-detail-section-label">
                                 <i class="fa-solid fa-plug"></i> Conectividade
                             </div>
-                            <div class="detail-grid">
+                            <div style="display:flex;flex-wrap:wrap;gap:10px;padding:4px 0;">
                                 ${Array.isArray(d.conectores) && d.conectores.length
-                                    ? d.conectores.map((c, i) => detailField(`Conector ${i + 1}`, c)).join('')
-                                    : detailField('Conectores de Vídeo', '—', true)}
-                                ${detailField('IP', d.ip, !Array.isArray(d.conectores) || !d.conectores.length)}
+                                    ? (() => {
+                                        const cores = { 'HDMI':'#3b82f6','DisplayPort':'#8b5cf6','VGA':'#f59e0b','DVI':'#10b981' };
+                                        return d.conectores.map(c => `
+                                            <div style="display:flex;align-items:center;gap:8px;background:var(--background-color);border:1px solid var(--border-color);border-radius:8px;padding:10px 16px;">
+                                                <span style="width:10px;height:10px;border-radius:50%;background:${cores[c]||'#64748b'};flex-shrink:0;"></span>
+                                                <span style="font-size:14px;font-weight:600;color:var(--text-primary);">${c}</span>
+                                            </div>`).join('');
+                                    })()
+                                    : '<span style="color:var(--text-muted);font-style:italic;">Nenhum conector registrado.</span>'}
+                            </div>
+                        </div>
+
+                        <div class="modal-detail-section">
+                            <div class="modal-detail-section-label">
+                                <i class="fa-solid fa-network-wired"></i> Rede
+                            </div>
+                            <div class="detail-grid">
+                                ${detailField('IP', d.ip, true)}
                             </div>
                         </div>
 
