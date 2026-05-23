@@ -1102,9 +1102,6 @@ function _coercirTipos(reg, categoria) {
  * Remove campos de ID do registro antes de enviar ao backend via POST.
  * Garante que o backend gere um novo ID ao criar o registro,
  * assim como acontece na criação normal pela UI.
- *
- * @param   {Object} reg Registro bruto do CSV/XLSX
- * @returns {Object}     Registro sem campos de ID
  */
 function _sanitizarRegistro(reg) {
     const ID_KEYS = new Set(['_id', 'id', 'Id', 'ID', '_Id', '_ID']);
