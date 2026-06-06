@@ -267,7 +267,7 @@
 </main>
 
 <script>
-const API         = 'http://localhost:5085';
+const API         = 'https://projeto-gestao-production.up.railway.app';
 const REFRESH_SEG = 30;
 
 // dados globais para o toggle de barras
@@ -369,7 +369,11 @@ function fmtHora() {
 // ── CARREGAR DASHBOARD ────────────────────────────────
 async function carregarDashboard() {
   try {
-    const res  = await fetch(`${API}/api/dashboard`);
+    const token = localStorage.getItem('tl_token');
+    const res  = await fetch(`${API}/api/dashboard`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.status === 401) { window.location.href = 'login.html'; return; }
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 

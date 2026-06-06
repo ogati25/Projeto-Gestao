@@ -748,7 +748,11 @@
     // ══════════════════════════════════════════════════════════
     //  CONFIG
     // ══════════════════════════════════════════════════════════
-    const API_BASE = 'http://localhost:5085/api/relatorio';
+    const API_BASE = 'https://projeto-gestao-production.up.railway.app/api/relatorio';
+    function authHeaders() {
+        const token = localStorage.getItem('tl_token');
+        return token ? { 'Authorization': `Bearer ${token}` } : {};
+    }
 
     // ══════════════════════════════════════════════════════════
     //  SIDEBAR & TEMA (mantém comportamento original)
@@ -845,7 +849,8 @@
 
         try {
             // ── Chama o preview da API ──────────────────────────────────
-            const res = await fetch(`${API_BASE}/preview?${params.toString()}`);
+            const res = await fetch(`${API_BASE}/preview?${params.toString()}`, { headers: authHeaders() });
+            if (res.status === 401) { window.location.href = 'login.html'; return; }
 
             if (!res.ok) {
                 const err = await res.json().catch(() => ({}));
@@ -1060,7 +1065,7 @@
 
         try {
             const params = montarParams();
-            const res = await fetch(`${API_BASE}/pdf?${params}`);
+            const res = await fetch(`${API_BASE}/pdf?${params}`, { headers: authHeaders() });
             if (!res.ok) throw new Error(`Erro ${res.status}`);
 
             const blob = await res.blob();
@@ -1088,7 +1093,7 @@
 
         try {
             const params = montarParams();
-            const res = await fetch(`${API_BASE}/excel?${params}`);
+            const res = await fetch(`${API_BASE}/excel?${params}`, { headers: authHeaders() });
             if (!res.ok) throw new Error(`Erro ${res.status}`);
 
             const blob        = await res.blob();
