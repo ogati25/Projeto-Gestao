@@ -48,7 +48,7 @@
             }
         }
 
-        /* ---- Mobile: empilha verticalmente ---- */
+        /* ---- Mobile: foto ao lado das infos ---- */
         @media (max-width: 680px) {
             .profile-layout {
                 grid-template-columns: 1fr;
@@ -57,14 +57,14 @@
             .profile-card {
                 flex-direction: row !important;
                 flex-wrap: nowrap !important;
-                align-items: flex-start;
+                align-items: flex-start !important;
+                text-align: left !important;
                 gap: 16px !important;
                 padding: 16px !important;
-                text-align: left !important;
             }
             .avatar-wrap { flex-shrink: 0; width: 70px !important; height: 70px !important; }
             .avatar-big { width: 70px !important; height: 70px !important; font-size: 26px !important; }
-            .profile-card-info { flex: 1; min-width: 0; overflow: hidden; }
+            .profile-card-info { align-items: flex-start !important; }
             .profile-name { font-size: 15px !important; }
             .profile-stat-list { width: 100%; }
             .form-grid { grid-template-columns: 1fr !important; }
@@ -74,11 +74,9 @@
 
         /* ---- XS: muito pequeno ---- */
         @media (max-width: 360px) {
-            .profile-card {
-                flex-direction: column !important;
-                align-items: center !important;
-                text-align: center !important;
-            }
+            .avatar-wrap { width: 55px !important; height: 55px !important; }
+            .avatar-big { width: 55px !important; height: 55px !important; font-size: 20px !important; }
+            .profile-name { font-size: 13px !important; }
         }
 
         /* ---- Card do avatar ---- */
@@ -89,10 +87,10 @@
             box-shadow: var(--card-shadow);
             padding: 28px 24px;
             display: flex;
-            flex-direction: row;
-            align-items: flex-start;
-            gap: 24px;
-            text-align: left;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            text-align: center;
         }
 
         .profile-card-info {
@@ -100,7 +98,9 @@
             min-width: 0;
             display: flex;
             flex-direction: column;
+            align-items: center;
             gap: 10px;
+            width: 100%;
         }
 
         .avatar-wrap {
