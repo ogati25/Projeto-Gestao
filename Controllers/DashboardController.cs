@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Projeto_Gestao.Services;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Projeto_Gestao.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]

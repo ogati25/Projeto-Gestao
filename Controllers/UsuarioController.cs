@@ -12,11 +12,13 @@ public class UsuariosController : ControllerBase
 {
     private readonly UsuarioService _usuarioService;
     private readonly EmailService   _emailService;
+    private readonly JwtService     _jwtService;
 
-    public UsuariosController(UsuarioService usuarioService, EmailService emailService)
+    public UsuariosController(UsuarioService usuarioService, EmailService emailService, JwtService jwtService)
     {
         _usuarioService = usuarioService;
         _emailService   = emailService;
+        _jwtService     = jwtService;
     }
 
     // ===================== CRIAÇÃO =====================
@@ -131,16 +133,21 @@ public class UsuariosController : ControllerBase
 
     // ===================== AUTENTICAÇÃO (LOGIN) =====================
     [HttpPost("authenticate")]
-    public async Task<ActionResult<UsuarioResponseDto>> Authenticate([FromBody] AuthenticateDto dto)
+    public async Task<IActionResult> Authenticate([FromBody] AuthenticateDto dto)
     {
         var usuario = await _usuarioService.AuthenticateAsync(dto.Email, dto.Senha);
         if (usuario == null)
             return Unauthorized(new { message = "Email ou senha inválidos." });
 
-        return Ok(MapToResponse(usuario));
+        var token = _jwtService.GerarToken(usuario);
+
+        return Ok(new
+        {
+            token,
+            usuario = MapToResponse(usuario)
+        });
     }
-
-
+    
     // ===================== RECUPERAÇÃO DE SENHA =====================
 
     // POST /api/usuarios/recuperar-senha

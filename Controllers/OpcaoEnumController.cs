@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Projeto_Gestao.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Projeto_Gestao.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/opcoes")]
 public class OpcoesEnumController : ControllerBase

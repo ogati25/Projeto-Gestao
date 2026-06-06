@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Projeto_Gestao.Models;
 using Projeto_Gestao.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Projeto_Gestao.Controllers;
 
 // controller oculto, somente para uso interno/admin
 // não aparece no frontend para o usuário comum
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class ProcessadoresController : ControllerBase

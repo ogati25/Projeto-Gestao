@@ -1,3 +1,6 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Projeto_Gestao.Settings;
 using Projeto_Gestao.Services;
 using QuestPDF.Infrastructure;
@@ -10,17 +13,40 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 
 QuestPDF.Settings.License = LicenseType.Community;
 
-// configurações do MongoDB
+// MongoDB
 builder.Services.Configure<MongoDbSettings>(
     builder.Configuration.GetSection("MongoDbSettings"));
 
-// configurações do serviço de e-mail (Gmail SMTP)
+// Email
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));
 
-builder.Services.AddSingleton<EmailService>();
+// JWT
+builder.Services.Configure<JwtSettings>(
+    builder.Configuration.GetSection("JwtSettings"));
 
-// registro dos services
+var jwtKey = builder.Configuration["JwtSettings:SecretKey"]
+    ?? throw new InvalidOperationException("JwtSettings:SecretKey não configurada.");
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtKey)),
+            ValidateIssuer   = false,
+            ValidateAudience = false,
+            ClockSkew        = TimeSpan.Zero
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+// Services
+builder.Services.AddSingleton<JwtService>();
+builder.Services.AddSingleton<EmailService>();
 builder.Services.AddSingleton<DashboardService>();
 builder.Services.AddSingleton<OpcaoEnumService>();
 builder.Services.AddSingleton<ProcessadorService>();
@@ -70,6 +96,7 @@ app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseCors();
 app.UseHttpsRedirection();
+app.UseAuthentication(); // <- novo, antes do Authorization
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
