@@ -36,11 +36,13 @@ builder.Services.AddSingleton<ExtraService>();
 builder.Services.AddSingleton<UsuarioService>();
 builder.Services.AddSingleton<RelatorioService>();
 
+var frontendUrl = builder.Configuration["FrontendUrl"] ?? "http://localhost:5500";
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(frontendUrl)
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
