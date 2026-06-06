@@ -88,7 +88,7 @@ body {
     overflow: hidden;
 }
 
-/* No estado fechado, esconde textos e elementos não-ícone */
+/* No estado fechado, esconde textos (animação já terminou) */
 .sidebar.closed .sidebar-brand h2,
 .sidebar.closed .search-box input,
 .sidebar.closed .search-box .clear-btn,
@@ -100,7 +100,35 @@ body {
     overflow: hidden;
     white-space: nowrap;
     pointer-events: none;
+    transition: none;
 }
+
+/* Durante o fechamento: encolhe o container mas mantém texto visível até acabar */
+.sidebar.collapsing {
+    width: 56px;
+    min-width: 56px;
+    padding: 20px 8px;
+    overflow: hidden;
+}
+.sidebar.collapsing .menu li a {
+    justify-content: center;
+    padding: 9px 0;
+    gap: 0;
+}
+.sidebar.collapsing .sidebar-brand {
+    justify-content: center;
+}
+.sidebar.collapsing .sidebar-footer {
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+.sidebar.collapsing .sidebar-footer .btn-logout {
+    padding: 6px;
+    justify-content: center;
+}
+.sidebar.collapsing .icon-close { display: none; }
+.sidebar.collapsing .icon-open { display: inline; }
 
 /* Brand: centraliza o ícone */
 .sidebar.closed .sidebar-brand {

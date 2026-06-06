@@ -97,8 +97,7 @@
     <i class="fa-solid fa-angles-right icon-open"></i>
   </button>
   <div class="sidebar-brand">
-      <img src="novatech-logo.png" alt="NovaTech Solutions" style="height:36px;width:auto;">
-      <h2>NovaTech Solutions</h2>
+    <img src="novatech-logo.png" alt="NovaTech Solutions" style="height:36px;width:auto;">
   </div>
   <div class="search-box">
     <i class="fa-solid fa-magnifying-glass"></i>
@@ -290,8 +289,21 @@ let _inativosGlobal     = null;
 })();
 
 // ── SIDEBAR ───────────────────────────────────────────
-document.getElementById('toggleSidebar').addEventListener('click', () =>
-  document.getElementById('sidebar').classList.toggle('closed'));
+document.getElementById('toggleSidebar').addEventListener('click', () => {
+  const sidebar = document.getElementById('sidebar');
+  const isClosing = !sidebar.classList.contains('closed');
+  if (isClosing) {
+    sidebar.classList.add('collapsing');
+    sidebar.addEventListener('transitionend', function handler(e) {
+      if (e.propertyName !== 'width') return;
+      sidebar.classList.remove('collapsing');
+      sidebar.classList.add('closed');
+      sidebar.removeEventListener('transitionend', handler);
+    });
+  } else {
+    sidebar.classList.remove('closed');
+  }
+});
 document.querySelector('.clear-btn')?.addEventListener('click', () =>
   document.querySelector('.search-box input').value = '');
 const currentPage = (window.location.pathname.split('/').pop() || '').split('?')[0] || 'dashboard.html';
