@@ -47,7 +47,28 @@ if (typeof activeFilters   === 'undefined') var activeFilters   = [];
 
 // ── Paginação ──────────────────────────────────────────────
 let _paginaAtual  = 1;
-let _itensPorPagina = 25;
+// Lê configurações salvas pelo usuário em configuracoes.html
+const _tlConfig        = JSON.parse(localStorage.getItem('tl_config') || '{}');
+let _itensPorPagina    = parseInt(_tlConfig.itensPagina) || 25;
+const _formatoData     = _tlConfig.formatoData || 'DD/MM/AAAA';
+
+/**
+ * Formata uma data ISO respeitando o formato configurado pelo usuário.
+ * Formatos suportados: DD/MM/AAAA, MM/DD/AAAA, AAAA-MM-DD
+ */
+function formatarData(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    if (isNaN(d)) return '—';
+    const dd   = String(d.getDate()).padStart(2, '0');
+    const mm   = String(d.getMonth() + 1).padStart(2, '0');
+    const aaaa = d.getFullYear();
+    switch (_formatoData) {
+        case 'MM/DD/AAAA': return `${mm}/${dd}/${aaaa}`;
+        case 'AAAA-MM-DD': return `${aaaa}-${mm}-${dd}`;
+        default:           return `${dd}/${mm}/${aaaa}`;
+    }
+}
 let _dadosPaginados = []; // snapshot dos dados filtrados/ordenados
 
 // ── Enums DINÂMICOS ─────────────────────────────────────────────────────────
@@ -1150,7 +1171,13 @@ function renderFields(containerId, category, mode, prefillData = {}) {
             getProcessadores().then(lista => {
                 const opcoes = (lista || []).map(p => ({
                     value: p.id,
-                    label: `${p.nome} ${p.velocidade}GHz (${p.nucleosThreads?.nucleos}c/${p.nucleosThreads?.threads}t)`
+                    label: (() => {
+                        const nt = p.nucleosThreads;
+                        const nuc = nt?.item1 ?? nt?.nucleos;
+                        const thr = nt?.item2 ?? nt?.threads;
+                        const cores = (nuc && thr) ? ` (${nuc}c/${thr}t)` : '';
+                        return `${p.nome} ${p.velocidade}GHz${cores}`;
+                    })()
                 }));
                 // Substitui o select nativo pelo dropdown customizado
                 const cd = criarCustomDropdown(f.key, opcoes, prefillData[f.key] || '', '— Selecione o processador —');
@@ -1399,6 +1426,161 @@ function renderRow(categoria, item, modo) {
     const tr = document.createElement('tr');
     if (!item.ativo) tr.classList.add('row-inactive');
 
+    // Badge de status — cor por tipo de estado
+    const STATUS_MAP = {
+        'emuso':              { cls: 'badge-success', label: 'Em Uso'              },
+        'disponível':         { cls: 'badge-info',    label: 'Disponível'          },
+        'disponivel':         { cls: 'badge-info',    label: 'Disponível'          },
+        'emestoque':          { cls: 'badge-info',    label: 'Em Estoque'          },
+        'emmanutenção':       { cls: 'badge-warning', label: 'Em Manutenção'       },
+        'emmanutencao':       { cls: 'badge-warning', label: 'Em Manutenção'       },
+        'necessitamanutenção':{ cls: 'badge-warning', label: 'Necessita Manutenção'},
+        'necessitamanutencao':{ cls: 'badge-warning', label: 'Necessita Manutenção'},
+        'desativado':         { cls: 'badge-gray',    label: 'Desativado'          },
+        'inativo':            { cls: 'badge-gray',    label: 'Inativo'             },
+        'indisponível':       { cls: 'badge-gray',    label: 'Indisponível'        },
+        'indisponivel':       { cls: 'badge-gray',    label: 'Indisponível'        },
+        'descartado':         { cls: 'badge-danger',  label: 'Descartado'          },
+        'vendido':            { cls: 'badge-danger',  label: 'Vendido'             },
+        'aguardandodescarte': { cls: 'badge-danger',  label: 'Aguardando Descarte' },
+    };
+    const statusBadge = (s) => {
+        if (!s) return '<span class="badge badge-gray">—</span>';
+        const key = s.toLowerCase().replace(/[\s_]/g, '');
+        const m = STATUS_MAP[key] || { cls: 'badge-gray', label: s };
+        return `<span class="badge ${m.cls}">${m.label}</span>`;
+    };
+
+    // Badge de ativação SO e Office
+    const ATIVACAO_MAP = {
+        'original_fabrica':  { cls: 'badge-success', label: 'Original Fábrica'  },
+        'originalfabrica':   { cls: 'badge-success', label: 'Original Fábrica'  },
+        'original_comprada': { cls: 'badge-info',    label: 'Original Comprada' },
+        'originalcomprada':  { cls: 'badge-info',    label: 'Original Comprada' },
+        'assinatura':        { cls: 'badge-info',    label: 'Assinatura'        },
+        'microsoft365':      { cls: 'badge-info',    label: 'Microsoft 365'     },
+        'desativado':        { cls: 'badge-gray',    label: 'Desativado'        },
+        'nao_possui':        { cls: 'badge-gray',    label: 'Não Possui'        },
+        'naopossui':         { cls: 'badge-gray',    label: 'Não Possui'        },
+        'pirata':            { cls: 'badge-danger',  label: 'Pirata'            },
+    };
+    const ativacaoBadge = (s) => {
+        if (!s || s === '—') return '<span style="color:var(--text-muted)">—</span>';
+        const key = s.toLowerCase().replace(/[\s]/g, '');
+        const m = ATIVACAO_MAP[key] || { cls: 'badge-gray', label: s };
+        return `<span class="badge ${m.cls}">${m.label}</span>`;
+    };
+
+    // Badge de setor — cor gerada por hash do nome (consistente por setor)
+    const SETOR_PALETA = [
+        { bg: '#dbeafe', color: '#1e40af', dbg: 'rgba(30,64,175,.28)',  dc: '#93c5fd' },
+        { bg: '#e0e7ff', color: '#3730a3', dbg: 'rgba(55,48,163,.28)',  dc: '#a5b4fc' },
+        { bg: '#d1fae5', color: '#065f46', dbg: 'rgba(6,95,70,.28)',    dc: '#34d399' },
+        { bg: '#fce7f3', color: '#9d174d', dbg: 'rgba(157,23,77,.28)',  dc: '#f9a8d4' },
+        { bg: '#ede9fe', color: '#5b21b6', dbg: 'rgba(91,33,182,.28)',  dc: '#c4b5fd' },
+        { bg: '#ffedd5', color: '#9a3412', dbg: 'rgba(154,52,18,.28)',  dc: '#fdba74' },
+        { bg: '#cffafe', color: '#164e63', dbg: 'rgba(22,78,99,.28)',   dc: '#67e8f9' },
+        { bg: '#f0fdf4', color: '#166534', dbg: 'rgba(22,101,52,.28)',  dc: '#86efac' },
+        { bg: '#fef9c3', color: '#854d0e', dbg: 'rgba(133,77,14,.28)',  dc: '#fde047' },
+        { bg: '#f1f5f9', color: '#334155', dbg: 'rgba(51,65,85,.35)',   dc: '#94a3b8' },
+        { bg: '#fee2e2', color: '#991b1b', dbg: 'rgba(153,27,27,.28)',  dc: '#fca5a5' },
+        { bg: '#e0e7ff', color: '#3730a3', dbg: 'rgba(55,48,163,.28)',  dc: '#a5b4fc' },
+        { bg: '#fdf4ff', color: '#7e22ce', dbg: 'rgba(126,34,206,.28)', dc: '#d8b4fe' },
+        { bg: '#ecfdf5', color: '#047857', dbg: 'rgba(4,120,87,.28)',   dc: '#6ee7b7' },
+        { bg: '#fff7ed', color: '#c2410c', dbg: 'rgba(194,65,12,.28)',  dc: '#fb923c' },
+        { bg: '#f0f9ff', color: '#0369a1', dbg: 'rgba(3,105,161,.28)',  dc: '#7dd3fc' },
+        { bg: '#fdf2f8', color: '#be185d', dbg: 'rgba(190,24,93,.28)',  dc: '#f472b6' },
+        { bg: '#f7fee7', color: '#3f6212', dbg: 'rgba(63,98,18,.28)',   dc: '#a3e635' },
+        { bg: '#fffbeb', color: '#b45309', dbg: 'rgba(180,83,9,.28)',   dc: '#fbbf24' },
+        { bg: '#e8f5e9', color: '#1b5e20', dbg: 'rgba(27,94,32,.28)',   dc: '#4ade80' },
+        { bg: '#e3f2fd', color: '#0d47a1', dbg: 'rgba(13,71,161,.28)',  dc: '#60a5fa' },
+        { bg: '#fce4ec', color: '#880e4f', dbg: 'rgba(136,14,79,.28)',  dc: '#f9a8d4' },
+        { bg: '#e8eaf6', color: '#283593', dbg: 'rgba(40,53,147,.28)',  dc: '#818cf8' },
+        { bg: '#e0f2f1', color: '#004d40', dbg: 'rgba(0,77,64,.28)',    dc: '#5eead4' },
+        { bg: '#f3e5f5', color: '#4a148c', dbg: 'rgba(74,20,140,.28)',  dc: '#e879f9' },
+        { bg: '#fff3e0', color: '#bf360c', dbg: 'rgba(191,54,12,.28)',  dc: '#fb923c' },
+        { bg: '#e1f5fe', color: '#01579b', dbg: 'rgba(1,87,155,.28)',   dc: '#38bdf8' },
+        { bg: '#fafafa', color: '#212121', dbg: 'rgba(71,85,105,.30)',  dc: '#cbd5e1' },
+        { bg: '#e8f5e9', color: '#2e7d32', dbg: 'rgba(46,125,50,.28)',  dc: '#4ade80' },
+        { bg: '#ede7f6', color: '#4527a0', dbg: 'rgba(69,39,160,.28)',  dc: '#a78bfa' },
+    ];
+
+    // Injeta CSS dinâmico das paletas de setor (light + dark) uma única vez
+    if (!document.getElementById('setor-badge-styles')) {
+        const rules = SETOR_PALETA.map((p, i) =>
+            `.badge-setor-${i}{background:${p.bg};color:${p.color};}` +
+            `body.dark .badge-setor-${i}{background:${p.dbg};color:${p.dc};}`
+        ).join('');
+        const el = document.createElement('style');
+        el.id = 'setor-badge-styles';
+        el.textContent = rules;
+        document.head.appendChild(el);
+    }
+
+    const setorBadge = (s) => {
+        if (!s || s === '—') return '<span style="color:var(--text-muted)">—</span>';
+        let hash = 0;
+        for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) & 0xffff;
+        const idx = hash % SETOR_PALETA.length;
+        return `<span class="badge badge-setor-${idx}">${s}</span>`;
+    };
+
+    // Formata tipo removendo underscores
+    const formatTipo = (s) => s ? s.replace(/_/g, ' ') : '—';
+
+    // Formata conectividade com nomes corretos
+    const CONECT_MAP = {
+        'usb_c':      'USB-C',
+        'usbc':       'USB-C',
+        'microusb':   'MicroUSB',
+        'micro_usb':  'MicroUSB',
+        'miniusb':    'MiniUSB',
+        'mini_usb':   'MiniUSB',
+        'lightning':  'Lightning',
+        'usb_a':      'USB-A',
+        'usba':       'USB-A',
+        'thunderbolt':'Thunderbolt',
+        'pogo_pin':   'Pogo Pin',
+        'pogopin':    'Pogo Pin',
+        'proprietario':'Proprietário',
+    };
+    const formatConectividade = (s) => {
+        if (!s || s === '—') return '—';
+        const key = s.toLowerCase().replace(/[\s-]/g, '_');
+        return CONECT_MAP[key] || s.replace(/_/g, ' ');
+    };
+
+    // Badge de Sistema Operacional
+    const soBadge = (s) => {
+        if (!s || s === '—') return '<span style="color:var(--text-muted)">—</span>';
+        const key = s.toLowerCase().replace(/[_\s]/g, '');
+        if (key.startsWith('windows')) return `<span class="badge badge-info">${s}</span>`;
+        if (key === 'linux' || key === 'ubuntu' || key === 'debian' || key === 'fedora')
+            return `<span class="badge badge-warning">${s}</span>`;
+        if (key === 'macos' || key === 'ios')
+            return `<span class="badge badge-gray">${s}</span>`;
+        return `<span class="badge badge-gray">${s}</span>`;
+    };
+
+    // Badge de Office
+    const OFFICE_MAP = {
+        'microsoft365':  { cls: 'badge-info',    label: 'Microsoft 365'  },
+        'office2021':    { cls: 'badge-warning',  label: 'Office 2021'    },
+        'office2019':    { cls: 'badge-warning',  label: 'Office 2019'    },
+        'office2016':    { cls: 'badge-warning',  label: 'Office 2016'    },
+        'office2013':    { cls: 'badge-warning',  label: 'Office 2013'    },
+        'libreoffice':   { cls: 'badge-warning',  label: 'LibreOffice'    },
+        'naopossui':     { cls: 'badge-gray',     label: 'Não Possui'     },
+        'nao_possui':    { cls: 'badge-gray',     label: 'Não Possui'     },
+        'desativado':    { cls: 'badge-gray',     label: 'Desativado'     },
+    };
+    const officeBadge = (s) => {
+        if (!s || s === '—') return '<span style="color:var(--text-muted)">—</span>';
+        const key = s.toLowerCase().replace(/[\s_]/g, '');
+        const m = OFFICE_MAP[key] || { cls: 'badge-warning', label: s };
+        return `<span class="badge ${m.cls}">${m.label}</span>`;
+    };
+
     // Badge de ativo/inativo — visual definido pelo frontend, dados vêm do backend
     const ativoBadge = item.ativo
         ? '<span class="badge badge-success">Sim</span>'
@@ -1419,7 +1601,7 @@ function renderRow(categoria, item, modo) {
 
     // Formatação de data e preço
     const data  = item.dataAquisicao
-        ? new Date(item.dataAquisicao).toLocaleDateString('pt-BR')
+        ? formatarData(item.dataAquisicao)
         : '—';
     const preco = item.precoAquisicao != null
         ? `R$ ${Number(item.precoAquisicao).toFixed(2).replace('.', ',')}`
@@ -1484,7 +1666,7 @@ function renderRow(categoria, item, modo) {
                 nome:       item.processador?.nome || proc,
                 velocidade: item.processador?.velocidade ? `${item.processador.velocidade} GHz` : '—',
                 nucleos:    item.processador?.nucleosThreads
-                    ? `${item.processador.nucleosThreads.nucleos} núcleos / ${item.processador.nucleosThreads.threads} threads`
+                    ? `${item.processador.nucleosThreads.item1 ?? item.processador.nucleosThreads.nucleos} núcleos / ${item.processador.nucleosThreads.item2 ?? item.processador.nucleosThreads.threads} threads`
                     : '—',
             }
         };
@@ -1590,7 +1772,7 @@ function renderRow(categoria, item, modo) {
             cells = `
                 <td>${item.codigo || '—'}</td>
                 <td>${item.modelo || '—'}</td>
-                <td>${item.tipo   || '—'}</td>
+                <td>${formatTipo(item.tipo)}</td>
 
                 <td>
                     <div class="cell-preview">
@@ -1630,7 +1812,7 @@ function renderRow(categoria, item, modo) {
 
                 <td>
                     <div class="cell-preview">
-                        <span class="cell-preview-value">${item.sistemaOperacional || '—'}</span>
+                        <span class="cell-preview-value">${soBadge(item.sistemaOperacional)}</span>
                         <button class="expand-btn" data-detail='${JSON.stringify(soDetail)}' title="Ver ativação do SO">
                             <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
                         </button>
@@ -1639,15 +1821,15 @@ function renderRow(categoria, item, modo) {
 
                 <td>
                     <div class="cell-preview">
-                        <span class="cell-preview-value">${item.office || '—'}</span>
+                        <span class="cell-preview-value">${officeBadge(item.office)}</span>
                         <button class="expand-btn" data-detail='${JSON.stringify(officeDetail)}' title="Ver ativação do Office">
                             <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
                         </button>
                     </div>
                 </td>
 
-                <td>${item.status || '—'}</td>
-                <td>${item.setor  || '—'}</td>
+                <td>${statusBadge(item.status)}</td>
+                <td>${setorBadge(item.setor)}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
                 <td class="col-acoes">${acoesComInfo}</td>`;
@@ -1655,13 +1837,13 @@ function renderRow(categoria, item, modo) {
             cells = `
                 <td>${item.codigo || '—'}</td>
                 <td>${item.modelo || '—'}</td>
-                <td>${item.tipo || '—'}</td>
+                <td>${formatTipo(item.tipo)}</td>
                 <td>${data}</td>
                 <td>${preco}</td>
-                <td>${item.ativacaoSO || '—'}</td>
-                <td>${item.ativacaoOffice || '—'}</td>
-                <td>${item.status || '—'}</td>
-                <td>${item.setor || '—'}</td>
+                <td>${ativacaoBadge(item.ativacaoSO)}</td>
+                <td>${ativacaoBadge(item.ativacaoOffice)}</td>
+                <td>${statusBadge(item.status)}</td>
+                <td>${setorBadge(item.setor)}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
                 <td class="col-acoes">${_acoesComObs}</td>`;
@@ -1726,8 +1908,8 @@ function renderRow(categoria, item, modo) {
                         ${qtdEntradas > 0 ? btnInfoMonitor : ''}
                     </div>
                 </td>
-                <td>${item.status || '—'}</td>
-                <td>${item.setor || '—'}</td>
+                <td>${statusBadge(item.status)}</td>
+                <td>${setorBadge(item.setor)}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
                 <td class="col-acoes">${acoesMonitorInfo}</td>`;
@@ -1737,8 +1919,8 @@ function renderRow(categoria, item, modo) {
                 <td>${item.modelo || '—'}</td>
                 <td>${data}</td>
                 <td>${preco}</td>
-                <td>${item.status || '—'}</td>
-                <td>${item.setor || '—'}</td>
+                <td>${statusBadge(item.status)}</td>
+                <td>${setorBadge(item.setor)}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
                 <td class="col-acoes">${_acoesComObs}</td>`;
@@ -1762,10 +1944,10 @@ function renderRow(categoria, item, modo) {
             cells = `
                 <td>${item.codigo || '—'}</td>
                 <td>${item.modelo || '—'}</td>
-                <td>${item.conectividade || '—'}</td>
-                <td>${item.tipo || '—'}</td>
-                <td>${item.status || '—'}</td>
-                <td>${item.setor || '—'}</td>
+                <td>${formatConectividade(item.conectividade)}</td>
+                <td>${formatTipo(item.tipo)}</td>
+                <td>${statusBadge(item.status)}</td>
+                <td>${setorBadge(item.setor)}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
                 <td class="col-acoes">${acoesMouseInfo}</td>`;
@@ -1775,8 +1957,8 @@ function renderRow(categoria, item, modo) {
                 <td>${item.modelo || '—'}</td>
                 <td>${data}</td>
                 <td>${preco}</td>
-                <td>${item.status || '—'}</td>
-                <td>${item.setor || '—'}</td>
+                <td>${statusBadge(item.status)}</td>
+                <td>${setorBadge(item.setor)}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
                 <td class="col-acoes">${_acoesComObs}</td>`;
@@ -1802,12 +1984,12 @@ function renderRow(categoria, item, modo) {
             cells = `
                 <td>${item.codigo || '—'}</td>
                 <td>${item.modelo || '—'}</td>
-                <td>${item.conectividade || '—'}</td>
-                <td>${item.tipo || '—'}</td>
+                <td>${formatConectividade(item.conectividade)}</td>
+                <td>${formatTipo(item.tipo)}</td>
                 <td>${item.switch || '—'}</td>
                 <td>${item.tamanho ? item.tamanho + '%' : '—'}</td>
-                <td>${item.status || '—'}</td>
-                <td>${item.setor || '—'}</td>
+                <td>${statusBadge(item.status)}</td>
+                <td>${setorBadge(item.setor)}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
                 <td class="col-acoes">${acoesTecladoInfo}</td>`;
@@ -1817,8 +1999,8 @@ function renderRow(categoria, item, modo) {
                 <td>${item.modelo || '—'}</td>
                 <td>${data}</td>
                 <td>${preco}</td>
-                <td>${item.status || '—'}</td>
-                <td>${item.setor || '—'}</td>
+                <td>${statusBadge(item.status)}</td>
+                <td>${setorBadge(item.setor)}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
                 <td class="col-acoes">${_acoesComObs}</td>`;
@@ -1843,11 +2025,11 @@ function renderRow(categoria, item, modo) {
             cells = `
                 <td>${item.codigo || '—'}</td>
                 <td>${item.modelo || '—'}</td>
-                <td>${item.tipo || '—'}</td>
-                <td>${item.conectividade || '—'}</td>
+                <td>${formatTipo(item.tipo)}</td>
+                <td>${formatConectividade(item.conectividade)}</td>
                 <td>${item.microfone ? 'Sim' : 'Não'}</td>
-                <td>${item.status || '—'}</td>
-                <td>${item.setor || '—'}</td>
+                <td>${statusBadge(item.status)}</td>
+                <td>${setorBadge(item.setor)}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
                 <td class="col-acoes">${acoesFoneInfo}</td>`;
@@ -1857,8 +2039,8 @@ function renderRow(categoria, item, modo) {
                 <td>${item.modelo || '—'}</td>
                 <td>${data}</td>
                 <td>${preco}</td>
-                <td>${item.status || '—'}</td>
-                <td>${item.setor || '—'}</td>
+                <td>${statusBadge(item.status)}</td>
+                <td>${setorBadge(item.setor)}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
                 <td class="col-acoes">${_acoesComObs}</td>`;
@@ -1942,7 +2124,7 @@ function renderRow(categoria, item, modo) {
                 <td>${item.modelo || '—'}</td>
                 <td>${item.armazenamento ? item.armazenamento + ' GB' : '—'}</td>
                 <td>${item.memoriaRAM ? item.memoriaRAM + ' GB' : '—'}</td>
-                <td>${item.conectividade || '—'}</td>
+                <td>${formatConectividade(item.conectividade)}</td>
 
                 <td>
                     <div class="cell-preview">
@@ -1964,8 +2146,8 @@ function renderRow(categoria, item, modo) {
                     </div>
                 </td>
 
-                <td>${item.status || '—'}</td>
-                <td>${item.setor || '—'}</td>
+                <td>${statusBadge(item.status)}</td>
+                <td>${setorBadge(item.setor)}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
                 <td class="col-acoes">${acoesCelularInfo}</td>`;
@@ -1975,8 +2157,8 @@ function renderRow(categoria, item, modo) {
                 <td>${item.modelo || '—'}</td>
                 <td>${data}</td>
                 <td>${preco}</td>
-                <td>${item.status || '—'}</td>
-                <td>${item.setor || '—'}</td>
+                <td>${statusBadge(item.status)}</td>
+                <td>${setorBadge(item.setor)}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
                 <td class="col-acoes">${_acoesComObs}</td>`;
@@ -2002,13 +2184,13 @@ function renderRow(categoria, item, modo) {
                 <td>${item.codigo || '—'}</td>
                 <td>${item.modelo || '—'}</td>
                 <td>${item.cor || '—'}</td>
-                <td>${item.tipo || '—'}</td>
+                <td>${formatTipo(item.tipo)}</td>
                 <td>${item.ip        || '—'}</td>
                 <td>${item.linha     || '—'}</td>
                 <td>${item.numero    || '—'}</td>
                 <td>${item.configurado ? 'Sim' : 'Não'}</td>
-                <td>${item.status || '—'}</td>
-                <td>${item.setor || '—'}</td>
+                <td>${statusBadge(item.status)}</td>
+                <td>${setorBadge(item.setor)}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
                 <td class="col-acoes">${acoesRamalInfo}</td>`;
@@ -2020,8 +2202,8 @@ function renderRow(categoria, item, modo) {
                 <td>${item.numero || '—'}</td>
                 <td>${data}</td>
                 <td>${preco}</td>
-                <td>${item.status || '—'}</td>
-                <td>${item.setor || '—'}</td>
+                <td>${statusBadge(item.status)}</td>
+                <td>${setorBadge(item.setor)}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
                 <td class="col-acoes">${_acoesComObs}</td>`;
@@ -2053,8 +2235,8 @@ function renderRow(categoria, item, modo) {
                     const cel = (window._celularesCache || []).find(c => c.id === item.celularId);
                     return cel ? (cel.codigo || cel.id) : item.celularId;
                 })()}</td>
-                <td>${item.status || '—'}</td>
-                <td>${item.setor || '—'}</td>
+                <td>${statusBadge(item.status)}</td>
+                <td>${setorBadge(item.setor)}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
                 <td class="col-acoes">${acoesChipInfo}</td>`;
@@ -2063,11 +2245,11 @@ function renderRow(categoria, item, modo) {
                 <td>${item.codigo || '—'}</td>
                 <td>${item.numero || '—'}</td>
                 <td>${item.operadora || '—'}</td>
-                <td>${item.plano || '—'}</td>
+                <td>${item.plano != null && item.plano !== '' ? 'R$ ' + Number(item.plano).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—'}</td>
                 <td>${data}</td>
                 <td>${preco}</td>
-                <td>${item.status || '—'}</td>
-                <td>${item.setor || '—'}</td>
+                <td>${statusBadge(item.status)}</td>
+                <td>${setorBadge(item.setor)}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
                 <td class="col-acoes">${_acoesComObs}</td>`;
@@ -2093,8 +2275,8 @@ function renderRow(categoria, item, modo) {
                 <td>${item.categoria || '—'}</td>
                 <td>${item.descricao || '—'}</td>
                 <td>${item.quantidade ?? '—'}</td>
-                <td>${item.status || '—'}</td>
-                <td>${item.setor || '—'}</td>
+                <td>${statusBadge(item.status)}</td>
+                <td>${setorBadge(item.setor)}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
                 <td class="col-acoes">${acoesExtraInfo}</td>`;
@@ -2105,8 +2287,8 @@ function renderRow(categoria, item, modo) {
                 <td>${item.quantidade ?? '—'}</td>
                 <td>${data}</td>
                 <td>${preco}</td>
-                <td>${item.status || '—'}</td>
-                <td>${item.setor || '—'}</td>
+                <td>${statusBadge(item.status)}</td>
+                <td>${setorBadge(item.setor)}</td>
                 <td>${item.usuario || '—'}</td>
                 <td class="cell-ativo">${ativoBadge}</td>
                 <td class="col-acoes">${_acoesComObs}</td>`;
@@ -2156,7 +2338,7 @@ function extrairValorFiltro(item, key) {
         id:              item.id,
         codigo:          item.codigo,
         usuario:         item.usuario,
-        dataAquisicao:   item.dataAquisicao ? new Date(item.dataAquisicao).toLocaleDateString('pt-BR') : '',
+        dataAquisicao:   item.dataAquisicao ? formatarData(item.dataAquisicao) : '',
         precoAquisicao:  item.precoAquisicao != null ? String(item.precoAquisicao) : '',
         observacoes:     item.observacoes,
         ativo:           item.ativo === true ? 'Sim' : 'Não',
@@ -3228,9 +3410,81 @@ function updateFilterValueOptions() {
 
     // Monta as opções base
     let opcoes = [];
+
+    // Dicionário de traduções para todos os valores conhecidos
+    const LABEL_MAP = {
+        // Status
+        'EmUso':               'Em Uso',
+        'EmManutencao':        'Em Manutenção',
+        'EmManutenção':        'Em Manutenção',
+        'AguardandoDescarte':  'Aguardando Descarte',
+        'NecessitaManutencao': 'Necessita Manutenção',
+        'NecessitaManutenção': 'Necessita Manutenção',
+        'Descartado':          'Descartado',
+        'Desativado':          'Desativado',
+        'Indisponivel':        'Indisponível',
+        'Indisponível':        'Indisponível',
+        'EmEstoque':           'Em Estoque',
+        'AguardandoDescarte':  'Aguardando Descarte',
+        // Ativação SO / Office
+        'Original_Fabrica':    'Original Fábrica',
+        'Original_Comprada':   'Original Comprada',
+        'NaoPossui':           'Não Possui',
+        'Nao_Possui':          'Não Possui',
+        'Pirata':              'Pirata',
+        'Assinatura':          'Assinatura',
+        'Desativado':          'Desativado',
+        // Tipo computador
+        'PC_Desktop':          'PC Desktop',
+        'All_in_One':          'All in One',
+        'Notebook':            'Notebook',
+        // Geração RAM
+        'DDR3': 'DDR3', 'DDR4': 'DDR4', 'DDR5': 'DDR5', 'DDR6': 'DDR6',
+        // Tipo disco
+        'SSD_NVMe': 'SSD NVMe',
+        // Conectores
+        'DisplayPort': 'DisplayPort',
+        // Setores comuns
+        'CallCenter':  'Call Center',
+        'TI':          'TI',
+        'RH':          'RH',
+        // Booleanos
+        'true': 'Sim', 'True': 'Sim', 'false': 'Não', 'False': 'Não',
+    };
+
+    // Formata o label de um valor de filtro igual à visualização na tabela
+    const formatarLabelFiltro = (v) => {
+        if (v === null || v === undefined || v === '') return '—';
+        const s = String(v).trim();
+
+        // Datas ISO → formato brasileiro
+        if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+            const d = new Date(s);
+            if (!isNaN(d)) return formatarData(d.toISOString());
+        }
+
+        // Valores monetários
+        if (/^\d+([.,]\d+)?$/.test(s) && def.key && (def.key.toLowerCase().includes('preco') || def.key.toLowerCase().includes('preço') || def.key.toLowerCase().includes('valor'))) {
+            return `R$ ${parseFloat(s.replace(',', '.')).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+        }
+
+        // Dicionário de traduções exatas
+        if (LABEL_MAP[s]) return LABEL_MAP[s];
+
+        // Underscores → espaços primeiro
+        let r = s.replace(/_/g, ' ');
+
+        // Separa CamelCase/PascalCase: "CallCenter" → "Call Center", "EmUso" → "Em Uso"
+        r = r.replace(/([a-záàãâéêíóôõúüç])([A-ZÁÀÃÂÉÊÍÓÔÕÚÜÇ])/g, '$1 $2');
+
+        return r;
+    };
+
     if (def.values && def.values.length) {
         opcoes = def.values.map(v =>
-            typeof v === 'object' ? { value: String(v.value), label: v.label } : { value: String(v), label: String(v) }
+            typeof v === 'object'
+                ? { value: String(v.value), label: formatarLabelFiltro(v.label) }
+                : { value: String(v), label: formatarLabelFiltro(v) }
         );
     } else {
         // Texto livre: valores únicos já presentes no cache
@@ -3240,7 +3494,7 @@ function updateFilterValueOptions() {
                  .filter(v => v !== null && v !== undefined && v !== '')
                  .map(v => String(v))
         )].sort();
-        opcoes = unicos.map(v => ({ value: v, label: v }));
+        opcoes = unicos.map(v => ({ value: v, label: formatarLabelFiltro(v) }));
     }
 
     /**
@@ -3666,6 +3920,18 @@ carregarOpcoesDinamicas().then(() => {
 
 // Substitui selects estáticos remanescentes (filterProp, pageSizeSelect)
 document.addEventListener('DOMContentLoaded', () => {
+    // Aplica o pageSize salvo nas configurações no select
+    const pss = document.getElementById('pageSizeSelect');
+    if (pss && _tlConfig.itensPagina) {
+        // Garante que a opção existe, senão adiciona
+        if (!pss.querySelector(`option[value="${_tlConfig.itensPagina}"]`)) {
+            const opt = document.createElement('option');
+            opt.value = _tlConfig.itensPagina;
+            opt.textContent = _tlConfig.itensPagina;
+            pss.appendChild(opt);
+        }
+        pss.value = _tlConfig.itensPagina;
+    }
     // page-size-select e filter-select fixos no HTML
     document.querySelectorAll('select:not([data-cd-skip])').forEach(sel => {
         const onChange = sel.id === 'pageSizeSelect'

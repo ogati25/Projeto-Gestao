@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="responsive.css">
     <title>Produtos — NovaTech Solutions</title>
     <style>
         /* ── Controles superiores ── */
@@ -167,6 +168,7 @@
 <body>
 
     <!-- SIDEBAR -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="sidebar" id="sidebar">
         <button id="toggleSidebar" class="toggle-btn">
             <i class="fa-solid fa-angles-left icon-close"></i>
@@ -192,8 +194,9 @@
     </div>
 
     <!-- MAIN -->
-    <main>
+    <main id="mainContent">
         <header>
+            <button class="btn-hamburger" id="btnHamburger" onclick="toggleMobileSidebar()"><i class="fa-solid fa-bars"></i></button>
             <h1>Produtos</h1>
             <div class="header-buttons">
                 <div class="header-user">
@@ -469,5 +472,6 @@
             }
         } catch(e) {}
 </script>
+    <script src="js/mobile.js"></script>
 </body>
 </html>

@@ -315,7 +315,7 @@
                     <label for="setor">Setor</label>
                     <div class="field-input-wrap">
                         <i class="fa-solid fa-briefcase fi"></i>
-                        <select id="setor">
+                        <select id="setor" data-cd-simples>
                             <option value="">Selecione o setor...</option>
                         </select>
                     </div>
@@ -411,7 +411,23 @@
     <script src="js/api.js"></script>
 <script src="js/cadastro.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => initAllSelects(document));
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Popula o select de setor com opções da API antes de converter para dropdown customizado
+            try {
+                const setores = await getOpcoesPorTipo('Setor');
+                const sel = document.getElementById('setor');
+                (setores || []).forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s;
+                    opt.textContent = s;
+                    sel.appendChild(opt);
+                });
+            } catch (e) {
+                console.warn('Erro ao carregar setores:', e);
+            }
+            // Converte selects para dropdown customizado (setor usará modo simples por data-cd-simples)
+            initAllSelects(document);
+        });
     </script>
 </body>
 </html>

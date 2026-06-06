@@ -28,6 +28,8 @@ public class ProcessadoresController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(Processador processador)
     {
+        // Arredonda para 1 casa decimal para evitar imprecisão de ponto flutuante
+        processador.Velocidade = Math.Round(processador.Velocidade, 1);
         await _service.CreateAsync(processador);
         return CreatedAtAction(nameof(GetById), new { id = processador.Id }, processador);
     }
@@ -37,6 +39,8 @@ public class ProcessadoresController : ControllerBase
     {
         var existente = await _service.GetByIdAsync(id);
         if (existente is null) return NotFound();
+        processador.Velocidade = Math.Round(processador.Velocidade, 1);
+        processador.Id = id; // preserva o Id original
         await _service.UpdateAsync(id, processador);
         return NoContent();
     }

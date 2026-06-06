@@ -1,0 +1,689 @@
+/* =============================================================
+   RESPONSIVE.CSS — Breakpoints para todo o sistema
+   Breakpoints:
+     xl:   > 1280px  (desktop grande)
+     lg:   1024–1279px (desktop pequeno / laptop)
+     md:   768–1023px  (tablet)
+     sm:   480–767px   (smartphone landscape / tablet pequeno)
+     xs:   < 480px     (smartphone portrait)
+   ============================================================= */
+
+/* ── Overlay mobile da sidebar ─────────────────────────────── */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.5);
+    z-index: 199;
+}
+.sidebar-overlay.open { display: block; }
+
+/* ── Botão hamburger (só aparece em mobile) ─────────────────── */
+.btn-hamburger {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.btn-hamburger i { font-size: 16px; color: var(--text-primary); }
+
+/* =============================================================
+   LG — 1024 a 1279px
+   ============================================================= */
+@media (max-width: 1279px) {
+    .sidebar { width: 200px; min-width: 200px; }
+    .main { padding: 20px 20px; }
+    .cards { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* =============================================================
+   MD — 768 a 1023px (tablet)
+   ============================================================= */
+@media (max-width: 1023px) {
+
+    /* Sidebar desliza por cima do conteúdo */
+    .sidebar {
+        position: fixed;
+        left: -260px;
+        top: 0;
+        height: 100vh;
+        width: 240px !important;
+        min-width: 240px !important;
+        z-index: 200;
+        transition: left 0.3s ease;
+        box-shadow: 4px 0 20px rgba(0,0,0,.2);
+    }
+    .sidebar.open { left: 0; }
+    /* Esconde o toggle-btn original em tablet/mobile */
+    .toggle-btn { display: none !important; }
+
+    /* Hamburger visível */
+    .btn-hamburger { display: flex; }
+
+    /* Body volta a ocupar 100% */
+    body { overflow: hidden; }
+    main { width: 100%; }
+
+    /* Header */
+    main header { padding: 12px 16px; }
+    main header h1 { font-size: 17px; }
+
+    /* Conteúdo principal */
+    .main { padding: 16px; gap: 14px; }
+
+    /* KPI cards 2 colunas */
+    .cards { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+    /* Tabelas — scroll horizontal */
+    .table-wrapper { overflow-x: auto; }
+    table { min-width: 700px; }
+
+    /* Modais */
+    .modal-box, .modal-content, .modal-form {
+        width: 95vw !important;
+        max-width: 95vw !important;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    /* Nav tabs de categoria */
+    .nav-bar { overflow-x: auto; flex-wrap: nowrap; }
+    .nav-bar::-webkit-scrollbar { height: 3px; }
+    .nav-btn { white-space: nowrap; flex-shrink: 0; }
+
+    /* Toolbar de inventário */
+    .toolbar, .inv-toolbar {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    /* Dashboard grid */
+    .dash-grid, .grid-2, .grid-3, .grid-4 {
+        grid-template-columns: 1fr !important;
+    }
+    .dash-col, .dash-panel { min-width: 0; }
+
+    /* Relatórios */
+    .report-layout { flex-direction: column !important; }
+    .report-sidebar-panel { width: 100% !important; max-width: 100% !important; }
+
+    /* Configurações */
+    .config-layout { flex-direction: column !important; gap: 0 !important; }
+    .config-categories { width: 100% !important; }
+    .config-categories ul { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px !important; }
+    .config-categories li { flex: 1; min-width: 100px; }
+    .config-main { padding: 16px !important; }
+
+    /* Produto detalhe */
+    .detail-grid { grid-template-columns: 1fr !important; }
+    .proc-grid { grid-template-columns: 1fr !important; }
+
+    /* Perfil */
+    .profile-layout { flex-direction: column !important; }
+    .profile-sidebar { width: 100% !important; }
+}
+
+/* =============================================================
+   SM — 480 a 767px (smartphone landscape)
+   ============================================================= */
+@media (max-width: 767px) {
+
+    /* Header compacto */
+    main header { padding: 10px 12px; gap: 8px; }
+    main header h1 { font-size: 15px; }
+    .header-buttons { gap: 6px; }
+    .theme-toggle { width: 52px; height: 28px; }
+    .theme-toggle::before { width: 22px; height: 22px; }
+    .theme-toggle.light::before { transform: translateX(24px); }
+
+    /* Conteúdo */
+    .main { padding: 12px; gap: 12px; }
+
+    /* KPI cards 1 coluna em telas muito estreitas (landscape passa para 2) */
+    .cards { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .card { padding: 14px 14px; }
+    .card-value { font-size: 22px; }
+
+    /* Botões de ação — oculta texto, mostra só ícone */
+    .btn-label { display: none; }
+    .btn-novo .btn-label, .btn-add .btn-label { display: none; }
+
+    /* Toolbar wrap */
+    .toolbar, .inv-toolbar { gap: 6px; }
+    .btn-group { flex-wrap: wrap; }
+
+    /* Filtros */
+    .filter-bar { flex-wrap: wrap; gap: 8px; padding: 10px 12px !important; }
+    .filter-row { flex-wrap: wrap; gap: 8px; width: 100%; }
+    .filter-row .cd-wrap, .filter-row select { min-width: 130px; flex: 1; }
+    .filter-chips { flex-wrap: wrap; }
+
+    /* Tabela com scroll */
+    .inv-table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* Footer de paginação */
+    .pagination-footer, .inv-footer {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 10px 12px !important;
+    }
+    .pagination-controls { flex-wrap: wrap; justify-content: center; }
+
+    /* Modais fullscreen em mobile */
+    .modal-box, .modal-content, .modal-form {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        min-height: 50vh;
+        border-radius: 16px 16px 0 0 !important;
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        top: auto !important;
+        transform: none !important;
+        margin: 0 !important;
+        max-height: 92vh;
+        overflow-y: auto;
+    }
+    .modal-overlay { align-items: flex-end !important; }
+    .modal-header { padding: 16px 16px 12px !important; }
+    .modal-body, .modal-form-body { padding: 12px 16px !important; }
+    .modal-footer { padding: 12px 16px !important; }
+
+    /* Form grid — 1 coluna em mobile */
+    .form-grid, .field-grid, .form-row-2 {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Nav tabs scroll */
+    .nav-bar { padding: 0 4px !important; }
+    .nav-btn { padding: 8px 10px !important; font-size: 12px !important; }
+    .nav-btn i { font-size: 13px !important; }
+    .nav-btn span { display: none; }
+
+    /* Detail modal */
+    .modal-detail { width: 100vw !important; border-radius: 16px 16px 0 0 !important; }
+    .modal-overlay-detail { align-items: flex-end !important; }
+
+    /* Dashboard */
+    .cards { grid-template-columns: 1fr 1fr; }
+    .dash-kpi-grid { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+
+    /* Configurações — lista de categorias horizontal */
+    .config-categories ul { gap: 4px; }
+    .config-categories li a { font-size: 12px; padding: 6px 10px !important; }
+
+    /* Produto detalhe — seção label menor */
+    .enum-card { padding: 12px !important; }
+
+    /* Toast */
+    .toast { bottom: 70px !important; right: 12px !important; left: 12px !important; width: auto !important; }
+}
+
+/* =============================================================
+   XS — < 480px (smartphone portrait)
+   ============================================================= */
+@media (max-width: 479px) {
+
+    /* Header mínimo */
+    main header h1 { font-size: 14px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* KPI cards 1 coluna */
+    .cards { grid-template-columns: 1fr !important; }
+
+    /* Oculta colunas secundárias da tabela */
+    .col-hide-xs { display: none !important; }
+
+    /* Botões primários — padding menor */
+    .btn { padding: 6px 10px; font-size: 12px; }
+
+    /* Nav — só ícone */
+    .nav-btn span { display: none !important; }
+    .nav-btn { padding: 8px 10px !important; }
+
+    /* Paginação compacta */
+    .page-btn { width: 28px !important; height: 28px !important; font-size: 11px !important; }
+    .pagination-info { font-size: 11px !important; }
+
+    /* Linha de paginação empilha */
+    .inv-footer { flex-direction: column; align-items: flex-start; }
+    .inv-footer > div { width: 100%; justify-content: space-between; }
+
+    /* Relatórios */
+    .report-type-grid { grid-template-columns: 1fr !important; }
+
+    /* Dashboard KPI 1 coluna */
+    .dash-kpi-grid { grid-template-columns: 1fr !important; }
+}
+
+/* =============================================================
+   UTILITÁRIOS RESPONSIVOS
+   ============================================================= */
+@media (max-width: 1023px) { .hide-md { display: none !important; } }
+@media (max-width: 767px)  { .hide-sm { display: none !important; } }
+@media (max-width: 479px)  { .hide-xs { display: none !important; } }
+@media (min-width: 768px)  { .show-mobile-only { display: none !important; } }
+
+/* Touch targets mínimos */
+@media (max-width: 1023px) {
+    button, a, .cd-trigger, .nav-btn, .btn {
+        min-height: 36px;
+    }
+    .cd-option { padding: 10px 12px; }
+}
+
+/* =============================================================
+   OCULTAÇÃO DE COLUNAS DE TABELA EM MOBILE
+   ============================================================= */
+
+/* Colunas secundárias — ocultar em tablet (exceto tabelas de inventário) */
+@media (max-width: 1023px) {
+    table:not(.inv-table):not(.dash-manut-table) th:nth-child(n+6):not(:last-child),
+    table:not(.inv-table):not(.dash-manut-table) td:nth-child(n+6):not(:last-child) {
+        display: none;
+    }
+    /* Mantém as essenciais: ID, Modelo, Status, Ações */
+    table:not(.inv-table) th:nth-child(1), table:not(.inv-table) td:nth-child(1),
+    table:not(.inv-table) th:nth-child(2), table:not(.inv-table) td:nth-child(2),
+    table:not(.inv-table) th:last-child,  table:not(.inv-table) td:last-child {
+        display: table-cell;
+    }
+
+    /* Inventário — scroll horizontal, todas as colunas visíveis */
+    .inv-table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .inv-table {
+        min-width: max-content;
+    }
+    .inv-table th,
+    .inv-table td {
+        white-space: nowrap;
+    }
+}
+
+/* Em smartphone — ainda mais colunas ocultas (exceto tabelas de inventário) */
+@media (max-width: 767px) {
+    table:not(.inv-table):not(.dash-manut-table) th:nth-child(n+4):not(:last-child),
+    table:not(.inv-table):not(.dash-manut-table) td:nth-child(n+4):not(:last-child) {
+        display: none;
+    }
+    table:not(.inv-table) th:nth-child(1), table:not(.inv-table) td:nth-child(1),
+    table:not(.inv-table) th:nth-child(2), table:not(.inv-table) td:nth-child(2),
+    table:not(.inv-table) th:nth-child(3), table:not(.inv-table) td:nth-child(3),
+    table:not(.inv-table) th:last-child,  table:not(.inv-table) td:last-child {
+        display: table-cell;
+    }
+    /* Outras tabelas genéricas — ocupa 100% sem min-width */
+    .table-wrapper:not(.dash-manut-table) table { min-width: unset !important; width: 100%; }
+    table:not(.inv-table):not(.dash-manut-table) th, table:not(.inv-table):not(.dash-manut-table) td { padding: 8px 8px !important; font-size: 12px !important; }
+
+    /* Tabela manutenção do dashboard — scroll horizontal, todas as colunas visíveis */
+    .dash-manut-table {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    .dash-manut-table .table-scroll {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .dash-manut-table table {
+        min-width: 480px !important;
+        width: max-content !important;
+    }
+    .dash-manut-table th,
+    .dash-manut-table td {
+        white-space: nowrap;
+        padding: 8px 10px !important;
+        font-size: 12px !important;
+    }
+
+    /* Inventário — scroll horizontal com fonte levemente menor para caber mais */
+    .inv-table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .inv-table {
+        min-width: max-content !important;
+        width: auto !important;
+    }
+    .inv-table th,
+    .inv-table td {
+        white-space: nowrap;
+        padding: 8px 10px !important;
+        font-size: 12px !important;
+    }
+    .inv-table th {
+        font-size: 11px !important;
+    }
+}
+
+/* =============================================================
+   AJUSTES DE LOGIN / CADASTRO / ESQUECI SENHA
+   ============================================================= */
+@media (max-width: 767px) {
+    .login-container, .auth-container {
+        padding: 24px 16px !important;
+        margin: 16px !important;
+        border-radius: 16px !important;
+    }
+    .login-box, .auth-box {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 24px 20px !important;
+    }
+}
+
+/* =============================================================
+   DASHBOARD RESPONSIVO
+   ============================================================= */
+
+/* ── Tablet (768–1023px) ── */
+@media (max-width: 1023px) {
+    /* Legado */
+    .dash-summary-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    .dash-charts-row { flex-direction: column !important; }
+    .dash-chart-box { width: 100% !important; min-width: 0 !important; }
+
+    /* Grids de linha do dashboard */
+    .row.row-3,
+    .row.row-2 {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Header: oculta contador de refresh para economizar espaço */
+    .refresh-info { display: none !important; }
+
+    /* Greeting row */
+    .greeting { font-size: 18px !important; }
+}
+
+/* ── Smartphone (≤ 767px) ── */
+@media (max-width: 767px) {
+    .dash-summary-grid { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+    .dash-kpi { padding: 12px !important; }
+    .dash-kpi-value { font-size: 22px !important; }
+    .dash-refresh-bar { flex-wrap: wrap; gap: 8px; }
+
+    /* Grids */
+    .row.row-3,
+    .row.row-2 {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+
+    /* KPI cards — 2 colunas */
+    .cards {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+    }
+
+    /* Greeting */
+    .greeting { font-size: 16px !important; }
+    .greeting-sub { font-size: 12px !important; }
+
+    /* Header: esconde texto do botão refresh */
+    .btn-refresh .btn-label { display: none; }
+    .btn-refresh { padding: 6px 10px !important; }
+
+    /* Gráfico de barras — compacta */
+    .bar-chart {
+        height: 150px !important;
+        gap: 8px !important;
+    }
+    .bar-group .bar-val { font-size: 11px !important; }
+    .bar-group .bar-label { font-size: 10px !important; }
+
+    /* Donut — empilha em coluna em telas muito estreitas */
+    .donut-wrap {
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+    .donut-legend { align-items: center; }
+
+    /* Tabela manutenção — scroll, sem min-width global */
+    .dash-manut-table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .dash-manut-table table,
+    #mainContent .dash-manut-table table {
+        min-width: 340px !important;
+        width: 100% !important;
+    }
+
+    /* Chart card padding menor */
+    .chart-card { padding: 14px !important; }
+    .chart-card-header { margin-bottom: 10px !important; }
+    .chart-card-header h3 { font-size: 13px !important; }
+
+    /* View toggle menor */
+    .view-toggle button { padding: 3px 8px !important; font-size: 11px !important; }
+
+    /* Atividades */
+    .activity-text { font-size: 12px !important; }
+    .activity-time { font-size: 10px !important; }
+
+    /* Last update */
+    .last-update { font-size: 10px !important; }
+}
+
+/* ── Portrait estreito (≤ 479px) ── */
+@media (max-width: 479px) {
+    /* KPI cards — 1 coluna */
+    .cards { grid-template-columns: 1fr !important; }
+
+    .greeting { font-size: 15px !important; }
+
+    /* Donut menor */
+    .donut svg { width: 80px !important; height: 80px !important; }
+    .donut { width: 80px !important; height: 80px !important; }
+
+    /* Barra mais compacta */
+    .bar-chart { height: 130px !important; gap: 6px !important; }
+}
+
+/* =============================================================
+   RELATÓRIOS RESPONSIVO
+   ============================================================= */
+@media (max-width: 1023px) {
+    .relatorio-layout, .report-container {
+        flex-direction: column !important;
+    }
+    .relatorio-sidebar, .filter-panel {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-right: none !important;
+        border-bottom: 1px solid var(--border-color) !important;
+    }
+    .relatorio-main, .report-content { width: 100% !important; }
+}
+
+/* =============================================================
+   PRODUTOS / PRODUTO-DETALHE RESPONSIVO
+   ============================================================= */
+@media (max-width: 767px) {
+    .produtos-grid, .classes-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+    }
+    .enum-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .kpi-strip { flex-wrap: wrap; gap: 8px !important; }
+    .kpi-strip .kpi-card { flex: 1; min-width: 120px; }
+
+    /* KPI row da tela de produtos — 1 coluna */
+    .kpi-row {
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+    }
+    .kpi-mini {
+        padding: 12px 14px;
+        gap: 10px;
+    }
+    .kpi-mini-icon {
+        width: 34px;
+        height: 34px;
+    }
+    .kpi-mini-icon i { font-size: 15px; }
+    .kpi-mini-value { font-size: 18px; }
+    .kpi-mini-label { font-size: 10px; }
+
+    /* Barra de controles */
+    .prod-controls {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 8px;
+    }
+    .prod-controls-left {
+        width: 100%;
+    }
+    .search-inline {
+        min-width: unset !important;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Cards de classe */
+    .classe-card-body {
+        padding: 14px 14px 12px;
+        gap: 12px;
+    }
+    .classe-card-icon {
+        width: 38px;
+        height: 38px;
+    }
+    .classe-card-icon i { font-size: 16px; }
+    .classe-card-nome { font-size: 13px; }
+    .classe-card-desc { font-size: 11px; }
+
+    .classe-card-footer {
+        padding: 8px 14px 12px;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .classe-card-stats {
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .stat-pill {
+        font-size: 10px;
+        padding: 2px 8px;
+    }
+
+    /* ── Produto Detalhe ── */
+
+    /* Breadcrumb — impede quebra estranha, garante scroll se necessário */
+    .breadcrumb {
+        flex-wrap: wrap;
+        row-gap: 2px;
+        max-width: 100%;
+        overflow: hidden;
+    }
+    .breadcrumb a,
+    .breadcrumb span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 140px;
+    }
+
+    /* Título da página */
+    .page-title-row {
+        gap: 10px;
+    }
+    .page-title-icon {
+        width: 38px !important;
+        height: 38px !important;
+        border-radius: 10px !important;
+    }
+    .page-title-icon i { font-size: 17px !important; }
+    .page-title-texts h1 { font-size: 17px !important; }
+    .page-title-texts p  { font-size: 12px !important; }
+
+    /* Cabeçalho do card de processadores — empilha em 2 linhas */
+    .proc-card-header {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 12px 14px 10px;
+    }
+    .proc-card-header > div:last-child {
+        width: 100%;
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .proc-card-header > div:last-child .btn {
+        flex: 1;
+        justify-content: center;
+        font-size: 12px;
+        padding: 6px 8px;
+        min-width: 80px;
+    }
+
+    /* Tabela de processadores — scroll horizontal */
+    .proc-card-wrap {
+        overflow: hidden;
+    }
+    .proc-table-scroll-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .proc-table {
+        min-width: 480px;
+    }
+    /* Esconde coluna Núcleos/Threads em mobile — muita info */
+    .proc-table th:nth-child(3),
+    .proc-table td:nth-child(3) {
+        display: none;
+    }
+    .proc-table th,
+    .proc-table td {
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+    }
+}
+
+@media (max-width: 479px) {
+    .produtos-grid, .classes-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* KPI row 2 colunas em portrait */
+    .kpi-row {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 6px !important;
+    }
+
+    /* Cards de classe em coluna única */
+    .classe-card-body {
+        padding: 12px 12px 10px;
+    }
+    .classe-card-footer {
+        padding: 8px 12px 10px;
+    }
+    .classe-card-nome { font-size: 14px; }
+    .classe-card-desc { font-size: 11px; }
+    .classe-card-stats {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    /* Breadcrumb mais compacto */
+    .breadcrumb a,
+    .breadcrumb span {
+        max-width: 100px;
+    }
+
+    /* Botões do proc-card em 2 colunas */
+    .proc-card-header > div:last-child .btn {
+        min-width: 70px;
+        font-size: 11px;
+    }
+}

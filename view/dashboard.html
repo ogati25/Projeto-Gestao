@@ -1,526 +1,520 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
     <link rel="icon" type="image/png" href="novatech-logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <title>Dashboard — NovaTech Solutions</title>
-    <style>
-        /* ===== DASHBOARD ESPECÍFICO ===== */
-        .greeting { 
-            font-size: 22px; 
-            font-weight: 700; 
-            color: var(--text-primary);
-        }
-        .greeting span { color: var(--quinary-color); }
-        .greeting-sub { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="responsive.css">
+<title>Dashboard — NovaTech Solutions</title>
+<style>
+.greeting{font-size:22px;font-weight:700;color:var(--text-primary);}
+.greeting span{color:var(--quinary-color);}
+.greeting-sub{font-size:13px;color:var(--text-muted);margin-top:2px;}
+.row{display:grid;gap:16px;}
+.row-2{grid-template-columns:1fr 1fr;}
+.row-3{grid-template-columns:2fr 1fr;}
+.chart-card{background:var(--secondary-color);border-radius:10px;border:1px solid var(--border-color);box-shadow:var(--card-shadow);padding:20px;}
+.chart-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.chart-card-header h3{font-size:14px;font-weight:700;color:var(--text-primary);}
+.activity-list{display:flex;flex-direction:column;gap:10px;}
+.activity-item{display:flex;align-items:flex-start;gap:12px;}
+.activity-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.activity-dot.blue{background:var(--info-color);}
+.activity-dot.green{background:var(--success-color);}
+.activity-dot.orange{background:var(--warning-color);}
+.activity-dot.red{background:var(--danger-color);}
+.activity-text{font-size:13px;color:var(--text-primary);line-height:1.4;}
+.activity-time{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.table-wrapper .table-scroll{max-height:280px;}
+.view-toggle{display:flex;background:var(--background-color);border-radius:6px;padding:2px;border:1px solid var(--border-color);}
+.view-toggle button{padding:4px 10px;border:none;background:transparent;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text-muted);transition:0.2s;}
+.view-toggle button.active{background:var(--secondary-color);color:var(--text-primary);box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+.badge-status{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
+.badge-status.critico{background:rgba(239,68,68,0.12);color:#ef4444;}
+.badge-status.atencao{background:rgba(251,191,36,0.15);color:#f59e0b;}
+.badge-status.ok{background:rgba(34,197,94,0.12);color:#22c55e;}
+.sidebar-footer{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid #2d3f55;font-size:11px;color:#475569;}
+.btn-logout{display:flex;align-items:center;gap:6px;padding:5px 10px;background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.2);border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;transition:0.2s;text-decoration:none;}
+.btn-logout:hover{background:rgba(239,68,68,0.22);color:#fca5a5;}
+.header-user{display:flex;align-items:center;gap:10px;}
+.user-avatar{width:34px;height:34px;background:var(--quinary-color);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0;}
 
-        /* ---- Row layout ---- */
-        .row {
-            display: grid;
-            gap: 16px;
-        }
-        .row-2 { grid-template-columns: 1fr 1fr; }
-        .row-3 { grid-template-columns: 2fr 1fr; }
+/* ── GRÁFICO DE BARRAS ── */
+.bar-chart{display:flex;align-items:flex-end;gap:12px;height:180px;padding:10px 0 0 0;}
+.bar-group{display:flex;flex-direction:column;align-items:center;flex:1;gap:4px;height:100%;justify-content:flex-end;}
+.bar-group .bar{width:55%;border-radius:6px 6px 0 0;transition:height 0.6s ease;}
+.bar-group .bar-label{font-size:11px;color:var(--text-muted);text-align:center;}
+.bar-group .bar-val{font-size:13px;font-weight:700;color:var(--text-primary);}
 
-        /* ---- Chart placeholder ---- */
-        .chart-card {
-            background: var(--secondary-color);
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-            box-shadow: var(--card-shadow);
-            padding: 20px;
-        }
-        .chart-card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-        }
-        .chart-card-header h3 {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-        .chart-placeholder {
-            width: 100%;
-            height: 200px;
-            background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%);
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            border: 2px dashed #c7d7f0;
-        }
-        .chart-placeholder i { font-size: 32px; color: #93b4d9; }
-        .chart-placeholder p { font-size: 12px; color: #93b4d9; font-weight: 500; }
+/* ── DONUT ── */
+.donut-wrap{display:flex;align-items:center;gap:16px;justify-content:center;padding:10px 0;}
+.donut{position:relative;width:100px;height:100px;flex-shrink:0;}
+.donut svg{transform:rotate(-90deg);}
+.donut-legend{display:flex;flex-direction:column;gap:8px;}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted);}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
 
-        /* ---- Mini chart bars (decorative) ---- */
-        .mini-bars {
-            display: flex;
-            align-items: flex-end;
-            gap: 4px;
-            height: 60px;
-        }
-        .mini-bar {
-            flex: 1;
-            border-radius: 4px 4px 0 0;
-            background: var(--quinary-color);
-            opacity: 0.7;
-            transition: opacity 0.2s;
-        }
-        .mini-bar:hover { opacity: 1; }
-        .mini-bar.highlight { background: var(--sextiary-color); opacity: 1; }
+/* ── BOTÃO REFRESH ── */
+.btn-refresh{display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--secondary-color);border:1px solid var(--border-color);border-radius:7px;font-size:12px;font-weight:600;color:var(--text-primary);cursor:pointer;transition:0.2s;}
+.btn-refresh:hover{background:var(--border-color);}
+.btn-refresh.loading i{animation:spin 1s linear infinite;}
+@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.refresh-info{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-muted);}
+.refresh-ring{width:20px;height:20px;border-radius:50%;background:conic-gradient(var(--quinary-color) 0%,var(--border-color) 0%);transition:background 1s linear;flex-shrink:0;}
+.last-update{font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:5px;}
+.last-update i{font-size:10px;}
 
-        /* ---- Quick stats ---- */
-        .quick-stat {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .quick-stat:last-child { border-bottom: none; }
-        .quick-stat-label { font-size: 13px; color: var(--text-muted); }
-        .quick-stat-value { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+/* Dashboard mobile overrides */
+@media (max-width: 767px) {
+    .header-user { gap: 6px; }
+    .user-avatar { width: 30px; height: 30px; font-size: 12px; }
+    .btn-config { width: 30px; height: 30px; }
+}
+@media (max-width: 479px) {
+    .greeting-row { flex-direction: column; align-items: flex-start !important; gap: 4px; }
+}
 
-        /* ---- Activity feed ---- */
-        .activity-list { display: flex; flex-direction: column; gap: 10px; }
-        .activity-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-        .activity-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-top: 5px;
-            flex-shrink: 0;
-        }
-        .activity-dot.blue   { background: var(--info-color); }
-        .activity-dot.green  { background: var(--success-color); }
-        .activity-dot.orange { background: var(--warning-color); }
-        .activity-dot.red    { background: var(--danger-color); }
-        .activity-text { font-size: 13px; color: var(--text-primary); line-height: 1.4; }
-        .activity-time { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-
-        /* ---- Table inside dashboard ---- */
-        .table-wrapper .table-scroll { max-height: 280px; }
-
-        /* ---- View toggle ---- */
-        .view-toggle {
-            display: flex;
-            background: var(--background-color);
-            border-radius: 6px;
-            padding: 2px;
-            border: 1px solid var(--border-color);
-        }
-        .view-toggle button {
-            padding: 4px 10px;
-            border: none;
-            background: transparent;
-            border-radius: 5px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            color: var(--text-muted);
-            transition: 0.2s;
-        }
-        .view-toggle button.active {
-            background: var(--secondary-color);
-            color: var(--text-primary);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        /* ---- Progress bar ---- */
-        .progress-list { display: flex; flex-direction: column; gap: 12px; }
-        .progress-item label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-bottom: 4px;
-        }
-        .progress-item label span:last-child { font-weight: 700; color: var(--text-primary); }
-        .progress-bar-track {
-            height: 6px;
-            background: var(--border-color);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-        .progress-bar-fill {
-            height: 100%;
-            border-radius: 3px;
-            background: var(--quinary-color);
-            transition: width 0.6s ease;
-        }
-        .progress-bar-fill.green  { background: var(--success-color); }
-        .progress-bar-fill.orange { background: var(--warning-color); }
-        .progress-bar-fill.red    { background: var(--danger-color); }
-    
-        /* ---- Logout / Avatar ---- */
-        .sidebar-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding-top: 12px;
-            border-top: 1px solid #2d3f55;
-            font-size: 11px;
-            color: #475569;
-        }
-        .btn-logout {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 5px 10px;
-            background: rgba(239,68,68,0.12);
-            color: #f87171;
-            border: 1px solid rgba(239,68,68,0.2);
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.2s;
-            text-decoration: none;
-        }
-        .btn-logout:hover { background: rgba(239,68,68,0.22); color: #fca5a5; }
-        .header-user {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .user-avatar {
-            width: 34px;
-            height: 34px;
-            background: var(--quinary-color);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: 700;
-            color: #fff;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-        .user-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        </style>
-    <script src="js/dropdown.js"></script>
+/* Tabela de manutenção do dashboard */
+.dash-manut-table {
+    overflow: hidden !important;
+}
+.dash-manut-table .table-scroll {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+}
+</style>
 </head>
 <body>
 
-    <!-- ==================== SIDEBAR ==================== -->
+<!-- ==================== SIDEBAR ==================== -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="sidebar" id="sidebar">
-        <button id="toggleSidebar" class="toggle-btn">
-            <i class="fa-solid fa-angles-left icon-close"></i>
-            <i class="fa-solid fa-angles-right icon-open"></i>
+  <button id="toggleSidebar" class="toggle-btn">
+    <i class="fa-solid fa-angles-left icon-close"></i>
+    <i class="fa-solid fa-angles-right icon-open"></i>
+  </button>
+  <div class="sidebar-brand">
+    <div class="brand-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+    <h2>NovaTech Solutions</h2>
+  </div>
+  <div class="search-box">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="text" placeholder="Buscar...">
+    <i class="fa-solid fa-xmark clear-btn"></i>
+  </div>
+  <ul class="menu">
+    <li><a href="dashboard.html"><i class="material-icons" style="font-size:18px">dashboard</i><span>Dashboard</span></a></li>
+    <li><a href="estoque.html"><i class="fa-solid fa-box-archive"></i><span>Inventário</span></a></li>
+    <li><a href="produtos.html"><i class="fa-solid fa-tag"></i><span>Produtos</span></a></li>
+    <li><a href="relatorios.html"><i class="fa-solid fa-file-lines"></i><span>Relatórios</span></a></li>
+    <li><a href="configuracoes.html"><i class="fa-solid fa-gear"></i><span>Configurações</span></a></li>
+  </ul>
+  <div class="sidebar-footer">
+    <span>v1.0</span>
+    <a href="login.html" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
+  </div>
+</div>
+
+<!-- ==================== MAIN ==================== -->
+<main id="mainContent">
+  <header>
+            <button class="btn-hamburger" id="btnHamburger" onclick="toggleMobileSidebar()"><i class="fa-solid fa-bars"></i></button>
+    <h1>Dashboard</h1>
+    <div class="header-buttons">
+      <div class="header-user">
+        <div class="refresh-info">
+          <div class="refresh-ring" id="refreshRing"></div>
+          <span id="refreshCounter">30s</span>
+        </div>
+        <button class="btn-refresh" id="btnRefresh" onclick="refreshManual()">
+          <i class="fa-solid fa-rotate-right"></i><span class="btn-label"> Atualizar</span>
         </button>
+        <button class="theme-toggle" id="themeToggle">
+          <i class="fa-solid fa-sun icon-sun"></i>
+          <i class="fa-solid fa-moon icon-moon"></i>
+        </button>
+        <button class="btn-config" onclick="window.location.href='configuracoes.html'" title="Configurações">
+          <i class="fa-solid fa-gear"></i>
+        </button>
+        <div class="user-avatar" title="Meu Perfil" onclick="window.location.href='perfil.html'">U</div>
+      </div>
+    </div>
+  </header>
 
-        <div class="sidebar-brand">
-            <img src="novatech-logo.png" alt="NovaTech Solutions" style="height:36px;width:auto;">
-            <h2>NovaTech Solutions</h2>
-        </div>
+  <div class="main">
 
-        <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="sidebarSearch" placeholder="Buscar..." autocomplete="off">
-            <i class="fa-solid fa-xmark clear-btn"></i>
-        </div>
-
-        <ul class="menu">
-            <li><a data-tooltip="Dashboard" href="dashboard.html"><i class="material-icons" style="font-size:18px">dashboard</i><span>Dashboard</span></a></li>
-            <li><a data-tooltip="Inventário" href="estoque.html"><i class="fa-solid fa-box-archive"></i><span>Inventário</span></a></li>
-            <li><a data-tooltip="Produtos" href="produtos.html"><i class="fa-solid fa-tag"></i><span>Produtos</span></a></li>
-            <li><a data-tooltip="Relatórios" href="relatorios.html"><i class="fa-solid fa-file-lines"></i><span>Relatórios</span></a></li>
-            <li><a data-tooltip="Configurações" href="configuracoes.html"><i class="fa-solid fa-gear"></i><span>Configurações</span></a></li>
-        </ul>
-
-        
+    <!-- Greeting -->
+    <div class="greeting-row" style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div>
+        <p class="greeting">Olá, <span id="greeting-name">Usuário</span> 👋</p>
+        <p class="greeting-sub">Aqui está um resumo do inventário hoje.</p>
+      </div>
+      <div class="last-update" id="lastUpdate">
+        <i class="fa-solid fa-circle-check" style="color:var(--success-color)"></i>
+        <span>Aguardando primeira carga...</span>
+      </div>
     </div>
 
-    <!-- ==================== MAIN ==================== -->
-    <main>
-        <header>
-            <h1>Dashboard</h1>
-            <div class="header-buttons">
-                <div class="header-user">
-                    <button class="theme-toggle" id="themeToggle">
-                        <i class="fa-solid fa-sun icon-sun"></i>
-                        <i class="fa-solid fa-moon icon-moon"></i>
-                    </button>
-                    <button class="btn-config" onclick="window.location.href='configuracoes.html'" title="Configurações">
-                        <i class="fa-solid fa-gear"></i>
-                    </button>
-                    <div class="profile-wrap" id="profileWrap">
-                <div class="user-avatar" id="userAvatar" onclick="toggleProfileDropdown()" style="width:34px;height:34px;background:var(--quinary-color);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0;">U</div>
-                <div class="profile-dropdown" id="profileDropdown">
-                    <div class="profile-dropdown-header">
-                        <div class="pd-name" id="pdName">Usuário</div>
-                        <div class="pd-role">Administrador</div>
-                    </div>
-                    <div class="profile-dropdown-body">
-                        <a class="pd-btn" href="perfil.html"><i class="fa-solid fa-user"></i> Meu Perfil</a>
-                        <a class="pd-btn danger" href="login.html"><i class="fa-solid fa-right-from-bracket"></i> Encerrar Sessão</a>
-                    </div>
-                </div>
+    <!-- KPI Cards — 4 cards -->
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon blue"><i class="fa-solid fa-boxes-stacked"></i></div>
+        <div class="card-label">Total de Itens</div>
+        <div class="card-value" id="kpi-total">—</div>
+        <div class="card-sub" id="kpi-total-sub">aguardando dados</div>
+      </div>
+      <div class="card">
+        <div class="card-icon orange"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+        <div class="card-label">Em Manutenção</div>
+        <div class="card-value" id="kpi-manut">—</div>
+        <div class="card-sub" id="kpi-manut-sub">aguardando dados</div>
+      </div>
+      <div class="card">
+        <div class="card-icon green"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="card-label">Ativos</div>
+        <div class="card-value" id="kpi-ativos">—</div>
+        <div class="card-sub" id="kpi-ativos-sub">aguardando dados</div>
+      </div>
+      <div class="card">
+        <div class="card-icon purple"><i class="fa-solid fa-circle-xmark"></i></div>
+        <div class="card-label">Inativos</div>
+        <div class="card-value" id="kpi-inativos">—</div>
+        <div class="card-sub" id="kpi-inativos-sub">aguardando dados</div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row row-3">
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h3>Itens por Categoria</h3>
+          <div class="view-toggle">
+            <button class="active" onclick="trocarVisualizacao('todos',this)">Todos</button>
+            <button onclick="trocarVisualizacao('ativos',this)">Ativos</button>
+            <button onclick="trocarVisualizacao('inativos',this)">Inativos</button>
+          </div>
+        </div>
+        <div id="chart-barras" class="bar-chart">
+          <div style="margin:auto;color:var(--text-muted);font-size:13px;">
+            <i class="fa-solid fa-spinner fa-spin"></i> Carregando...
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-header"><h3>Por Categoria</h3></div>
+        <div style="display:flex;align-items:center;justify-content:center;height:180px;">
+          <div id="donut-wrap" class="donut-wrap" style="display:none;">
+            <div class="donut">
+              <svg viewBox="0 0 36 36" width="100" height="100">
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7eb" stroke-width="3.5"/>
+                <circle id="donut-comp" cx="18" cy="18" r="15.9" fill="none" stroke="#6366f1" stroke-width="3.5" stroke-dasharray="0 100" stroke-dashoffset="25"/>
+                <circle id="donut-mon"  cx="18" cy="18" r="15.9" fill="none" stroke="#22c55e" stroke-width="3.5" stroke-dasharray="0 100" stroke-dashoffset="25"/>
+                <circle id="donut-cel"  cx="18" cy="18" r="15.9" fill="none" stroke="#f59e0b" stroke-width="3.5" stroke-dasharray="0 100" stroke-dashoffset="25"/>
+              </svg>
             </div>
-                </div>
-            </div>
-        </header>
+            <div class="donut-legend" id="donut-legend"></div>
+          </div>
+          <div id="donut-loading" style="text-align:center;color:var(--text-muted);font-size:13px;">
+            <i class="fa-solid fa-spinner fa-spin"></i> Carregando...
+          </div>
+        </div>
+      </div>
+    </div>
 
-        <div class="main">
+    <!-- Bottom Row -->
+    <div class="row row-2">
 
-            <!-- Greeting -->
-            <div>
-                <p class="greeting">Olá, <span id="greeting-name">Usuário</span> 👋</p>
-                <p class="greeting-sub">Aqui está um resumo do inventário hoje.</p>
-            </div>
+      <!-- Tabela Em Manutenção -->
+      <div style="min-width:0;">
+        <div class="section-header" style="margin-bottom:10px">
+          <h2>Em Manutenção</h2>
+          <a href="estoque.html" class="btn btn-outline" style="font-size:12px;padding:5px 10px;">
+            Ver todos <i class="fa-solid fa-arrow-right" style="font-size:10px"></i>
+          </a>
+        </div>
+        <div class="table-wrapper dash-manut-table">
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Modelo</th><th>ID</th><th>Categoria</th><th>Status</th></tr>
+              </thead>
+              <tbody id="tbody-manut">
+                <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:24px 0;">
+                  <i class="fa-solid fa-spinner fa-spin"></i> Carregando...
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
 
-            <!-- KPI Cards -->
-            <div class="cards">
-                <div class="card">
-                    <div class="card-icon blue"><i class="fa-solid fa-boxes-stacked"></i></div>
-                    <div class="card-label">Total de Itens</div>
-                    <div class="card-value" id="kpi-total">—</div>
-                    <div class="card-sub">aguardando dados</div>
-                </div>
-                <div class="card">
-                    <div class="card-icon orange"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                    <div class="card-label">Baixo Estoque</div>
-                    <div class="card-value" id="kpi-baixo">—</div>
-                    <div class="card-sub">aguardando dados</div>
-                </div>
-                <div class="card">
-                    <div class="card-icon purple"><i class="fa-solid fa-clipboard-list"></i></div>
-                    <div class="card-label">Pedidos Pendentes</div>
-                    <div class="card-value" id="kpi-pedidos">—</div>
-                    <div class="card-sub">aguardando dados</div>
-                </div>
-                <div class="card">
-                    <div class="card-icon green"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
-                    <div class="card-label">Movimentações</div>
-                    <div class="card-value" id="kpi-mov">—</div>
-                    <div class="card-sub">aguardando dados</div>
-                </div>
-            </div>
+      <!-- Atividades Recentes -->
+      <div class="chart-card" style="padding:18px">
+        <div class="chart-card-header" style="margin-bottom:12px"><h3>Atividades Recentes</h3></div>
+        <div class="activity-list" id="activity-list">
+          <div style="text-align:center;color:var(--text-muted);font-size:13px;padding:16px 0;">
+            <i class="fa-solid fa-spinner fa-spin"></i> Carregando...
+          </div>
+        </div>
+      </div>
 
-            <!-- Charts Row -->
-            <div class="row row-3">
+    </div>
 
-                <!-- Movimentações chart -->
-                <div class="chart-card">
-                    <div class="chart-card-header">
-                        <div>
-                            <h3>Movimentações por Período</h3>
-                        </div>
-                        <div class="view-toggle">
-                            <button class="active">7d</button>
-                            <button>30d</button>
-                            <button>90d</button>
-                        </div>
-                    </div>
-                    <div class="chart-placeholder" id="chart-movimentacoes">
-                        <i class="fa-solid fa-chart-line"></i>
-                        <p>Gráfico de movimentações</p>
-                        <p style="font-size:11px; color:#b0c4de;">Conecte a API para visualizar</p>
-                    </div>
-                </div>
+  </div><!-- /main -->
+</main>
 
-                <!-- Distribuição por categoria -->
-                <div class="chart-card">
-                    <div class="chart-card-header">
-                        <h3>Por Categoria</h3>
-                    </div>
-                    <div class="chart-placeholder" id="chart-categorias" style="height:200px">
-                        <i class="fa-solid fa-chart-pie"></i>
-                        <p>Distribuição de itens</p>
-                        <p style="font-size:11px; color:#b0c4de;">Conecte a API para visualizar</p>
-                    </div>
-                </div>
-            </div>
+<script>
+const API         = 'http://localhost:5085';
+const REFRESH_SEG = 30;
 
-            <!-- Bottom Row -->
-            <div class="row row-2">
+// dados globais para o toggle de barras
+let _distribuicaoGlobal = null;
+let _ativosGlobal       = null;
+let _inativosGlobal     = null;
 
-                <!-- Itens Críticos -->
-                <div>
-                    <div class="section-header" style="margin-bottom:10px">
-                        <h2>Itens Críticos</h2>
-                        <a data-tooltip="Inventário" href="estoque.html" class="btn btn-outline" style="font-size:12px; padding:5px 10px;">
-                            Ver todos <i class="fa-solid fa-arrow-right" style="font-size:10px"></i>
-                        </a>
-                    </div>
-                    <div class="table-wrapper">
-                        <div class="table-scroll">
-                            <table id="tbl-criticos">
-                                <thead>
-                                    <tr>
-                                        <th>Nome</th>
-                                        <th>SKU</th>
-                                        <th>Categoria</th>
-                                        <th>Qtd</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tbody-criticos">
-                                    <tr>
-                                        <td colspan="5" style="text-align:center; color:var(--text-muted); padding:24px 0;">
-                                            <i class="fa-solid fa-spinner fa-spin" style="margin-right:6px"></i>
-                                            Aguardando dados da API...
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+// ── TEMA ──────────────────────────────────────────────
+(function () {
+  const saved = localStorage.getItem('tl_theme') || 'light';
+  if (saved === 'dark') document.body.classList.add('dark');
+  const btn = document.getElementById('themeToggle');
+  if (saved === 'light') btn.classList.add('light');
+  btn.addEventListener('click', () => {
+    const isDark = document.body.classList.toggle('dark');
+    btn.classList.toggle('light', !isDark);
+    localStorage.setItem('tl_theme', isDark ? 'dark' : 'light');
+  });
+})();
 
-                <!-- Sidebar direita -->
-                <div style="display:flex; flex-direction:column; gap:16px;">
+// ── SIDEBAR ───────────────────────────────────────────
+document.getElementById('toggleSidebar').addEventListener('click', () =>
+  document.getElementById('sidebar').classList.toggle('closed'));
+document.querySelector('.clear-btn')?.addEventListener('click', () =>
+  document.querySelector('.search-box input').value = '');
+const currentPage = (window.location.pathname.split('/').pop() || '').split('?')[0] || 'dashboard.html';
+document.querySelectorAll('.menu li a').forEach(l => {
+  if (l.getAttribute('href') === currentPage) l.parentElement.classList.add('active');
+});
 
-                    <!-- Últimas atividades -->
-                    <div class="chart-card" style="padding:18px">
-                        <div class="chart-card-header" style="margin-bottom:12px">
-                            <h3>Atividades Recentes</h3>
-                        </div>
-                        <div class="activity-list" id="activity-list">
-                            <div style="text-align:center; color:var(--text-muted); font-size:13px; padding:16px 0;">
-                                <i class="fa-solid fa-clock-rotate-left" style="margin-right:6px"></i>
-                                Aguardando dados...
-                            </div>
-                        </div>
-                    </div>
+// ── USUÁRIO ───────────────────────────────────────────
+try {
+  const u = JSON.parse(localStorage.getItem('tl_user') || '{}');
+  if (u.nome) {
+    document.querySelector('.user-avatar').textContent = u.nome.charAt(0).toUpperCase();
+    document.getElementById('greeting-name').textContent = u.nome.split(' ')[0];
+  }
+} catch(_) {}
 
-                    <!-- Ocupação por categoria -->
-                    <div class="chart-card" style="padding:18px">
-                        <div class="chart-card-header" style="margin-bottom:12px">
-                            <h3>Ocupação por Categoria</h3>
-                        </div>
-                        <div class="progress-list" id="progress-list">
-                            <!-- Placeholder itens -->
-                            <div class="progress-item">
-                                <label><span>Computadores</span><span>—</span></label>
-                                <div class="progress-bar-track"><div class="progress-bar-fill" style="width:0%"></div></div>
-                            </div>
-                            <div class="progress-item">
-                                <label><span>Monitores</span><span>—</span></label>
-                                <div class="progress-bar-track"><div class="progress-bar-fill green" style="width:0%"></div></div>
-                            </div>
-                            <div class="progress-item">
-                                <label><span>Celulares</span><span>—</span></label>
-                                <div class="progress-bar-track"><div class="progress-bar-fill orange" style="width:0%"></div></div>
-                            </div>
-                            <div class="progress-item">
-                                <label><span>Periféricos</span><span>—</span></label>
-                                <div class="progress-bar-track"><div class="progress-bar-fill" style="width:0%"></div></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+// ── AUTO-REFRESH ──────────────────────────────────────
+let tempoRestante = REFRESH_SEG;
+let intervalTimer = null;
 
-        </div><!-- /main -->
-    </main>
+function iniciarAutoRefresh() {
+  clearInterval(intervalTimer);
+  tempoRestante = REFRESH_SEG;
+  intervalTimer = setInterval(() => {
+    tempoRestante--;
+    const el = document.getElementById('refreshCounter');
+    if (el) el.textContent = tempoRestante + 's';
+    const pct = ((REFRESH_SEG - tempoRestante) / REFRESH_SEG) * 100;
+    const ring = document.getElementById('refreshRing');
+    if (ring) ring.style.background =
+      `conic-gradient(var(--quinary-color) ${pct}%, var(--border-color) ${pct}%)`;
+    if (tempoRestante <= 0) { tempoRestante = REFRESH_SEG; carregarDashboard(); }
+  }, 1000);
+}
 
-    <script>
-        // ── TEMA persistente ─────────────────────────────────
-        (function () {
-            const saved = localStorage.getItem('tl_theme') || 'light';
-            if (saved === 'dark') document.body.classList.add('dark');
-            const btn = document.getElementById('themeToggle');
-            if (saved === 'light') btn.classList.add('light');
-            btn.addEventListener('click', () => {
-                const isDark = document.body.classList.toggle('dark');
-                btn.classList.toggle('light', !isDark);
-                localStorage.setItem('tl_theme', isDark ? 'dark' : 'light');
-            });
-        })();
+async function refreshManual() {
+  const btn = document.getElementById('btnRefresh');
+  btn.classList.add('loading'); btn.disabled = true;
+  await carregarDashboard();
+  iniciarAutoRefresh();
+  btn.classList.remove('loading'); btn.disabled = false;
+}
 
-        // ── SIDEBAR ──────────────────────────────────────────
-        const sidebar = document.getElementById('sidebar');
-        document.getElementById('toggleSidebar').addEventListener('click', () => sidebar.classList.toggle('closed'));
+// ── HELPERS ───────────────────────────────────────────
+function statusBadge(status) {
+  const manut = ['EmManutenção','NecessitaManutenção'];
+  const ok    = ['EmUso','EmEstoque'];
+  const cls   = manut.includes(status) ? 'atencao' : ok.includes(status) ? 'ok' : 'critico';
+  const label = status.replace(/([A-Z])/g,' $1').trim();
+  return `<span class="badge-status ${cls}">${label}</span>`;
+}
+function dotColor(cat) {
+  return cat === 'Computador' ? 'blue' : cat === 'Monitor' ? 'green' : 'orange';
+}
+function fmtDate(d) {
+  if (!d) return '';
+  return new Date(d).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
+}
+function fmtHora() {
+  return new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
 
-        // ── ACTIVE LINK ──────────────────────────────────────
-        const currentPage = (window.location.pathname.split('/').pop() || window.location.href.split('/').pop() || '').split('?')[0] || 'dashboard.html';
-        document.querySelectorAll('.menu li a').forEach(link => {
-            if (link.getAttribute('href') === currentPage) link.parentElement.classList.add('active');
-        });
+// ── CARREGAR DASHBOARD ────────────────────────────────
+async function carregarDashboard() {
+  try {
+    const res  = await fetch(`${API}/api/dashboard`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
 
-        // ── VIEW TOGGLE ──────────────────────────────────────
-        document.querySelectorAll('.view-toggle button').forEach(btn => {
-            btn.addEventListener('click', () => {
-                btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            });
-        });
+    preencherKPIs(data.totais, data.baixoEstoque, data.ocupacao);
+    _distribuicaoGlobal = data.distribuicao;
+    _ativosGlobal       = data.ocupacao;
+    preencherBarras(data.distribuicao, 'todos');
+    preencherDonut(data.distribuicao);
+    preencherManutencao(data.itensCriticos);
+    preencherAtividades(data.atividades);
+    atualizarUltimaAtualizacao(true);
+  } catch(err) {
+    console.error('Erro ao carregar dashboard:', err);
+    atualizarUltimaAtualizacao(false);
+  }
+}
 
-        // ── CLEAR SEARCH ─────────────────────────────────────
-        // ── Busca no menu lateral ──────────────────────────────
-        (function () {
-            const input    = document.getElementById('sidebarSearch');
-            const clearBtn = document.querySelector('.clear-btn');
-            const menuItems = document.querySelectorAll('.menu li');
+function atualizarUltimaAtualizacao(sucesso) {
+  const el = document.getElementById('lastUpdate');
+  if (!el) return;
+  el.innerHTML = sucesso
+    ? `<i class="fa-solid fa-circle-check" style="color:var(--success-color)"></i><span>Atualizado às ${fmtHora()}</span>`
+    : `<i class="fa-solid fa-circle-xmark" style="color:#ef4444"></i><span>Erro ao atualizar — tentando em ${REFRESH_SEG}s</span>`;
+}
 
-            function filterMenu(q) {
-                const term = q.trim().toLowerCase();
-                menuItems.forEach(li => {
-                    const text = li.textContent.trim().toLowerCase();
-                    li.style.display = (!term || text.includes(term)) ? '' : 'none';
-                });
-                if (clearBtn) {
-                    clearBtn.style.opacity = term ? '1' : '0.4';
-                    clearBtn.style.pointerEvents = term ? 'auto' : 'none';
-                }
-            }
+// ── KPIs ──────────────────────────────────────────────
+function preencherKPIs(totais, manut, ocupacao) {
+  if (totais) {
+    document.getElementById('kpi-total').textContent = totais.total ?? '—';
+    document.getElementById('kpi-total-sub').textContent =
+      `${totais.computadores} comp · ${totais.monitores} mon · ${totais.celulares} cel`;
+  }
+  if (manut) {
+    document.getElementById('kpi-manut').textContent = manut.total ?? '—';
+    document.getElementById('kpi-manut-sub').textContent =
+      `${manut.computadores} comp · ${manut.monitores} mon · ${manut.celulares} cel`;
+  }
+  if (ocupacao?.categorias) {
+    const ativos   = ocupacao.categorias.reduce((s,c) => s + Number(c.ativos),   0);
+    const inativos = ocupacao.categorias.reduce((s,c) => s + Number(c.inativos), 0);
+    document.getElementById('kpi-ativos').textContent   = ativos;
+    document.getElementById('kpi-inativos').textContent = inativos;
+    document.getElementById('kpi-ativos-sub').textContent   = 'equipamentos em uso';
+    document.getElementById('kpi-inativos-sub').textContent = 'fora de operação';
+  }
+}
 
-            input?.addEventListener('input', e => filterMenu(e.target.value));
+// ── BARRAS ────────────────────────────────────────────
+function trocarVisualizacao(tipo, btnEl) {
+  btnEl.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+  btnEl.classList.add('active');
 
-            clearBtn?.addEventListener('click', () => {
-                if (input) { input.value = ''; filterMenu(''); input.focus(); }
-            });
+  if (tipo === 'todos')    preencherBarras(_distribuicaoGlobal, 'todos');
+  if (tipo === 'ativos')   preencherBarrasOcupacao(_ativosGlobal, 'ativos');
+  if (tipo === 'inativos') preencherBarrasOcupacao(_ativosGlobal, 'inativos');
+}
 
-            if (clearBtn) { clearBtn.style.opacity = '0.4'; clearBtn.style.pointerEvents = 'none'; }
-        })();
+function preencherBarras(dist, tipo) {
+  const container = document.getElementById('chart-barras');
+  if (!dist?.categorias) return;
+  const max  = Math.max(...dist.categorias.map(c => c.quantidade), 1);
+  const cores = ['#6366f1','#22c55e','#f59e0b'];
+  container.innerHTML = dist.categorias.map((cat, i) => {
+    const altura = cat.quantidade === 0 ? 4 : Math.max(20, Math.round((cat.quantidade / max) * 150));
+    return `<div class="bar-group">
+      <div class="bar-val">${cat.quantidade}</div>
+      <div class="bar" style="height:${altura}px;background:${cores[i]}"></div>
+      <div class="bar-label">${cat.nome}</div>
+    </div>`;
+  }).join('');
+}
 
-        // ── CARREGAR DADOS DO USUÁRIO ─────────────────────────
-        const userData = JSON.parse(localStorage.getItem('tl_user') || '{}');
-        if (userData.nome) {
-            document.querySelector('.user-avatar').textContent = userData.nome.charAt(0).toUpperCase();
-            const gr = document.getElementById('greeting-name');
-            if (gr) gr.textContent = userData.nome.split(' ')[0];
-        }
-    
-        // ── Dropdown de Perfil ───────────────────────────────
-        function toggleProfileDropdown() {
-            document.getElementById('profileDropdown').classList.toggle('open');
-        }
-        document.addEventListener('click', function(e) {
-            var wrap = document.getElementById('profileWrap');
-            var dd   = document.getElementById('profileDropdown');
-            if (dd && dd.classList.contains('open') && wrap && !wrap.contains(e.target)) {
-                dd.classList.remove('open');
-            }
-        });
-        try {
-            var u = JSON.parse(localStorage.getItem('tl_user') || '{}');
-            if (u.nome) {
-                var av = document.getElementById('userAvatar');
-                if (av) av.textContent = u.nome.charAt(0).toUpperCase();
-                var pn = document.getElementById('pdName');
-                if (pn) pn.textContent = u.nome;
-            }
-        } catch(e) {}
+function preencherBarrasOcupacao(ocupacao, tipo) {
+  const container = document.getElementById('chart-barras');
+  if (!ocupacao?.categorias) return;
+  const cores = ['#6366f1','#22c55e','#f59e0b'];
+  const dados = ocupacao.categorias.map(c => ({
+    nome: c.nome,
+    quantidade: tipo === 'ativos' ? Number(c.ativos) : Number(c.inativos)
+  }));
+  const max = Math.max(...dados.map(d => d.quantidade), 1);
+  container.innerHTML = dados.map((cat, i) => {
+    const altura = cat.quantidade === 0 ? 4 : Math.max(20, Math.round((cat.quantidade / max) * 150));
+    return `<div class="bar-group">
+      <div class="bar-val">${cat.quantidade}</div>
+      <div class="bar" style="height:${altura}px;background:${cores[i]}"></div>
+      <div class="bar-label">${cat.nome}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── DONUT ─────────────────────────────────────────────
+function preencherDonut(dist) {
+  document.getElementById('donut-loading').style.display = 'none';
+  document.getElementById('donut-wrap').style.display = 'flex';
+  if (!dist?.categorias) return;
+  const cores = ['#6366f1','#22c55e','#f59e0b'];
+  const ids   = ['donut-comp','donut-mon','donut-cel'];
+  const total = dist.categorias.reduce((s,c) => s + c.quantidade, 0);
+  let offset  = 25;
+  dist.categorias.forEach((cat, i) => {
+    const pct = total > 0 ? (cat.quantidade / total) * 100 : 0;
+    const el  = document.getElementById(ids[i]);
+    if (!el) return;
+    el.setAttribute('stroke-dasharray', `${pct} ${100 - pct}`);
+    el.setAttribute('stroke-dashoffset', -(offset - 25));
+    el.setAttribute('stroke', cores[i]);
+    offset += pct;
+  });
+  document.getElementById('donut-legend').innerHTML = dist.categorias.map((cat, i) => `
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${cores[i]}"></div>
+      <span>${cat.nome}: <strong>${cat.quantidade}</strong> (${cat.percentual}%)</span>
+    </div>`).join('');
+}
+
+// ── MANUTENÇÃO ────────────────────────────────────────
+function preencherManutencao(itensCriticos) {
+  const tbody = document.getElementById('tbody-manut');
+  const itens = itensCriticos?.itens;
+  if (!itens || itens.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:24px 0;">
+      <i class="fa-solid fa-circle-check" style="color:#22c55e;margin-right:6px"></i>
+      Nenhum item em manutenção</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = itens.map(item => `<tr>
+    <td>${item.nome ?? '—'}</td>
+    <td><code>${item.sku ?? '—'}</code></td>
+    <td>${item.categoria ?? '—'}</td>
+    <td>${statusBadge(item.status ?? '')}</td>
+  </tr>`).join('');
+}
+
+// ── ATIVIDADES ────────────────────────────────────────
+function preencherAtividades(atividades) {
+  const list  = document.getElementById('activity-list');
+  const itens = atividades?.atividades;
+  if (!itens || itens.length === 0) {
+    list.innerHTML = `<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:16px 0;">
+      Nenhuma atividade recente</div>`;
+    return;
+  }
+  list.innerHTML = itens.slice(0, 8).map(item => `
+    <div class="activity-item">
+      <div class="activity-dot ${dotColor(item.categoria)}"></div>
+      <div>
+        <div class="activity-text"><strong>${item.nome}</strong> — ${item.categoria}</div>
+        <div class="activity-time">${item.usuario ? item.usuario + ' · ' : ''}${fmtDate(item.dataAquisicao)}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ── INICIAR ───────────────────────────────────────────
+carregarDashboard();
+iniciarAutoRefresh();
 </script>
+    <script src="js/mobile.js"></script>
 </body>
 </html>

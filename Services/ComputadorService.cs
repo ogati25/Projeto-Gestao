@@ -21,11 +21,19 @@ public class ComputadorService
     public async Task<List<object>> GetAllAsync()
     {
         var lista = await _computadores.Find(_ => true).ToListAsync();
-        return lista.Select(c => (object)MapearComputador(c)).ToList();
+
+        // Carrega todos os processadores de uma vez para evitar N+1 queries
+        var todosProcessadores = await _processadorService.GetAllAsync();
+        var procDict = todosProcessadores.ToDictionary(p => p.Id!, p => p);
+
+        return lista.Select(c =>
+        {
+            Processador? proc = c.ProcessadorId != null && procDict.TryGetValue(c.ProcessadorId, out var p) ? p : null;
+            return (object)MapearComputador(c, proc);
+        }).ToList();
     }
 
-    // Discos e PlacasVideo agora têm Tipo como string? — sem .ToString() necessário
-    private static object MapearComputador(Computador c) => new
+    private static object MapearComputador(Computador c, Processador? processador = null) => new
     {
         c.Id,
         c.Codigo,
@@ -38,6 +46,7 @@ public class ComputadorService
         c.Status,
         c.Modelo,
         c.Tipo,
+        Processador = processador,
         c.GeracaoRAM,
         c.QuantidadeSlots,
         c.MemoriaRAM,

@@ -83,7 +83,7 @@
     }
 
     /* ─── Seleção única ──────────────────────────────────────────────── */
-    function criarCustomDropdown(name, options, valor = '', placeholder = '— Selecione —', onChange = null, simples = false) {
+    function criarCustomDropdown(name, options, valor = '', placeholder = '— Selecione —', onChange = null, simples = false, opts = {}) {
         const wrap = document.createElement('div');
         wrap.className = 'cd-wrap';
         wrap.dataset.cdName = name;
@@ -110,7 +110,7 @@
 
         // Panel
         const panel = document.createElement('div');
-        panel.className = simples ? 'cd-panel cd-panel--up' : 'cd-panel';
+        panel.className = simples && opts.up ? 'cd-panel cd-panel--up' : 'cd-panel';
 
         // Search (apenas no modo completo)
         let searchInput = null;
@@ -324,6 +324,8 @@
 
     /* ─── Substitui um <select> existente no DOM ─────────────────────── */
     function substituirSelect(selectEl, onChange = null, simples = false) {
+        if (selectEl.hasAttribute('data-cd-simples')) simples = true;
+        const up   = selectEl.hasAttribute('data-cd-up');
         const name = selectEl.name || selectEl.id || '';
         const options = [];
         let valorAtual = selectEl.value;
@@ -334,12 +336,9 @@
             options.push({ value: opt.value, label: opt.textContent.trim() });
         });
 
-        // Copia classes e id do select original
-        const cd = criarCustomDropdown(name, options, valorAtual, placeholder, onChange, simples);
+        const cd = criarCustomDropdown(name, options, valorAtual, placeholder, onChange, simples, { up });
         if (selectEl.id) cd.dataset.originalId = selectEl.id;
         if (selectEl.className) cd.classList.add(...selectEl.className.split(' ').filter(Boolean));
-
-        // Mantém style inline se houver
         if (selectEl.style.cssText) cd.style.cssText = selectEl.style.cssText;
 
         selectEl.parentNode.replaceChild(cd, selectEl);
@@ -349,7 +348,8 @@
     /* ─── Inicializa todos os <select> dentro de um container ────────── */
     function initAllSelects(container = document, onChange = null) {
         container.querySelectorAll('select:not([data-cd-skip])').forEach(sel => {
-            substituirSelect(sel, onChange);
+            const simples = sel.hasAttribute('data-cd-simple');
+            substituirSelect(sel, onChange, simples);
         });
     }
 

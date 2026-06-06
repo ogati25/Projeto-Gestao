@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="responsive.css">
         <script src="js/dropdown.js"></script>
     <script src="js/api.js"></script>
     <style>
@@ -134,6 +135,8 @@
         }
         .filter-select { min-width: 160px; }
         .filter-value-select, .filter-value-input { min-width: 180px; }
+        /* Quando substituído pelo dropdown customizado, remove borda/bg duplicados */
+        .cd-wrap.filter-select, .cd-wrap.filter-value-select { border: none; background: none; padding: 0; box-shadow: none; }
         .btn-add-filter {
             padding: 6px 14px;
             background: var(--quinary-color);
@@ -1016,11 +1019,211 @@
             background: #1e40af;
         }
 
+
+        /* ================================================================
+           MOBILE — estoque.html
+        ================================================================ */
+        @media (max-width: 767px) {
+
+            /* ── Top controls: empilha em 2 linhas ── */
+            .top-controls {
+                flex-wrap: wrap;
+                gap: 8px;
+                margin-bottom: 8px;
+            }
+            .top-controls-left {
+                flex: 1;
+                min-width: 0;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .top-controls-right { flex-shrink: 0; }
+
+            /* ── Gestão / Suporte: botões menores ── */
+            .view-mode button {
+                padding: 5px 10px;
+                font-size: 12px;
+                gap: 4px;
+            }
+
+            /* ── Botão Novo Item: só ícone ── */
+            .btn-novo-label { display: none; }
+
+            /* ── Gestão/Suporte: esconde texto ── */
+            .vm-label { display: none; }
+
+            /* ── Botão Filtros ── */
+            .btn-filter {
+                padding: 6px 10px;
+                font-size: 12px;
+                gap: 5px;
+            }
+
+            /* ── Overlay mobile do painel de filtros ── */
+            .filter-mobile-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 300;
+            }
+            .filter-mobile-overlay.open { display: block; }
+
+            /* ── Dropdown vira bottom sheet em mobile ── */
+            .filter-dropdown-wrap { position: static; }
+            .filter-dropdown {
+                position: fixed !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                top: auto !important;
+                width: 100% !important;
+                min-width: unset !important;
+                transform: none !important;
+                border-radius: 20px 20px 0 0 !important;
+                box-shadow: 0 -4px 32px rgba(0,0,0,0.25) !important;
+                z-index: 301 !important;
+                max-height: 80vh;
+                overflow-y: auto;
+                padding: 20px 16px 32px !important;
+                gap: 14px !important;
+                /* começa oculto fora da tela */
+                display: flex !important;
+                flex-direction: column;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.22s ease, transform 0.22s ease;
+                transform: translateY(100%) !important;
+            }
+            .filter-dropdown.open {
+                opacity: 1 !important;
+                pointer-events: auto !important;
+                transform: translateY(0) !important;
+            }
+
+            /* Handle visual no topo do bottom sheet */
+            .filter-dropdown::before {
+                content: "";
+                display: block;
+                width: 40px;
+                height: 4px;
+                background: var(--border-color);
+                border-radius: 4px;
+                margin: 0 auto 4px;
+                flex-shrink: 0;
+            }
+
+            /* ── Filter add row: empilha verticalmente ── */
+            .filter-add-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-select,
+            .filter-value-select,
+            .filter-value-input {
+                min-width: unset;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            #filterValueArea {
+                width: 100%;
+                display: flex !important;
+                flex-direction: column;
+            }
+            #filterValueArea > * { width: 100%; }
+            .btn-add-filter {
+                width: 100%;
+                justify-content: center;
+            }
+
+            /* ── Footer da tabela: empilha ── */
+            .inv-table-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+                padding: 10px 12px;
+            }
+            .inv-table-footer > div {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            /* ── Paginação: botões menores ── */
+            .page-btn {
+                min-width: 26px;
+                height: 26px;
+                font-size: 11px;
+                padding: 0 5px;
+            }
+
+            /* ── Modal fullscreen ── */
+            .modal-overlay {
+                padding: 0;
+                align-items: flex-end;
+            }
+            .modal {
+                max-width: 100%;
+                width: 100%;
+                border-radius: 18px 18px 0 0;
+                max-height: 92vh;
+                box-sizing: border-box;
+            }
+            .modal-header { padding: 14px 16px 12px; }
+            .modal-body   { padding: 12px 14px; }
+            .modal-footer { padding: 12px 14px; }
+
+            /* Form grid — mantém 2 colunas mas ajusta padding e tamanho */
+            .form-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            /* Campos que devem ocupar linha inteira em mobile */
+            .form-group:has(input[name="modelo"]),
+            .form-group:has(input[name="usuario"]),
+            .form-group:has(input[name="ip"]),
+            .form-group:has(input[name="mac"]),
+            .form-group:has(input[name="numero"]),
+            .form-group:has(input[name="linha"]),
+            .form-group:has(input[name="dono"]),
+            .form-group:has(input[name="categoria"]),
+            .form-group:has(input[name="descricao"]),
+            .form-group:has(select[name="processadorId"]),
+            .form-group:has(select[name="celularId"]),
+            .form-group:has(textarea),
+            .form-group.span-2,
+            .form-section-title {
+                grid-column: span 2;
+            }
+            /* Campos que ficam 2 por linha (padrão — sem span) */
+            .form-group {
+                grid-column: span 1;
+            }
+            .form-group label { font-size: 11px; }
+            .form-group input,
+            .form-group select,
+            .form-group .cd-trigger { font-size: 12px; padding: 7px 9px; }
+
+            /* ── Título da página no header ── */
+            main header h1 {
+                font-size: 14px;
+                max-width: 130px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
+
+        @media (max-width: 479px) {
+            /* Gestão/Suporte: padding ainda menor */
+            .view-mode button { padding: 5px 8px; }
+        }
+
     </style>
 </head>
 <body>
 
     <!-- ==================== SIDEBAR ==================== -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="sidebar" id="sidebar">
         <button id="toggleSidebar" class="toggle-btn">
             <i class="fa-solid fa-angles-left icon-close"></i>
@@ -1071,8 +1274,9 @@
     </div>
 
     <!-- ==================== MAIN ==================== -->
-    <main>
+    <main id="mainContent">
         <header>
+            <button class="btn-hamburger" id="btnHamburger" onclick="toggleMobileSidebar()"><i class="fa-solid fa-bars"></i></button>
             <h1>Gerenciamento de Inventário</h1>
             <div class="header-buttons">
                 <button class="theme-toggle" id="themeToggle">
@@ -1108,10 +1312,10 @@
                     <!-- Gestão / Suporte -->
                     <div class="view-mode" id="viewMode">
                         <button class="active" data-mode="gestao" onclick="setViewMode('gestao', this)">
-                            <i class="fa-solid fa-chart-line"></i> Gestão
+                            <i class="fa-solid fa-chart-line"></i><span class="vm-label"> Gestão</span>
                         </button>
                         <button data-mode="suporte" onclick="setViewMode('suporte', this)">
-                            <i class="fa-solid fa-screwdriver-wrench"></i> Suporte
+                            <i class="fa-solid fa-screwdriver-wrench"></i><span class="vm-label"> Suporte</span>
                         </button>
                     </div>
 
@@ -1147,7 +1351,7 @@
                 </div>
                 <div class="top-controls-right">
                     <button class="btn btn-primary" style="font-size:13px" onclick="openAddModal()">
-                        <i class="fa-solid fa-plus"></i> Novo Item
+                        <i class="fa-solid fa-plus"></i><span class="btn-novo-label"> Novo Item</span>
                     </button>
                 </div>
             </div>
@@ -1532,7 +1736,7 @@
                         <span id="footerInfo">0 registros</span>
                         <div style="display:flex; align-items:center; gap:6px;">
                             <label style="font-size:12px; color:var(--text-muted);">Linhas:</label>
-                            <select class="page-size-select" id="pageSizeSelect" data-cd-simple onchange="setPageSize(this.value)">
+                            <select class="page-size-select" id="pageSizeSelect" data-cd-simple data-cd-up onchange="setPageSize(this.value)">
                                 <option value="10">10</option>
                                 <option value="25" selected>25</option>
                                 <option value="50">50</option>
@@ -1551,6 +1755,9 @@
 
         </div><!-- /main -->
     </main>
+
+    <!-- Overlay mobile para fechar o painel de filtros -->
+    <div class="filter-mobile-overlay" id="filterMobileOverlay" onclick="toggleFilterDropdown()"></div>
 
     <!-- ==================== MODAL: ADICIONAR ITEM ==================== -->
     <div class="modal-overlay" id="modalAdd">
@@ -2280,15 +2487,24 @@
 
         // ── Dropdown de Filtros ─────────────────────────────────
         function toggleFilterDropdown() {
-            const dd = document.getElementById('filterDropdown');
-            if (dd) dd.classList.toggle('open');
+            const dd      = document.getElementById('filterDropdown');
+            const overlay = document.getElementById('filterMobileOverlay');
+            if (!dd) return;
+            const isOpen = dd.classList.toggle('open');
+            if (overlay) overlay.classList.toggle('open', isOpen);
         }
-        // Fechar dropdown ao clicar fora
+        // Fechar dropdown ao clicar fora (desktop)
         document.addEventListener('click', e => {
-            const wrap = document.getElementById('filterDropdownWrap');
-            const dd   = document.getElementById('filterDropdown');
-            if (dd && dd.classList.contains('open') && wrap && !wrap.contains(e.target)) {
-                dd.classList.remove('open');
+            const wrap    = document.getElementById('filterDropdownWrap');
+            const dd      = document.getElementById('filterDropdown');
+            const overlay = document.getElementById('filterMobileOverlay');
+            const btn     = document.getElementById('btnFiltro');
+            if (dd && dd.classList.contains('open') && !dd.contains(e.target) && e.target !== btn && !btn?.contains(e.target)) {
+                // Em mobile, o overlay cuida do fechamento — em desktop, clique fora fecha
+                if (window.innerWidth > 767) {
+                    dd.classList.remove('open');
+                    if (overlay) overlay.classList.remove('open');
+                }
             }
         });
 
@@ -2452,12 +2668,25 @@
          */
         function detailStatusBadge(status) {
             const map = {
-                ativo:      { cls: 'badge-success', label: 'Ativo'      },
-                inativo:    { cls: 'badge-danger',  label: 'Inativo'    },
-                manutencao: { cls: 'badge-warning', label: 'Manutenção' },
-                estoque:    { cls: 'badge-info',    label: 'Estoque'    },
+                'emuso':               { cls: 'badge-success', label: 'Em Uso'               },
+                'disponível':          { cls: 'badge-info',    label: 'Disponível'           },
+                'disponivel':          { cls: 'badge-info',    label: 'Disponível'           },
+                'emestoque':           { cls: 'badge-info',    label: 'Em Estoque'           },
+                'emmanutenção':        { cls: 'badge-warning', label: 'Em Manutenção'        },
+                'emmanutencao':        { cls: 'badge-warning', label: 'Em Manutenção'        },
+                'necessitamanutenção': { cls: 'badge-warning', label: 'Necessita Manutenção' },
+                'necessitamanutencao': { cls: 'badge-warning', label: 'Necessita Manutenção' },
+                'desativado':          { cls: 'badge-gray',    label: 'Desativado'           },
+                'inativo':             { cls: 'badge-gray',    label: 'Inativo'              },
+                'indisponível':        { cls: 'badge-gray',    label: 'Indisponível'         },
+                'indisponivel':        { cls: 'badge-gray',    label: 'Indisponível'         },
+                'descartado':          { cls: 'badge-danger',  label: 'Descartado'           },
+                'vendido':             { cls: 'badge-danger',  label: 'Vendido'              },
+                'aguardandodescarte':  { cls: 'badge-danger',  label: 'Aguardando Descarte'  },
+                'ativo':               { cls: 'badge-success', label: 'Ativo'                },
             };
-            const m = map[(status || '').toLowerCase()] || { cls: 'badge-gray', label: status || '—' };
+            const key = (status || '').toLowerCase().replace(/[\s_]/g, '');
+            const m = map[key] || { cls: 'badge-gray', label: status || '—' };
             return `<span class="badge ${m.cls}">${m.label}</span>`;
         }
 
@@ -3009,5 +3238,6 @@
             }
         } catch(e) {}
     </script>
+    <script src="js/mobile.js"></script>
 </body>
 </html>

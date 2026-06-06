@@ -657,6 +657,9 @@ async function confirmarImport() {
                 mostrarProgressoImport('Validando chips…', 35);
                 await _carregarChips();
                 chipsIgnorados = [...idsReferenciados].filter(id => !chipsDisponiveis.has(id)).length;
+            } else {
+                // Carrega mesmo sem IDs referenciados para o vínculo pós-criação funcionar
+                await _carregarChips();
             }
         }
 
@@ -681,18 +684,30 @@ async function confirmarImport() {
                 ok++;
 
                 // ── Vínculo de chips para celulares ──────────────────
-                if (categoria === 'celulares' && criado?._id) {
-                    const todosIds = [...new Set([
-                        ...(_chipIdsPendentes        || []),
-                        ...(_contasWhatsappPendentes || []),
-                    ])].filter(id => chipsDisponiveis?.has(id));
+                if (categoria === 'celulares') {
+                    const celularId = criado?._id || criado?.id || criado?.Id || criado?.ID;
+                    if (celularId) {
+                        const todosIds = [...new Set([
+                            ...(_chipIdsPendentes        || []),
+                            ...(_contasWhatsappPendentes || []),
+                        ])].filter(id => chipsDisponiveis?.has(id));
 
-                    for (const chipId of todosIds) {
-                        try {
-                            const chip = chipsDisponiveis.get(chipId);
-                            if (chip) await atualizarChip(chipId, { ...chip, celularId: criado._id });
-                        } catch (e) {
-                            console.warn(`Falha ao vincular chip ${chipId}:`, e);
+                        if (todosIds.length > 0) {
+                            // Atualiza cada chip com o celularId
+                            for (const chipId of todosIds) {
+                                try {
+                                    const chip = chipsDisponiveis.get(chipId);
+                                    if (chip) await atualizarChip(chipId, { ...chip, celularId });
+                                } catch (e) {
+                                    console.warn(`Falha ao vincular chip ${chipId}:`, e);
+                                }
+                            }
+                            // Atualiza o celular com os chipIds preenchidos
+                            try {
+                                await request('celulares/' + celularId, 'PUT', { ...criado, chipIds: todosIds, contasWhatsapp: _contasWhatsappPendentes?.filter(id => chipsDisponiveis?.has(id)) || [] });
+                            } catch (e) {
+                                console.warn(`Falha ao atualizar celular ${celularId} com chipIds:`, e);
+                            }
                         }
                     }
                 }

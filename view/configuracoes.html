@@ -11,6 +11,7 @@
 
     <!-- Estilos base compartilhados por todas as telas -->
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="responsive.css">
 
     <title>Configurações — NovaTech Solutions</title>
 
@@ -99,11 +100,12 @@
             border: 1px solid var(--border-color);
             border-radius: 12px;
             box-shadow: var(--card-shadow);
-            overflow: hidden;
+            overflow: visible;
         }
-
-        /* Cabeçalho de cada seção com ícone colorido */
+        /* Mantém border-radius no cabeçalho sem precisar de overflow:hidden no pai */
         .cs-header {
+            border-radius: 12px 12px 0 0;
+        
             padding: 16px 22px;
             border-bottom: 1px solid var(--border-color);
             display: flex; align-items: center; gap: 12px;
@@ -137,6 +139,8 @@
         .cr-info strong { font-size: 13px; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 2px; }
         .cr-info span   { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
         .cr-control { flex-shrink: 0; }
+        /* Painel do dropdown alinha à direita quando está no lado direito da tela */
+        .cr-control .cd-panel { left: auto; right: 0; }
 
         /* ---- Toggle switch (checkbox estilizado) ---- */
         .toggle-switch {
@@ -223,7 +227,7 @@
             z-index: 999;
             animation: slideUp 0.2s ease;
         }
-        .save-strip.show { display: flex; }
+        .save-strip.show { display: none; } /* popup desativado */
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(10px); }
             to   { opacity: 1; transform: translateY(0); }
@@ -658,6 +662,139 @@
         }
         .import-hint strong { color: var(--text-primary); }
 
+        /* ================================================================
+           MOBILE — oculta nav lateral e empilha tudo em coluna única
+           + corrige modal de exportação/importação
+        ================================================================ */
+        @media (max-width: 768px) {
+
+            /* Config layout */
+            .config-layout {
+                grid-template-columns: 1fr;
+            }
+            .config-nav {
+                display: none;
+            }
+            .config-panel {
+                min-width: 0;
+            }
+
+            /* Modal ocupa a tela toda sem padding lateral exagerado */
+            .modal-overlay {
+                padding: 0;
+                align-items: flex-end;
+            }
+            .modal {
+                border-radius: 18px 18px 0 0;
+                max-height: 92vh;
+                max-width: 100%;
+            }
+            .modal-export {
+                height: 92vh;
+            }
+
+            /* Header do modal: reduz padding */
+            .modal-header {
+                padding: 14px 16px 12px;
+            }
+            .modal-header h2 {
+                font-size: 14px;
+            }
+
+            /* Stepper de pills: ícones apenas, sem texto */
+            .export-steps-header {
+                padding: 0;
+                border: none;
+                gap: 2px;
+            }
+            .export-step-pill {
+                font-size: 11px;
+                padding: 5px 8px;
+                gap: 4px;
+                flex-shrink: 0;
+            }
+            /* Pills inativos: mostra só ícone */
+            .export-step-pill:not(.active) span {
+                display: none;
+            }
+            .export-step-pill:not(.active) i {
+                font-size: 12px;
+            }
+            .export-step-pill.active span {
+                font-size: 11px;
+            }
+            .export-step-pill.active i {
+                font-size: 12px;
+            }
+            .export-step-sep {
+                width: 10px;
+            }
+
+            /* Body do step */
+            .export-step-body {
+                padding: 14px 16px;
+            }
+
+            /* Step 1 — grid de tabelas: 2 colunas menores */
+            .export-table-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 6px;
+            }
+            .export-table-card {
+                padding: 9px 10px;
+                gap: 8px;
+            }
+            .export-table-card span {
+                font-size: 12px;
+            }
+
+            /* Step 2 — header das seções de campos em coluna */
+            .export-fields-section-header {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .export-fields-section-header > div {
+                gap: 4px;
+            }
+
+            /* Step 3 — filtros e toolbar */
+            .exp-filter-row {
+                grid-template-columns: 1fr !important;
+                gap: 6px;
+            }
+            .exp-filter-row.has-value {
+                grid-template-columns: 1fr !important;
+            }
+            .exp-records-toolbar {
+                flex-wrap: wrap;
+            }
+            .exp-records-selbar {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .exp-records-list {
+                max-height: 200px;
+            }
+
+            /* Footer do modal */
+            .modal-footer {
+                padding: 12px 16px;
+                gap: 8px;
+            }
+            .modal-footer .btn {
+                font-size: 13px;
+                padding: 8px 14px;
+            }
+
+            /* Importar */
+            .import-body {
+                padding: 16px;
+            }
+            .import-drop-zone {
+                padding: 22px 16px;
+            }
+        }
+
         /* ---- Dark mode: modal exportar ---- */
         body.dark .export-step-pill.active { background: var(--quinary-color); }
         body.dark .export-step-pill.done   { color: var(--quinary-hover); }
@@ -692,6 +829,7 @@
          Navegação, busca e botão de logout.
          Link ativo é marcado pelo JS via comparação com window.location.
     ====================================================================== -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="sidebar" id="sidebar">
         <!-- Botão de recolher/expandir a sidebar -->
         <button id="toggleSidebar" class="toggle-btn">
@@ -722,8 +860,9 @@
     <!-- =====================================================================
          MAIN — cabeçalho + conteúdo scrollável
     ====================================================================== -->
-    <main>
+    <main id="mainContent">
         <header>
+            <button class="btn-hamburger" id="btnHamburger" onclick="toggleMobileSidebar()"><i class="fa-solid fa-bars"></i></button>
             <h1>Configurações</h1>
             <div class="header-buttons">
                 <div class="header-user">
@@ -811,11 +950,11 @@
                                     <span>Quantidade de registros exibidos nas tabelas</span>
                                 </div>
                                 <div class="cr-control">
-                                    <select class="cr-select" id="cfgItensPagina">
-                                        <option>10</option>
-                                        <option selected>25</option>
-                                        <option>50</option>
-                                        <option>100</option>
+                                    <select class="cr-select" id="cfgItensPagina" data-cd-simple>
+                                        <option value="10">10</option>
+                                        <option value="25" selected>25</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
                                     </select>
                                 </div>
                             </div>
@@ -826,36 +965,15 @@
                                     <span>Como as datas serão exibidas no sistema</span>
                                 </div>
                                 <div class="cr-control">
-                                    <select class="cr-select" id="cfgFormatoData">
-                                        <option selected>DD/MM/AAAA</option>
-                                        <option>MM/DD/AAAA</option>
-                                        <option>AAAA-MM-DD</option>
+                                    <select class="cr-select" id="cfgFormatoData" data-cd-simple>
+                                        <option value="DD/MM/AAAA" selected>DD/MM/AAAA</option>
+                                        <option value="MM/DD/AAAA">MM/DD/AAAA</option>
+                                        <option value="AAAA-MM-DD">AAAA-MM-DD</option>
                                     </select>
                                 </div>
                             </div>
 
-                            <div class="config-row">
-                                <div class="cr-info">
-                                    <strong>Versão da API</strong>
-                                    <span>Endpoint atual do backend</span>
-                                </div>
-                                <div class="cr-control">
-                                    <!-- Status estático — apenas exibição -->
-                                    <span class="status-tag tag-green">
-                                        <i class="fa-solid fa-circle" style="font-size:7px"></i> localhost:5085
-                                    </span>
-                                </div>
-                            </div>
 
-                            <div class="config-row">
-                                <div class="cr-info">
-                                    <strong>Versão do sistema</strong>
-                                    <span>NovaTech Solutions Frontend</span>
-                                </div>
-                                <div class="cr-control">
-                                    <span class="status-tag tag-gray">v1.0.0</span>
-                                </div>
-                            </div>
 
                         </div>
                     </div>
@@ -893,21 +1011,15 @@
                                 </div>
                             </div>
 
-                            <div class="config-row">
-                                <div class="cr-info">
-                                    <strong>Limpar preferências locais</strong>
-                                    <span>Apagar configurações salvas neste navegador</span>
-                                </div>
-                                <div class="cr-control">
-                                    <button class="btn-danger" id="btnLimparPrefs">
-                                        <i class="fa-solid fa-trash"></i> Limpar
-                                    </button>
-                                </div>
-                            </div>
 
                         </div>
                     </div>
 
+                    <div style="display:flex; justify-content:flex-end; padding-top:8px;">
+                        <button id="btnSalvarFixo" class="btn btn-primary" style="gap:6px;">
+                            <i class="fa-solid fa-floppy-disk"></i> Salvar configurações
+                        </button>
+                    </div>
                 </div><!-- /config-panel -->
             </div>
         </div>
@@ -944,19 +1056,19 @@
                 <!-- Pills de passo — estado controlado pelo JS -->
                 <div class="export-steps-header" style="padding:0; border:none;">
                     <div class="export-step-pill active" id="expPill1">
-                        <i class="fa-solid fa-table"></i> 1. Tabelas
+                        <i class="fa-solid fa-table"></i> <span>1. Tabelas</span>
                     </div>
                     <div class="export-step-sep"></div>
                     <div class="export-step-pill" id="expPill2">
-                        <i class="fa-solid fa-list-check"></i> 2. Campos
+                        <i class="fa-solid fa-list-check"></i> <span>2. Campos</span>
                     </div>
                     <div class="export-step-sep"></div>
                     <div class="export-step-pill" id="expPill3">
-                        <i class="fa-solid fa-magnifying-glass-check"></i> 3. Registros
+                        <i class="fa-solid fa-magnifying-glass-check"></i> <span>3. Registros</span>
                     </div>
                     <div class="export-step-sep"></div>
                     <div class="export-step-pill" id="expPill4">
-                        <i class="fa-solid fa-file-arrow-down"></i> 4. Formato
+                        <i class="fa-solid fa-file-arrow-down"></i> <span>4. Formato</span>
                     </div>
                 </div>
             </div>
@@ -1377,18 +1489,33 @@
 
         // Botão "Salvar" da strip
         document.getElementById('btnSalvar').addEventListener('click', salvarConfiguracoes);
+        document.getElementById('btnSalvarFixo').addEventListener('click', salvarConfiguracoes);
 
         // Botão "Limpar preferências"
-        document.getElementById('btnLimparPrefs').addEventListener('click', limparPreferencias);
+        document.getElementById('btnLimparPrefs')?.addEventListener('click', limparPreferencias);
 
         /**
          * Persiste todas as configurações no localStorage (tl_config).
          * Ao salvar com sucesso, a strip exibe "Salvo!" por 1,5 s.
          */
+        // Helper: lê valor de um select nativo ou cd-wrap
+        function getCfgValue(id) {
+            const wrap = document.querySelector(`[data-original-id="${id}"]`);
+            if (wrap?.getValue) return wrap.getValue();
+            return document.getElementById(id)?.value || '';
+        }
+        // Helper: seta valor de um select nativo ou cd-wrap
+        function setCfgValue(id, val) {
+            const wrap = document.querySelector(`[data-original-id="${id}"]`);
+            if (wrap?.setValue) { wrap.setValue(val); return; }
+            const el = document.getElementById(id);
+            if (el) el.value = val;
+        }
+
         function salvarConfiguracoes() {
             const cfg = {
-                itensPagina:   document.getElementById('cfgItensPagina').value,
-                formatoData:   document.getElementById('cfgFormatoData').value,
+                itensPagina: getCfgValue('cfgItensPagina'),
+                formatoData: getCfgValue('cfgFormatoData'),
             };
             localStorage.setItem('tl_config', JSON.stringify(cfg));
 
@@ -1408,8 +1535,8 @@
          */
         function carregarConfiguracoes() {
             const cfg = JSON.parse(localStorage.getItem('tl_config') || '{}');
-            if (cfg.itensPagina)                  document.getElementById('cfgItensPagina').value         = cfg.itensPagina;
-            if (cfg.formatoData)                  document.getElementById('cfgFormatoData').value         = cfg.formatoData;
+            if (cfg.itensPagina) setCfgValue('cfgItensPagina', cfg.itensPagina);
+            if (cfg.formatoData) setCfgValue('cfgFormatoData', cfg.formatoData);
         }
 
         /**
@@ -2333,7 +2460,6 @@
 
         // ── INICIALIZAÇÃO ─────────────────────────────────────────────────────
         // Carrega as configurações salvas e sincroniza os controles visuais.
-        carregarConfiguracoes();
         syncThemeOpts();
     </script>
 
@@ -2341,7 +2467,10 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Substitui selects estáticos (configurações, importar)
             initAllSelects(document);
+            // Aplica valores salvos após os dropdowns estarem inicializados
+            carregarConfiguracoes();
         });
     </script>
+    <script src="js/mobile.js"></script>
 </body>
 </html>

@@ -6,310 +6,590 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-        <script src="js/dropdown.js"></script>
-    <script src="js/api.js"></script>
+    <link rel="stylesheet" href="responsive.css">
     <title>Relatórios — NovaTech Solutions</title>
     <style>
-        /* ===== RELATÓRIOS ESPECÍFICO ===== */
+        /* ══════════════════════════════════════════
+           DESIGN TOKENS — mantém compatibilidade
+           com style.css existente + extensões
+        ══════════════════════════════════════════ */
+        :root {
+            --rel-accent:       #4f6ef7;
+            --rel-accent-soft:  rgba(79,110,247,.10);
+            --rel-accent-glow:  rgba(79,110,247,.22);
+            --rel-green:        #34d399;
+            --rel-green-soft:   rgba(52,211,153,.10);
+            --rel-amber:        #fbbf24;
+            --rel-amber-soft:   rgba(251,191,36,.10);
+            --rel-red:          #f87171;
+            --rel-red-soft:     rgba(248,113,113,.10);
+            --rel-purple:       #a78bfa;
+            --rel-purple-soft:  rgba(167,139,250,.10);
+            --rel-radius:       10px;
+            --rel-transition:   all .18s cubic-bezier(.4,0,.2,1);
+            --font-display:     'Syne', sans-serif;
+            --font-body:        'DM Sans', sans-serif;
+            --font-mono:        'DM Mono', monospace;
+        }
 
-        /* ---- Cards de tipo de relatório ---- */
+        body { font-family: var(--font-body); }
+
+        /* ══ Seção de título ══ */
+        .rel-section-title {
+            font-family: var(--font-display);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .rel-section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        /* ══ Cards de tipo de relatório ══ */
         .report-types {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
         }
         .report-type-card {
             background: var(--secondary-color);
-            border: 2px solid var(--border-color);
-            border-radius: 10px;
-            padding: 16px 18px;
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--rel-radius);
+            padding: 16px;
             cursor: pointer;
-            transition: border-color 0.2s, box-shadow 0.2s, background 0.15s;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .report-type-card:hover {
-            border-color: var(--quinary-color);
-            box-shadow: 0 0 0 3px rgba(62,96,143,0.10);
-        }
-        .report-type-card.selected {
-            border-color: var(--quinary-color);
-            background: #eef3fb;
-            box-shadow: 0 0 0 3px rgba(62,96,143,0.12);
-        }
-        .rtc-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
+            transition: var(--rel-transition);
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 14px;
+            position: relative;
+            overflow: hidden;
         }
-        .rtc-icon i { font-size: 17px; color: #fff; }
-        .rtc-icon.blue   { background: var(--info-color); }
-        .rtc-icon.green  { background: var(--success-color); }
-        .rtc-icon.orange { background: var(--warning-color); }
-        .rtc-icon.purple { background: #8b5cf6; }
-        .rtc-label { font-size: 13px; font-weight: 700; color: var(--text-primary); }
-        .rtc-desc  { font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: -4px; }
+        .report-type-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity .2s;
+        }
+        .report-type-card[data-type="inventario"]::before  { background: var(--rel-accent-soft); }
+        .report-type-card[data-type="manutencao"]::before  { background: var(--rel-amber-soft); }
 
-        /* ---- Filtros ---- */
-        .filter-panel {
+        .report-type-card:hover { border-color: var(--rel-accent); transform: translateY(-1px); }
+        .report-type-card:hover::before { opacity: 1; }
+
+        .report-type-card.selected {
+            border-color: var(--rel-accent);
+            box-shadow: 0 0 0 3px var(--rel-accent-glow);
+        }
+        .report-type-card.selected::before { opacity: 1; }
+
+        /* Indicador lateral colorido */
+        .report-type-card.selected .rtc-bar { opacity: 1; }
+        .rtc-bar {
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            border-radius: 2px 0 0 2px;
+            opacity: 0;
+            transition: opacity .2s;
+        }
+        .rtc-bar.blue   { background: var(--rel-accent); }
+        .rtc-bar.green  { background: var(--rel-green); }
+        .rtc-bar.orange { background: var(--rel-amber); }
+        .rtc-bar.purple { background: var(--rel-purple); }
+
+        .rtc-icon {
+            width: 38px; height: 38px;
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .rtc-icon i { font-size: 16px; color: #fff; }
+        .rtc-icon.blue   { background: var(--rel-accent); box-shadow: 0 4px 12px var(--rel-accent-glow); }
+        .rtc-icon.green  { background: var(--rel-green);  box-shadow: 0 4px 12px var(--rel-green-soft); }
+        .rtc-icon.orange { background: var(--rel-amber);  box-shadow: 0 4px 12px var(--rel-amber-soft); }
+        .rtc-icon.purple { background: var(--rel-purple); box-shadow: 0 4px 12px var(--rel-purple-soft); }
+
+        .rtc-info { min-width: 0; }
+        .rtc-label { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--text-primary); white-space: nowrap; }
+        .rtc-desc  { font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: 2px; }
+
+        /* ══ Painel de data (simplificado) ══ */
+        .date-panel {
             background: var(--secondary-color);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 18px 20px;
-        }
-        .filter-panel h3 {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 14px;
+            border-radius: var(--rel-radius);
+            padding: 20px 22px;
             display: flex;
-            align-items: center;
-            gap: 7px;
-        }
-        .filter-panel h3 i { color: var(--text-muted); font-size: 13px; }
-
-        .filter-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr) auto;
-            gap: 10px;
             align-items: flex-end;
-        }
-        .filter-field { display: flex; flex-direction: column; gap: 5px; }
-        .filter-field label { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.3px; text-transform: uppercase; }
-        .filter-field input,
-        .filter-field select {
-            padding: 8px 11px;
-            border: 1px solid var(--border-color);
-            border-radius: 7px;
-            font-size: 13px;
-            background: var(--background-color);
-            color: var(--text-primary);
-            outline: none;
-            transition: border 0.2s, box-shadow 0.2s;
-            font-family: inherit;
-        }
-        .filter-field input:focus,
-        .filter-field select:focus {
-            border-color: var(--quinary-color);
-            box-shadow: 0 0 0 2px rgba(62,96,143,0.12);
-        }
-        .btn-gerar {
-            padding: 8px 18px;
-            background: var(--quinary-color);
-            color: #fff;
-            border: none;
-            border-radius: 7px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            transition: background 0.2s;
-            white-space: nowrap;
-            height: 38px;
-        }
-        .btn-gerar:hover { background: #2d4f7a; }
-
-        /* ---- Barra de ações sobre a tabela ---- */
-        .table-actions {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
+            gap: 16px;
             flex-wrap: wrap;
         }
-        .table-actions-left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .date-panel-label {
+            font-family: var(--font-display);
+            font-size: 11px; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 6px;
         }
-        .table-actions-right {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .search-inline {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            background: var(--background-color);
-            border: 1px solid var(--border-color);
-            border-radius: 7px;
-            padding: 6px 11px;
-            transition: border 0.2s;
-        }
-        .search-inline:focus-within {
-            border-color: var(--quinary-color);
-            box-shadow: 0 0 0 2px rgba(62,96,143,0.12);
-        }
-        .search-inline i { font-size: 13px; color: var(--text-muted); }
-        .search-inline input {
-            border: none;
-            background: transparent;
-            outline: none;
+        .date-field { display: flex; flex-direction: column; }
+        .date-field input[type="date"] {
+            padding: 9px 13px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
             font-size: 13px;
+            font-family: var(--font-body);
+            background: var(--background-color);
             color: var(--text-primary);
-            width: 180px;
+            outline: none;
+            transition: var(--rel-transition);
+            min-width: 160px;
         }
-        .search-inline input::placeholder { color: var(--text-muted); }
+        .date-field input[type="date"]:focus {
+            border-color: var(--rel-accent);
+            box-shadow: 0 0 0 3px var(--rel-accent-glow);
+        }
+        .date-separator {
+            font-size: 18px; color: var(--text-muted);
+            padding-bottom: 8px; user-select: none;
+        }
 
-        /* Export buttons */
-        .btn-export {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 13px;
-            border-radius: 7px;
-            font-size: 12px;
+        .btn-gerar {
+            padding: 9px 22px;
+            background: var(--rel-accent);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: var(--font-display);
             font-weight: 700;
             cursor: pointer;
-            border: 1px solid;
-            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--rel-transition);
+            white-space: nowrap;
+            box-shadow: 0 4px 14px var(--rel-accent-glow);
+            letter-spacing: .3px;
         }
-        .btn-export.pdf   { background: #fee2e2; border-color: #fecaca; color: #b91c1c; }
-        .btn-export.pdf:hover   { background: #fecaca; }
-        .btn-export.excel { background: #d1fae5; border-color: #a7f3d0; color: #065f46; }
-        .btn-export.excel:hover { background: #a7f3d0; }
-        .btn-export.print { background: var(--background-color); border-color: var(--border-color); color: var(--text-muted); }
-        .btn-export.print:hover { background: var(--border-color); }
+        .btn-gerar:hover { background: #3a56d4; transform: translateY(-1px); box-shadow: 0 6px 20px var(--rel-accent-glow); }
+        .btn-gerar:active { transform: translateY(0); }
+        .btn-gerar:disabled { opacity: .55; cursor: not-allowed; transform: none; }
 
-        /* ---- KPI mini row ---- */
+        /* ══ KPI row ══ */
         .kpi-row {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
+            gap: 10px;
         }
         .kpi-mini {
             background: var(--secondary-color);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 14px 16px;
-            box-shadow: var(--card-shadow);
+            border-radius: var(--rel-radius);
+            padding: 16px 18px;
+            position: relative;
+            overflow: hidden;
+            transition: var(--rel-transition);
         }
-        .kpi-mini-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 6px; }
-        .kpi-mini-value { font-size: 24px; font-weight: 700; color: var(--text-primary); line-height: 1; }
-        .kpi-mini-sub   { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+        .kpi-mini::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 2px;
+            border-radius: 0 0 var(--rel-radius) var(--rel-radius);
+            opacity: 0;
+            transition: opacity .3s;
+        }
+        .kpi-mini.loaded::after { opacity: 1; }
+        .kpi-mini:nth-child(1)::after { background: var(--rel-accent); }
+        .kpi-mini:nth-child(2)::after { background: var(--rel-green); }
+        .kpi-mini:nth-child(3)::after { background: var(--text-muted); }
+        .kpi-mini:nth-child(4)::after { background: var(--rel-amber); }
+        .kpi-mini:nth-child(5)::after { background: var(--rel-purple); }
 
-        /* ---- Estado vazio / carregando ---- */
-        .empty-state {
+        .kpi-mini-label {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .8px; color: var(--text-muted);
+            margin-bottom: 8px; font-family: var(--font-display);
+        }
+        .kpi-mini-value {
+            font-family: var(--font-display);
+            font-size: 28px; font-weight: 800;
+            color: var(--text-primary); line-height: 1;
+            transition: var(--rel-transition);
+        }
+        .kpi-mini-sub { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
+
+        /* ══ KPI de valor — destaque especial ══ */
+        .kpi-valor {
+            background: linear-gradient(135deg, #0d2e1a 0%, #0f2d26 60%, #112b1e 100%);
+            border-color: rgba(52,211,153,.25) !important;
+            box-shadow: 0 0 0 1px rgba(52,211,153,.10), inset 0 1px 0 rgba(52,211,153,.08);
+            position: relative;
+            overflow: hidden;
+        }
+        .kpi-valor::before {
+            content: '';
+            position: absolute;
+            top: -30px; right: -30px;
+            width: 100px; height: 100px;
+            background: radial-gradient(circle, rgba(52,211,153,.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .kpi-valor::after {
+            background: var(--rel-green) !important;
+            opacity: 1 !important;
+            height: 2px;
+        }
+        .kpi-valor .kpi-mini-label {
+            color: rgba(52,211,153,.7);
             display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 48px 24px;
-            gap: 10px;
-            color: var(--text-muted);
         }
-        .empty-state i { font-size: 36px; opacity: 0.35; }
-        .empty-state p { font-size: 13px; }
+        .kpi-valor-value {
+            font-family: var(--font-display);
+            font-size: 22px;
+            font-weight: 800;
+            line-height: 1.1;
+            margin: 8px 0 4px;
+            background: linear-gradient(90deg, #34d399, #6ee7b7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -.3px;
+        }
+        .kpi-valor .kpi-mini-sub {
+            color: rgba(52,211,153,.45);
+            font-size: 10px;
+        }
 
-        /* ---- Tag de status ---- */
-        .tag-ativo   { background: #d1fae5; color: #065f46; }
-        .tag-inativo { background: #f1f5f9; color: #475569; }
+        /* Skeleton loader para KPI */
+        .kpi-skeleton {
+            height: 28px; width: 60px;
+            background: linear-gradient(90deg, var(--border-color) 25%, var(--secondary-color) 50%, var(--border-color) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 4px;
+        }
+        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
-        /* ---- Highlight na busca ---- */
-        mark { background: #fef3c7; padding: 0 2px; border-radius: 2px; }
+        /* ══ Área de preview ══ */
+        .preview-area {
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--rel-radius);
+            overflow: visible;
+            display: none; /* oculto até gerar */
+        }
+        .preview-area.visible { display: block; animation: fadeSlideIn .3s ease; }
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
 
-        /* ---- Linha de registros ---- */
-        #info-registros { font-size: 12px; color: var(--text-muted); }
-    
-        /* ---- Logout / Avatar ---- */
-        .sidebar-footer {
+        /* Barra de ações da tabela */
+        .preview-toolbar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding-top: 12px;
-            border-top: 1px solid #2d3f55;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border-color);
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .preview-toolbar-left {
+            display: flex; align-items: center; gap: 10px;
+            flex: 1; min-width: 0;
+        }
+        .preview-title {
+            font-family: var(--font-display);
+            font-size: 14px; font-weight: 700;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .preview-count {
+            font-size: 11px; font-weight: 600;
+            background: var(--rel-accent-soft);
+            color: var(--rel-accent);
+            padding: 3px 9px; border-radius: 20px;
+            font-family: var(--font-mono);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .preview-toolbar-right {
+            display: flex; align-items: center; gap: 8px;
+            flex-wrap: wrap;
+        }
+        .search-inline {
+            display: flex; align-items: center; gap: 7px;
+            background: var(--background-color);
+            border: 1.5px solid var(--border-color);
+            border-radius: 7px; padding: 6px 11px;
+            transition: var(--rel-transition);
+        }
+        .search-inline:focus-within {
+            border-color: var(--rel-accent);
+            box-shadow: 0 0 0 2px var(--rel-accent-glow);
+        }
+        .search-inline i { font-size: 12px; color: var(--text-muted); }
+        .search-inline input {
+            border: none; background: transparent; outline: none;
+            font-size: 13px; color: var(--text-primary);
+            width: 130px; font-family: var(--font-body);
+        }
+        .search-inline input::placeholder { color: var(--text-muted); }
+
+        @media (max-width: 600px) {
+            .preview-toolbar {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 12px 14px;
+                gap: 10px;
+            }
+            .preview-toolbar-left { width: 100%; }
+            .preview-toolbar-right { width: 100%; }
+            .search-inline { flex: 1; }
+            .search-inline input { width: 100%; min-width: 0; }
+            .btn-export span { display: inline; }
+        }
+
+        /* Botões de exportação */
+        .btn-export {
+            display: flex; align-items: center; gap: 6px;
+            padding: 7px 14px; border-radius: 7px;
+            font-size: 12px; font-weight: 700;
+            font-family: var(--font-display);
+            cursor: pointer; border: 1.5px solid;
+            transition: var(--rel-transition);
+            letter-spacing: .2px;
+        }
+        .btn-export:hover { transform: translateY(-1px); }
+        .btn-export:active { transform: translateY(0); }
+
+        .btn-export.pdf {
+            background: var(--rel-red-soft);
+            border-color: rgba(248,113,113,.25);
+            color: var(--rel-red);
+        }
+        .btn-export.pdf:hover { background: rgba(248,113,113,.2); box-shadow: 0 4px 12px rgba(248,113,113,.15); }
+
+        .btn-export.excel {
+            background: var(--rel-green-soft);
+            border-color: rgba(52,211,153,.25);
+            color: var(--rel-green);
+        }
+        .btn-export.excel:hover { background: rgba(52,211,153,.2); box-shadow: 0 4px 12px rgba(52,211,153,.15); }
+
+        .btn-export:disabled {
+            opacity: .4; cursor: not-allowed; transform: none !important;
+        }
+
+        /* Loading spinner inline */
+        .btn-export .fa-spinner { animation: spin .8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ══ Tabela ══ */
+        .table-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 0 0 var(--rel-radius) var(--rel-radius);
+        }
+
+        #tblRelatorio {
+            width: 100%; border-collapse: collapse;
+            font-size: 13px;
+            min-width: 900px;
+        }
+        #tblRelatorio thead tr {
+            background: var(--background-color);
+            border-bottom: 2px solid var(--border-color);
+        }
+        #tblRelatorio th {
+            padding: 10px 14px;
+            text-align: left;
+            font-family: var(--font-display);
+            font-size: 10px; font-weight: 700;
+            letter-spacing: .8px; text-transform: uppercase;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+        #tblRelatorio td {
+            padding: 11px 14px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            vertical-align: middle;
+        }
+        #tblRelatorio tbody tr {
+            transition: background .12s;
+        }
+        #tblRelatorio tbody tr:hover { background: var(--rel-accent-soft); }
+        #tblRelatorio tbody tr:last-child td { border-bottom: none; }
+
+        /* Coluna de código — mono */
+        .cell-mono {
+            font-family: var(--font-mono);
             font-size: 11px;
-            color: #475569;
+            color: var(--text-muted);
+        }
+        .cell-cat {
+            font-size: 11px; font-weight: 700;
+            color: var(--rel-accent);
+            background: var(--rel-accent-soft);
+            padding: 3px 8px; border-radius: 5px;
+            display: inline-block;
+        }
+        .cell-price {
+            font-family: var(--font-mono);
+            font-size: 12px;
+        }
+
+        /* Badges de status */
+        .badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 11px; font-weight: 700;
+            padding: 3px 9px; border-radius: 20px;
+            font-family: var(--font-display);
+            letter-spacing: .2px;
+        }
+        .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+        .badge-ativo         { background: var(--rel-green-soft);  color: var(--rel-green); }
+        .badge-ativo::before { background: var(--rel-green); }
+        .badge-inativo         { background: rgba(139,144,168,.12); color: var(--text-muted); }
+        .badge-inativo::before { background: var(--text-muted); }
+        .badge-manutencao         { background: var(--rel-amber-soft); color: var(--rel-amber); }
+        .badge-manutencao::before { background: var(--rel-amber); }
+        .badge-necessita         { background: var(--rel-red-soft);  color: var(--rel-red); }
+        .badge-necessita::before { background: var(--rel-red); }
+
+        /* ══ Estado vazio / erro / loading ══ */
+        .empty-state {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 56px 24px; gap: 12px;
+            color: var(--text-muted);
+        }
+        .empty-state .es-icon {
+            width: 56px; height: 56px;
+            background: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; opacity: .6;
+            margin-bottom: 4px;
+        }
+        .empty-state p { font-size: 13px; text-align: center; line-height: 1.6; }
+        .empty-state strong { color: var(--rel-accent); }
+
+        .error-state {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 48px 24px; gap: 10px;
+            color: var(--rel-red);
+        }
+        .error-state i { font-size: 28px; opacity: .7; }
+        .error-state p { font-size: 13px; color: var(--text-muted); text-align: center; }
+
+        /* ══ Toast de notificação ══ */
+        #toast {
+            position: fixed; bottom: 24px; right: 24px;
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 18px;
+            border-radius: var(--rel-radius);
+            font-size: 13px; font-weight: 600;
+            font-family: var(--font-body);
+            box-shadow: 0 8px 24px rgba(0,0,0,.25);
+            z-index: 9999;
+            transform: translateY(80px); opacity: 0;
+            transition: all .3s cubic-bezier(.4,0,.2,1);
+            pointer-events: none;
+        }
+        #toast.show { transform: translateY(0); opacity: 1; }
+        #toast.success { background: #064e3b; color: var(--rel-green); border: 1px solid rgba(52,211,153,.3); }
+        #toast.error   { background: #450a0a; color: var(--rel-red);   border: 1px solid rgba(248,113,113,.3); }
+        #toast.info    { background: #1e2333; color: var(--rel-accent); border: 1px solid var(--rel-accent-glow); }
+
+        /* ══ Sidebar footer ══ */
+        .sidebar-footer {
+            display: flex; align-items: center; justify-content: space-between;
+            padding-top: 12px; border-top: 1px solid #2d3f55;
+            font-size: 11px; color: #475569;
         }
         .btn-logout {
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            display: flex; align-items: center; gap: 6px;
             padding: 5px 10px;
-            background: rgba(239,68,68,0.12);
-            color: #f87171;
-            border: 1px solid rgba(239,68,68,0.2);
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.2s;
-            text-decoration: none;
+            background: rgba(239,68,68,.12); color: #f87171;
+            border: 1px solid rgba(239,68,68,.2);
+            border-radius: 6px; font-size: 11px; font-weight: 700;
+            cursor: pointer; transition: .2s; text-decoration: none;
         }
-        .btn-logout:hover { background: rgba(239,68,68,0.22); color: #fca5a5; }
+        .btn-logout:hover { background: rgba(239,68,68,.22); color: #fca5a5; }
         .header-user { display: flex; align-items: center; gap: 10px; }
         .user-avatar {
             width: 34px; height: 34px;
-            background: var(--quinary-color);
+            background: var(--rel-accent);
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 13px; font-weight: 700; color: #fff; cursor: pointer; flex-shrink: 0;
+            font-size: 13px; font-weight: 700; color: #fff;
+            cursor: pointer; flex-shrink: 0;
+            font-family: var(--font-display);
         }
-</style>
+
+        /* ══ Destaque de busca ══ */
+        mark { background: rgba(251,191,36,.25); color: var(--rel-amber); border-radius: 2px; padding: 0 2px; }
+    </style>
 </head>
 <body>
 
+    <!-- Toast de feedback -->
+    <div id="toast"><i id="toastIcon"></i><span id="toastMsg"></span></div>
+
     <!-- ==================== SIDEBAR ==================== -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="sidebar" id="sidebar">
         <button id="toggleSidebar" class="toggle-btn">
             <i class="fa-solid fa-angles-left icon-close"></i>
             <i class="fa-solid fa-angles-right icon-open"></i>
         </button>
-
         <div class="sidebar-brand">
             <img src="novatech-logo.png" alt="NovaTech Solutions" style="height:36px;width:auto;">
             <h2>NovaTech Solutions</h2>
         </div>
-
         <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="sidebarSearch" placeholder="Buscar..." autocomplete="off">
+            <input type="text" placeholder="Buscar...">
             <i class="fa-solid fa-xmark clear-btn"></i>
         </div>
-
         <ul class="menu">
-            <li>
-                <a data-tooltip="Dashboard" href="dashboard.html">
-                    <i class="material-icons" style="font-size:18px">dashboard</i>
-                    <span>Dashboard</span>
-                </a>
-            </li>
-            <li>
-                <a data-tooltip="Inventário" href="estoque.html">
-                    <i class="fa-solid fa-box-archive"></i><span>Inventário</span>
-                </a>
-            </li>
-            <li>
-                <a data-tooltip="Produtos" href="produtos.html">
-                    <i class="fa-solid fa-tag"></i><span>Produtos</span>
-                </a>
-            </li>
-            <li>
-                <a data-tooltip="Relatórios" href="relatorios.html">
-                    <i class="fa-solid fa-file-lines"></i><span>Relatórios</span>
-                </a>
-            </li>
-            <li>
-                <a data-tooltip="Configurações" href="configuracoes.html">
-                    <i class="fa-solid fa-gear"></i><span>Configurações</span>
-                </a>
-            </li>
+            <li><a href="dashboard.html"><i class="material-icons" style="font-size:18px">dashboard</i><span>Dashboard</span></a></li>
+            <li><a href="estoque.html"><i class="fa-solid fa-box-archive"></i><span>Inventário</span></a></li>
+            <li><a href="produtos.html"><i class="fa-solid fa-tag"></i><span>Produtos</span></a></li>
+            <li><a href="relatorios.html"><i class="fa-solid fa-file-lines"></i><span>Relatórios</span></a></li>
+            <li><a href="configuracoes.html"><i class="fa-solid fa-gear"></i><span>Configurações</span></a></li>
         </ul>
-
-        
+        <div class="sidebar-footer">
+            <span>v1.0</span>
+            <a href="login.html" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
+        </div>
     </div>
 
     <!-- ==================== MAIN ==================== -->
-    <main>
+    <main id="mainContent">
         <header>
+            <button class="btn-hamburger" id="btnHamburger" onclick="toggleMobileSidebar()"><i class="fa-solid fa-bars"></i></button>
             <h1>Relatórios</h1>
             <div class="header-buttons">
                 <div class="header-user">
@@ -320,436 +600,559 @@
                     <button class="btn-config" onclick="window.location.href='configuracoes.html'" title="Configurações">
                         <i class="fa-solid fa-gear"></i>
                     </button>
-                    <div class="profile-wrap" id="profileWrap">
-                        <div class="user-avatar" id="userAvatar" onclick="toggleProfileDropdown()" style="width:34px;height:34px;background:var(--quinary-color);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0;">U</div>
-                        <div class="profile-dropdown" id="profileDropdown">
-                            <div class="profile-dropdown-header">
-                                <div class="pd-name" id="pdName">Usuário</div>
-                                <div class="pd-role">Administrador</div>
-                            </div>
-                            <div class="profile-dropdown-body">
-                                <a class="pd-btn" href="perfil.html"><i class="fa-solid fa-user"></i> Meu Perfil</a>
-                                <a class="pd-btn danger" href="login.html"><i class="fa-solid fa-right-from-bracket"></i> Encerrar Sessão</a>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="user-avatar" id="userAvatar" title="Perfil" onclick="window.location.href='perfil.html'">U</div>
                 </div>
             </div>
         </header>
 
         <div class="main">
 
-            <!-- Tipo de relatório -->
+            <!-- ── Tipo de relatório ── -->
             <div>
-                <div class="section-header" style="margin-bottom:10px">
-                    <div>
-                        <h2>Tipo de Relatório</h2>
-                        <p>Selecione o módulo para gerar o relatório</p>
-                    </div>
-                </div>
+                <div class="rel-section-title"><i class="fa-solid fa-table-list"></i> Tipo de Relatório</div>
                 <div class="report-types">
+
                     <div class="report-type-card selected" data-type="inventario" onclick="selectType(this)">
+                        <div class="rtc-bar blue"></div>
                         <div class="rtc-icon blue"><i class="fa-solid fa-box-archive"></i></div>
-                        <div>
+                        <div class="rtc-info">
                             <div class="rtc-label">Inventário</div>
-                            <div class="rtc-desc">Todos os ativos cadastrados por categoria</div>
+                            <div class="rtc-desc">Todos os ativos cadastrados</div>
                         </div>
                     </div>
-                    <div class="report-type-card" data-type="movimentacoes" onclick="selectType(this)">
-                        <div class="rtc-icon green"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
-                        <div>
-                            <div class="rtc-label">Movimentações</div>
-                            <div class="rtc-desc">Entradas e saídas de equipamentos</div>
-                        </div>
-                    </div>
+
                     <div class="report-type-card" data-type="manutencao" onclick="selectType(this)">
+                        <div class="rtc-bar orange"></div>
                         <div class="rtc-icon orange"><i class="fa-solid fa-screwdriver-wrench"></i></div>
-                        <div>
+                        <div class="rtc-info">
                             <div class="rtc-label">Manutenção</div>
                             <div class="rtc-desc">Itens em reparo ou manutenção</div>
                         </div>
                     </div>
-                    <div class="report-type-card" data-type="alocacao" onclick="selectType(this)">
-                        <div class="rtc-icon purple"><i class="fa-solid fa-users"></i></div>
-                        <div>
-                            <div class="rtc-label">Alocação</div>
-                            <div class="rtc-desc">Ativos alocados por funcionário</div>
-                        </div>
-                    </div>
+
+
+
                 </div>
             </div>
 
-            <!-- Filtros -->
-            <div class="filter-panel">
-                <h3><i class="fa-solid fa-sliders"></i> Filtros do Relatório</h3>
-                <div class="filter-row">
-                    <div class="filter-field">
-                        <label>Categoria</label>
-                        <select id="filtroCategoria">
-                            <option value="">Todas</option>
-                            <option>Computadores</option>
-                            <option>Monitores</option>
-                            <option>Celulares</option>
-                            <option>Mouses</option>
-                            <option>Teclados</option>
-                            <option>Fones</option>
-                            <option>Ramais</option>
-                            <option>Extras</option>
-                        </select>
-                    </div>
-                    <div class="filter-field">
-                        <label>Status</label>
-                        <select id="filtroStatus">
-                            <option value="">Todos</option>
-                            <option>Ativo</option>
-                            <option>Inativo</option>
-                            <option>Em manutenção</option>
-                        </select>
-                    </div>
-                    <div class="filter-field">
-                        <label>Data início</label>
+            <!-- ── Filtro de período ── -->
+            <div>
+                <div class="rel-section-title"><i class="fa-solid fa-calendar-days"></i> Período</div>
+                <div class="date-panel">
+                    <div class="date-field">
+                        <div class="date-panel-label">Data de início</div>
                         <input type="date" id="filtroDataInicio">
                     </div>
-                    <div class="filter-field">
-                        <label>Data fim</label>
+                    <div class="date-separator">→</div>
+                    <div class="date-field">
+                        <div class="date-panel-label">Data de fim</div>
                         <input type="date" id="filtroDataFim">
                     </div>
+                    <div style="flex:1"></div>
                     <button class="btn-gerar" id="btnGerar" onclick="gerarRelatorio()">
-                        <i class="fa-solid fa-magnifying-glass-chart"></i> Gerar
+                        <i class="fa-solid fa-magnifying-glass-chart"></i> Gerar Relatório
                     </button>
                 </div>
             </div>
 
-            <!-- KPIs do relatório -->
+            <!-- ── KPIs ── -->
             <div class="kpi-row" id="kpiRow">
-                <div class="kpi-mini">
+                <div class="kpi-mini" id="kpiCard1">
                     <div class="kpi-mini-label">Total de itens</div>
                     <div class="kpi-mini-value" id="kpi1">—</div>
-                    <div class="kpi-mini-sub">no filtro atual</div>
+                    <div class="kpi-mini-sub">no período</div>
                 </div>
-                <div class="kpi-mini">
+                <div class="kpi-mini" id="kpiCard2">
                     <div class="kpi-mini-label">Ativos</div>
-                    <div class="kpi-mini-value" id="kpi2" style="color:var(--success-color)">—</div>
+                    <div class="kpi-mini-value" style="color:var(--rel-green)" id="kpi2">—</div>
                     <div class="kpi-mini-sub">em uso</div>
                 </div>
-                <div class="kpi-mini">
+                <div class="kpi-mini" id="kpiCard3">
                     <div class="kpi-mini-label">Inativos</div>
-                    <div class="kpi-mini-value" id="kpi3" style="color:var(--text-muted)">—</div>
+                    <div class="kpi-mini-value" style="color:var(--text-muted)" id="kpi3">—</div>
                     <div class="kpi-mini-sub">sem uso</div>
                 </div>
-                <div class="kpi-mini">
+                <div class="kpi-mini" id="kpiCard4">
                     <div class="kpi-mini-label">Em manutenção</div>
-                    <div class="kpi-mini-value" id="kpi4" style="color:var(--warning-color)">—</div>
+                    <div class="kpi-mini-value" style="color:var(--rel-amber)" id="kpi4">—</div>
                     <div class="kpi-mini-sub">em reparo</div>
+                </div>
+                <div class="kpi-mini kpi-valor" id="kpiCard5" style="display:none">
+                    <div class="kpi-mini-label">
+                        <i class="fa-solid fa-circle-dollar-to-slot" style="color:var(--rel-green);margin-right:5px"></i>
+                        Valor total em estoque
+                    </div>
+                    <div class="kpi-valor-value" id="kpi5">—</div>
+                    <div class="kpi-mini-sub">soma dos preços de aquisição</div>
                 </div>
             </div>
 
-            <!-- Tabela de resultados -->
-            <div>
-                <div class="table-actions" style="margin-bottom:10px">
-                    <div class="table-actions-left">
-                        <div class="section-header" style="margin-bottom:0">
-                            <h2 id="tableTitle">Inventário — Todos os itens</h2>
-                        </div>
-                        <span id="info-registros"></span>
+            <!-- ── Preview da tabela (aparece após clicar em Gerar) ── -->
+            <div class="preview-area" id="previewArea">
+
+                <div class="preview-toolbar">
+                    <div class="preview-toolbar-left">
+                        <span class="preview-title" id="previewTitle">Inventário — Todos os itens</span>
+                        <span class="preview-count" id="previewCount">0 registros</span>
                     </div>
-                    <div class="table-actions-right">
+                    <div class="preview-toolbar-right">
                         <div class="search-inline">
                             <i class="fa-solid fa-magnifying-glass"></i>
                             <input type="text" id="searchTable" placeholder="Buscar na tabela..." oninput="filtrarTabela()">
                         </div>
-                        <button class="btn-export pdf" onclick="exportarPDF()">
+                        <button class="btn-export pdf" id="btnPDF" onclick="exportarPDF()" disabled>
                             <i class="fa-solid fa-file-pdf"></i> PDF
                         </button>
-                        <button class="btn-export excel" onclick="exportarExcel()">
+                        <button class="btn-export excel" id="btnExcel" onclick="exportarExcel()" disabled>
                             <i class="fa-solid fa-file-excel"></i> Excel
-                        </button>
-                        <button class="btn-export print" onclick="window.print()">
-                            <i class="fa-solid fa-print"></i>
                         </button>
                     </div>
                 </div>
 
-                <div class="table-wrapper">
-                    <div class="table-scroll">
-                        <table id="tblRelatorio">
-                            <thead>
-                                <tr id="theadRow">
-                                    <th>ID</th>
-                                    <th>Descrição / Modelo</th>
-                                    <th>Categoria</th>
-                                    <th>Número de Série</th>
-                                    <th>Localização</th>
-                                    <th>Status</th>
-                                    <th>Responsável</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbodyRelatorio">
-                                <tr>
-                                    <td colspan="7">
-                                        <div class="empty-state">
-                                            <i class="fa-solid fa-magnifying-glass-chart"></i>
-                                            <p>Selecione um tipo de relatório e clique em <strong>Gerar</strong></p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="table-scroll">
+                    <table id="tblRelatorio">
+                        <thead>
+                            <tr id="theadRow">
+                                <th>#</th>
+                                <th>Modelo</th>
+                                <th>Código</th>
+                                <th>Categoria</th>
+                                <th>Usuário</th>
+                                <th>Setor</th>
+                                <th>Status</th>
+                                <th>Ativo</th>
+                                <th>Aquisição</th>
+                                <th>Preço (R$)</th>
+                                <th>Detalhes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyRelatorio">
+                            <tr>
+                                <td colspan="11">
+                                    <div class="empty-state">
+                                        <div class="es-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                                        <p>Clique em <strong>Gerar Relatório</strong> para carregar os dados</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-            </div>
+
+            </div><!-- /preview-area -->
 
         </div><!-- /main -->
     </main>
 
     <script>
-        // ========== SIDEBAR & TEMA ==========
-        (function () {
-            const saved = localStorage.getItem('tl_theme') || 'light';
-            if (saved === 'dark') document.body.classList.add('dark');
-            const themeBtn = document.getElementById('themeToggle');
-            if (saved === 'light') themeBtn.classList.add('light');
-            themeBtn.addEventListener('click', () => {
-                const isDark = document.body.classList.toggle('dark');
-                themeBtn.classList.toggle('light', !isDark);
-                localStorage.setItem('tl_theme', isDark ? 'dark' : 'light');
-            });
-            // Avatar do usuário
-            try {
-                const u = JSON.parse(localStorage.getItem('tl_user') || '{}');
-            } catch(_) {}
-        })();
+    // ══════════════════════════════════════════════════════════
+    //  CONFIG
+    // ══════════════════════════════════════════════════════════
+    const API_BASE = 'http://localhost:5085/api/relatorio';
 
-        const sidebar = document.getElementById("sidebar");
-        document.getElementById("toggleSidebar").addEventListener("click", () => {
-            sidebar.classList.toggle("closed");
-        });
-
-        const currentPage = (window.location.pathname.split("/").pop() || window.location.href.split("/").pop() || "").split("?")[0] || "dashboard.html";
-        document.querySelectorAll(".menu li a").forEach(link => {
-            if (link.getAttribute("href") === currentPage) {
-                link.parentElement.classList.add("active");
-            }
-        });
-
-        document.querySelector(".clear-btn")?.addEventListener("click", () => {
-            document.querySelector(".search-box input").value = "";
-        });
-
-        // ========== TIPO DE RELATÓRIO ==========
-        let tipoAtivo = "inventario";
-
-        function selectType(el) {
-            document.querySelectorAll(".report-type-card").forEach(c => c.classList.remove("selected"));
-            el.classList.add("selected");
-            tipoAtivo = el.dataset.type;
-            atualizarCabecalho();
-        }
-
-        const configTipos = {
-            inventario: {
-                titulo: "Inventário — Todos os itens",
-                colunas: ["ID", "Descrição / Modelo", "Categoria", "Nº de Série", "Localização", "Status", "Responsável"]
-            },
-            movimentacoes: {
-                titulo: "Movimentações de Ativos",
-                colunas: ["ID", "Ativo", "Tipo", "De", "Para", "Data", "Responsável"]
-            },
-            manutencao: {
-                titulo: "Itens em Manutenção",
-                colunas: ["ID", "Ativo", "Categoria", "Problema Reportado", "Entrada", "Previsão", "Status"]
-            },
-            alocacao: {
-                titulo: "Alocação por Funcionário",
-                colunas: ["Funcionário", "Cargo", "Setor", "Item Alocado", "Categoria", "Data Alocação", "Status"]
-            }
-        };
-
-        function atualizarCabecalho() {
-            const cfg = configTipos[tipoAtivo];
-            document.getElementById("tableTitle").textContent = cfg.titulo;
-            document.getElementById("theadRow").innerHTML = cfg.colunas.map(c => `<th>${c}</th>`).join("");
-            document.getElementById("tbodyRelatorio").innerHTML = `
-                <tr><td colspan="${cfg.colunas.length}">
-                    <div class="empty-state">
-                        <i class="fa-solid fa-magnifying-glass-chart"></i>
-                        <p>Clique em <strong>Gerar</strong> para carregar os dados</p>
-                    </div>
-                </td></tr>`;
-            document.getElementById("info-registros").textContent = "";
-            ["kpi1","kpi2","kpi3","kpi4"].forEach(id => document.getElementById(id).textContent = "—");
-        }
-
-        // ========== DADOS SIMULADOS ==========
-        // Substitua pelo retorno real da API (ex: await getComputadores(), await getMonitores(), etc.)
-        const dadosSimulados = {
-            inventario: [
-                [1, "Dell OptiPlex 7090",   "Computadores",  "SN-001-ABC", "Sala TI",      "Ativo",          "João Pereira"],
-                [2, "LG 27UK850",           "Monitores",     "SN-002-XYZ", "Sala TI",      "Ativo",          "João Pereira"],
-                [3, "iPhone 13",            "Celulares",     "SN-003-DEF", "Vendas",        "Ativo",          "Maria Costa"],
-                [4, "Logitech MX Master",   "Mouses",        "SN-004-GHI", "Marketing",     "Ativo",          "Larissa Nunes"],
-                [5, "Dell Latitude 5520",   "Computadores",  "SN-005-JKL", "Financeiro",    "Ativo",          "Bruno Alves"],
-                [6, "Samsung Odyssey G5",   "Monitores",     "SN-006-MNO", "Almoxarifado",  "Inativo",        "—"],
-                [7, "Motorola Edge 30",     "Celulares",     "SN-007-PQR", "Suporte",       "Em manutenção",  "Carlos Silva"],
-                [8, "JBL Tune 510BT",       "Fones",         "SN-008-STU", "Recepção",      "Ativo",          "Tatiane Melo"],
-                [9, "Ramal Intelbras 4128", "Ramais",        "SN-009-VWX", "Diretoria",     "Ativo",          "Tatiane Melo"],
-                [10,"Lenovo ThinkPad E14",  "Computadores",  "SN-010-YZA", "Jurídico",      "Ativo",          "Pedro Dias"],
-                [11,"HP LaserJet Pro",      "Extras",        "SN-011-BCD", "Sala de Reunião","Inativo",       "—"],
-                [12,"Teclado Mecânico HyperX","Teclados",    "SN-012-EFG", "Sala TI",       "Ativo",          "João Pereira"],
-            ],
-            movimentacoes: [
-                [101, "Dell OptiPlex 7090",  "Saída",    "Almoxarifado", "Sala TI",      "10/04/2026", "João Pereira"],
-                [102, "iPhone 13",           "Entrada",  "—",            "Almoxarifado", "08/04/2026", "Logística"],
-                [103, "LG 27UK850",          "Saída",    "Almoxarifado", "Sala TI",      "07/04/2026", "João Pereira"],
-                [104, "Motorola Edge 30",    "Saída",    "Suporte",      "Manutenção",   "05/04/2026", "Carlos Silva"],
-                [105, "HP LaserJet Pro",     "Entrada",  "—",            "Almoxarifado", "01/04/2026", "Logística"],
-            ],
-            manutencao: [
-                [201, "Motorola Edge 30",  "Celulares",   "Tela trincada",        "05/04/2026", "19/04/2026", "Em reparo"],
-                [202, "Dell OptiPlex 3080","Computadores","Não liga",             "02/04/2026", "16/04/2026", "Aguardando peça"],
-                [203, "LG 24MK430H",      "Monitores",   "Pixel morto",          "28/03/2026", "14/04/2026", "Concluído"],
-            ],
-            alocacao: [
-                ["João Pereira",   "Dev Senior",  "TI",        "Dell OptiPlex 7090", "Computadores", "03/2021", "Ativo"],
-                ["Maria Costa",    "Analista",    "Vendas",    "iPhone 13",          "Celulares",    "01/2024", "Ativo"],
-                ["Larissa Nunes",  "Analista",    "Financeiro","Logitech MX Master", "Mouses",       "06/2023", "Ativo"],
-                ["Bruno Alves",    "Dev Junior",  "TI",        "Dell Latitude 5520", "Computadores", "09/2023", "Ativo"],
-                ["Tatiane Melo",   "Gerente",     "Vendas",    "Ramal Intelbras",    "Ramais",       "11/2018", "Ativo"],
-                ["Carlos Silva",   "Suporte",     "TI",        "—",                 "—",            "—",       "Inativo"],
-            ]
-        };
-
-        let dadosAtivos = [];
-        let dadosFiltrados = [];
-
-        // ========== GERAR RELATÓRIO ==========
-        async function gerarRelatorio() {
-            const btn = document.getElementById("btnGerar");
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
-
-            // Aqui você chamaria a API real:
-            // try {
-            //   dadosAtivos = await getComputadores(); // exemplo
-            // } catch(e) { ... }
-
-            await new Promise(r => setTimeout(r, 600)); // simulação
-
-            dadosAtivos = dadosSimulados[tipoAtivo] || [];
-
-            // Filtrar por status
-            const filtroStatus = document.getElementById("filtroStatus").value.toLowerCase();
-            dadosFiltrados = filtroStatus
-                ? dadosAtivos.filter(r => {
-                    const statusCol = r.find(c => typeof c === 'string' && (
-                        c.toLowerCase().includes('ativo') || c.toLowerCase().includes('inativo') || c.toLowerCase().includes('manuten')
-                    ));
-                    return statusCol && statusCol.toLowerCase().includes(filtroStatus);
-                  })
-                : [...dadosAtivos];
-
-            renderTabela(dadosFiltrados);
-            atualizarKPIs(dadosFiltrados);
-
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-magnifying-glass-chart"></i> Gerar';
-        }
-
-        function statusBadge(val) {
-            if (!val) return val;
-            const v = val.toLowerCase();
-            if (v.includes('ativo') && !v.includes('in')) return `<span class="badge badge-success">${val}</span>`;
-            if (v.includes('inativo'))                     return `<span class="badge badge-gray">${val}</span>`;
-            if (v.includes('manuten') || v.includes('reparo') || v.includes('peça')) return `<span class="badge badge-warning">${val}</span>`;
-            if (v.includes('concluído'))                   return `<span class="badge badge-success">${val}</span>`;
-            if (v.includes('aguardando'))                  return `<span class="badge badge-info">${val}</span>`;
-            return val;
-        }
-
-        function renderTabela(dados) {
-            const cfg = configTipos[tipoAtivo];
-            const tbody = document.getElementById("tbodyRelatorio");
-            if (!dados.length) {
-                tbody.innerHTML = `<tr><td colspan="${cfg.colunas.length}">
-                    <div class="empty-state">
-                        <i class="fa-solid fa-inbox"></i>
-                        <p>Nenhum registro encontrado com os filtros aplicados</p>
-                    </div></td></tr>`;
-                document.getElementById("info-registros").textContent = "0 registros";
-                return;
-            }
-            tbody.innerHTML = dados.map(row =>
-                `<tr>${row.map(cell => `<td>${statusBadge(String(cell))}</td>`).join("")}</tr>`
-            ).join("");
-            document.getElementById("info-registros").textContent = `${dados.length} registro${dados.length !== 1 ? 's' : ''}`;
-        }
-
-        function atualizarKPIs(dados) {
-            document.getElementById("kpi1").textContent = dados.length;
-            const flat = dados.map(r => r.join(" ").toLowerCase());
-            const ativos     = flat.filter(r => r.includes("ativo") && !r.includes("inativo")).length;
-            const inativos   = flat.filter(r => r.includes("inativo")).length;
-            const manutencao = flat.filter(r => r.includes("manuten") || r.includes("reparo")).length;
-            document.getElementById("kpi2").textContent = ativos;
-            document.getElementById("kpi3").textContent = inativos;
-            document.getElementById("kpi4").textContent = manutencao;
-        }
-
-        // ========== BUSCA NA TABELA ==========
-        function filtrarTabela() {
-            const q = document.getElementById("searchTable").value.toLowerCase().trim();
-            if (!dadosFiltrados.length) return;
-            const filtrados = q
-                ? dadosFiltrados.filter(row => row.join(" ").toLowerCase().includes(q))
-                : dadosFiltrados;
-            renderTabela(filtrados);
-        }
-
-        // ========== EXPORTAR ==========
-        function exportarPDF() {
-            alert("🖨️ Integre com a sua API ou biblioteca de PDF (ex: jsPDF, Puppeteer) para exportar.");
-        }
-
-        function exportarExcel() {
-            // Exportação CSV simples como fallback
-            const cfg = configTipos[tipoAtivo];
-            const linhas = [cfg.colunas.join(";")];
-            dadosFiltrados.forEach(row => linhas.push(row.join(";")));
-            const blob = new Blob([linhas.join("\n")], { type: "text/csv;charset=utf-8;" });
-            const a = document.createElement("a");
-            a.href = URL.createObjectURL(blob);
-            a.download = `relatorio_${tipoAtivo}_${new Date().toISOString().slice(0,10)}.csv`;
-            a.click();
-        }
-
-        // ========== INIT ==========
-        atualizarCabecalho();
-    
-        // ── Dropdown de Perfil ───────────────────────────────
-        function toggleProfileDropdown() {
-            document.getElementById('profileDropdown').classList.toggle('open');
-        }
-        document.addEventListener('click', function(e) {
-            var wrap = document.getElementById('profileWrap');
-            var dd   = document.getElementById('profileDropdown');
-            if (dd && dd.classList.contains('open') && wrap && !wrap.contains(e.target)) {
-                dd.classList.remove('open');
-            }
+    // ══════════════════════════════════════════════════════════
+    //  SIDEBAR & TEMA (mantém comportamento original)
+    // ══════════════════════════════════════════════════════════
+    (function () {
+        const saved = localStorage.getItem('tl_theme') || 'light';
+        if (saved === 'dark') document.body.classList.add('dark');
+        const themeBtn = document.getElementById('themeToggle');
+        if (saved === 'light') themeBtn.classList.add('light');
+        themeBtn.addEventListener('click', () => {
+            const isDark = document.body.classList.toggle('dark');
+            themeBtn.classList.toggle('light', !isDark);
+            localStorage.setItem('tl_theme', isDark ? 'dark' : 'light');
         });
         try {
-            var u = JSON.parse(localStorage.getItem('tl_user') || '{}');
-            if (u.nome) {
-                var av = document.getElementById('userAvatar');
-                if (av) av.textContent = u.nome.charAt(0).toUpperCase();
-                var pn = document.getElementById('pdName');
-                if (pn) pn.textContent = u.nome;
-            }
-        } catch(e) {}
-</script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            initAllSelects(document, () => aplicarFiltros && aplicarFiltros());
+            const u = JSON.parse(localStorage.getItem('tl_user') || '{}');
+            if (u.nome) document.getElementById('userAvatar').textContent = u.nome.charAt(0).toUpperCase();
+        } catch(_) {}
+    })();
+
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('toggleSidebar').addEventListener('click', () => {
+        sidebar.classList.toggle('closed');
+    });
+
+    const currentPage = (window.location.pathname.split('/').pop() || 'dashboard.html').split('?')[0];
+    document.querySelectorAll('.menu li a').forEach(link => {
+        if (link.getAttribute('href') === currentPage) link.parentElement.classList.add('active');
+    });
+    document.querySelector('.clear-btn')?.addEventListener('click', () => {
+        document.querySelector('.search-box input').value = '';
+    });
+
+    // ══════════════════════════════════════════════════════════
+    //  ESTADO GLOBAL
+    // ══════════════════════════════════════════════════════════
+    let tipoAtivo       = 'inventario';
+    let dadosCompletos  = [];   // RelatorioResultadoDto completo
+    let itensFiltrados  = [];   // após busca inline
+    let ultimoFiltro    = {};   // datas usadas na última geração
+
+    // ══════════════════════════════════════════════════════════
+    //  TIPO DE RELATÓRIO
+    // ══════════════════════════════════════════════════════════
+    function selectType(el) {
+        document.querySelectorAll('.report-type-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        tipoAtivo = el.dataset.type;
+        resetarPreview();
+    }
+
+    function resetarPreview() {
+        dadosCompletos = [];
+        itensFiltrados = [];
+        document.getElementById('previewArea').classList.remove('visible');
+        ['kpi1','kpi2','kpi3','kpi4','kpi5'].forEach(id => {
+            document.getElementById(id).textContent = '—';
         });
+        document.getElementById('kpiCard5').style.display = 'none';
+        ['kpiCard1','kpiCard2','kpiCard3','kpiCard4'].forEach(id => {
+            document.getElementById(id).classList.remove('loaded');
+        });
+        document.getElementById('btnPDF').disabled   = true;
+        document.getElementById('btnExcel').disabled = true;
+        document.getElementById('searchTable').value = '';
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  GERAR RELATÓRIO — chama GET /api/relatorio/preview
+    // ══════════════════════════════════════════════════════════
+    async function gerarRelatorio() {
+        const dataInicio = document.getElementById('filtroDataInicio').value;
+        const dataFim    = document.getElementById('filtroDataFim').value;
+
+        // Validação de datas
+        if (dataInicio && dataFim && dataInicio > dataFim) {
+            toast('A data de início não pode ser posterior à data de fim.', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('btnGerar');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Carregando...';
+
+        // Mostra skeletons nos KPIs
+        setKpiSkeleton(true);
+
+        // Monta query string
+        const params = new URLSearchParams();
+        if (dataInicio) params.append('dataInicio', dataInicio);
+        if (dataFim)    params.append('dataFim', dataFim);
+
+        ultimoFiltro = { dataInicio, dataFim };
+
+        try {
+            // ── Chama o preview da API ──────────────────────────────────
+            const res = await fetch(`${API_BASE}/preview?${params.toString()}`);
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.Erro || `Erro ${res.status}`);
+            }
+
+            const resultado = await res.json();
+            dadosCompletos  = resultado;
+
+            // Filtra por tipo se for "manutencao"
+            let itens = resultado.itens || [];
+            if (tipoAtivo === 'manutencao') {
+                itens = itens.filter(i =>
+                    i.status === 'EmManutenção' || i.status === 'NecessitaManutenção'
+                );
+            }
+            itensFiltrados = itens;
+
+            // Atualiza KPIs
+            atualizarKPIs(resultado, itens);
+
+            // Renderiza tabela
+            renderTabela(itens);
+
+            // Exibe área de preview
+            const tituloMap = {
+                inventario: 'Inventário — Todos os itens',
+                manutencao: 'Itens em Manutenção'
+            };
+            document.getElementById('previewTitle').textContent = tituloMap[tipoAtivo] || 'Relatório';
+            document.getElementById('previewArea').classList.add('visible');
+
+            // Habilita botões de exportação
+            document.getElementById('btnPDF').disabled   = false;
+            document.getElementById('btnExcel').disabled = false;
+
+            toast(`${itens.length} registro(s) carregado(s).`, 'success');
+
+        } catch (err) {
+            renderErro(err.message);
+            document.getElementById('previewArea').classList.add('visible');
+            toast(err.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-magnifying-glass-chart"></i> Gerar Relatório';
+            setKpiSkeleton(false);
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  KPIs
+    // ══════════════════════════════════════════════════════════
+    function atualizarKPIs(resultado, itensFiltrado) {
+        const total    = itensFiltrado.length;
+        const ativos   = itensFiltrado.filter(i => i.ativo).length;
+        const inativos = itensFiltrado.filter(i => !i.ativo).length;
+        const manut    = itensFiltrado.filter(i =>
+            i.status === 'EmManutenção' || i.status === 'NecessitaManutenção'
+        ).length;
+
+        animarValor('kpi1', total);
+        animarValor('kpi2', ativos);
+        animarValor('kpi3', inativos);
+        animarValor('kpi4', manut);
+
+        // Valor total — só para inventário completo
+        if (tipoAtivo === 'inventario') {
+            const valorTotal = itensFiltrado.reduce((s, i) => s + (i.precoAquisicao || 0), 0);
+            document.getElementById('kpi5').textContent =
+                valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('kpiCard5').style.display = 'block';
+        } else {
+            document.getElementById('kpiCard5').style.display = 'none';
+        }
+
+        // Animação da barra inferior
+        setTimeout(() => {
+            ['kpiCard1','kpiCard2','kpiCard3','kpiCard4','kpiCard5'].forEach(id => {
+                document.getElementById(id)?.classList.add('loaded');
+            });
+        }, 100);
+    }
+
+    function animarValor(id, valorFinal) {
+        const el = document.getElementById(id);
+        const inicio = parseInt(el.textContent) || 0;
+        const duracao = 500;
+        const steps = 20;
+        let step = 0;
+        const timer = setInterval(() => {
+            step++;
+            const progresso = step / steps;
+            el.textContent = Math.round(inicio + (valorFinal - inicio) * progresso);
+            if (step >= steps) { el.textContent = valorFinal; clearInterval(timer); }
+        }, duracao / steps);
+    }
+
+    function setKpiSkeleton(ativo) {
+        ['kpi1','kpi2','kpi3','kpi4'].forEach(id => {
+            const el = document.getElementById(id);
+            if (ativo) {
+                el.innerHTML = '<div class="kpi-skeleton"></div>';
+            } else {
+                // Restaurado ao renderizar
+            }
+        });
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  RENDER DA TABELA
+    // ══════════════════════════════════════════════════════════
+    function renderTabela(itens, termoBusca = '') {
+        const tbody = document.getElementById('tbodyRelatorio');
+        document.getElementById('previewCount').textContent =
+            `${itens.length} registro${itens.length !== 1 ? 's' : ''}`;
+
+        if (!itens.length) {
+            tbody.innerHTML = `
+                <tr><td colspan="11">
+                    <div class="empty-state">
+                        <div class="es-icon"><i class="fa-solid fa-inbox"></i></div>
+                        <p>Nenhum registro encontrado${termoBusca ? ` para "<strong>${termoBusca}</strong>"` : ' com os filtros aplicados'}.</p>
+                    </div>
+                </td></tr>`;
+            return;
+        }
+
+        const hl = txt => {
+            if (!termoBusca) return txt ?? '—';
+            const re = new RegExp(`(${termoBusca.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+            return String(txt ?? '—').replace(re, '<mark>$1</mark>');
+        };
+
+        tbody.innerHTML = itens.map((item, idx) => {
+            const badgeStatus = statusBadge(item.status);
+            const badgeAtivo  = item.ativo
+                ? '<span class="badge badge-ativo">Sim</span>'
+                : '<span class="badge badge-inativo">Não</span>';
+            const data = item.dataAquisicao
+                ? new Date(item.dataAquisicao).toLocaleDateString('pt-BR')
+                : '—';
+            const preco = item.precoAquisicao != null
+                ? item.precoAquisicao.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                : '—';
+
+            return `<tr>
+                <td class="cell-mono">${idx + 1}</td>
+                <td><strong>${hl(item.modelo)}</strong></td>
+                <td class="cell-mono">${hl(item.codigo)}</td>
+                <td><span class="cell-cat">${hl(item.categoria)}</span></td>
+                <td>${hl(item.usuario)}</td>
+                <td>${hl(item.setor)}</td>
+                <td>${badgeStatus}</td>
+                <td>${badgeAtivo}</td>
+                <td class="cell-mono">${data}</td>
+                <td class="cell-price">${preco}</td>
+                <td style="color:var(--text-muted);font-size:12px">${hl(item.detalhes)}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    function renderErro(mensagem) {
+        document.getElementById('tbodyRelatorio').innerHTML = `
+            <tr><td colspan="11">
+                <div class="error-state">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <p>${mensagem || 'Erro ao carregar os dados. Verifique a conexão com o servidor.'}</p>
+                </div>
+            </td></tr>`;
+        document.getElementById('previewCount').textContent = '0 registros';
+        ['kpi1','kpi2','kpi3','kpi4'].forEach(id => {
+            document.getElementById(id).textContent = '—';
+        });
+    }
+
+    function statusBadge(status) {
+        if (!status) return '<span class="badge badge-inativo">—</span>';
+        const s = status.toLowerCase();
+        if (s === 'ativo')               return `<span class="badge badge-ativo">${status}</span>`;
+        if (s === 'inativo')             return `<span class="badge badge-inativo">${status}</span>`;
+        if (s === 'emmanutenção'  || s === 'em manutenção')
+                                         return `<span class="badge badge-manutencao">Em Manutenção</span>`;
+        if (s === 'necessitamanutenção' || s === 'necessita manutenção')
+                                         return `<span class="badge badge-necessita">Necessita Manutenção</span>`;
+        return `<span class="badge badge-inativo">${status}</span>`;
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  BUSCA INLINE NA TABELA
+    // ══════════════════════════════════════════════════════════
+    function filtrarTabela() {
+        const q = document.getElementById('searchTable').value.toLowerCase().trim();
+        if (!itensFiltrados.length) return;
+
+        const resultado = q
+            ? itensFiltrados.filter(i =>
+                [i.modelo, i.codigo, i.categoria, i.usuario, i.setor, i.status, i.detalhes]
+                .some(v => String(v ?? '').toLowerCase().includes(q))
+              )
+            : itensFiltrados;
+
+        renderTabela(resultado, q);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  EXPORTAR PDF — GET /api/relatorio/pdf (download direto)
+    // ══════════════════════════════════════════════════════════
+    async function exportarPDF() {
+        const btn = document.getElementById('btnPDF');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando PDF...';
+
+        try {
+            const params = montarParams();
+            const res = await fetch(`${API_BASE}/pdf?${params}`);
+            if (!res.ok) throw new Error(`Erro ${res.status}`);
+
+            const blob = await res.blob();
+            const url  = URL.createObjectURL(blob);
+
+            // Abre o PDF em nova aba (permite visualizar antes de salvar)
+            window.open(url, '_blank');
+
+            toast('PDF gerado com sucesso!', 'success');
+        } catch (err) {
+            toast('Erro ao gerar PDF: ' + err.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> PDF';
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  EXPORTAR EXCEL — GET /api/relatorio/excel (download direto)
+    // ══════════════════════════════════════════════════════════
+    async function exportarExcel() {
+        const btn = document.getElementById('btnExcel');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando Excel...';
+
+        try {
+            const params = montarParams();
+            const res = await fetch(`${API_BASE}/excel?${params}`);
+            if (!res.ok) throw new Error(`Erro ${res.status}`);
+
+            const blob        = await res.blob();
+            const url         = URL.createObjectURL(blob);
+            const nomeArquivo = obterNomeArquivo(res, 'relatorio.xlsx');
+            const a           = document.createElement('a');
+            a.href     = url;
+            a.download = nomeArquivo;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            toast('Excel baixado com sucesso!', 'success');
+        } catch (err) {
+            toast('Erro ao gerar Excel: ' + err.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-file-excel"></i> Excel';
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  HELPERS
+    // ══════════════════════════════════════════════════════════
+    function montarParams() {
+        const params = new URLSearchParams();
+        if (ultimoFiltro.dataInicio) params.append('dataInicio', ultimoFiltro.dataInicio);
+        if (ultimoFiltro.dataFim)    params.append('dataFim',    ultimoFiltro.dataFim);
+        return params.toString();
+    }
+
+    function obterNomeArquivo(res, fallback) {
+        const disp = res.headers.get('Content-Disposition') || '';
+        const match = disp.match(/filename[^;=\n]*=(['"]?)([^'";\n]+)\1/);
+        return match ? match[2] : fallback;
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  TOAST
+    // ══════════════════════════════════════════════════════════
+    let toastTimer;
+    function toast(msg, tipo = 'info') {
+        const el   = document.getElementById('toast');
+        const icon = document.getElementById('toastIcon');
+        const text = document.getElementById('toastMsg');
+
+        icon.className = {
+            success: 'fa-solid fa-circle-check',
+            error:   'fa-solid fa-circle-exclamation',
+            info:    'fa-solid fa-circle-info'
+        }[tipo] || 'fa-solid fa-circle-info';
+
+        el.className = `show ${tipo}`;
+        text.textContent = msg;
+
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { el.className = ''; }, 3500);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  INIT
+    // ══════════════════════════════════════════════════════════
+    // Define data fim como hoje por padrão
+    document.getElementById('filtroDataFim').valueAsDate = new Date();
     </script>
+    <script src="js/mobile.js"></script>
 </body>
 </html>

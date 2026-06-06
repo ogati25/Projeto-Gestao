@@ -7,13 +7,71 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="responsive.css">
     <title>Produto — NovaTech Solutions</title>
     <style>
-        /* ── Breadcrumb ── */
-        .breadcrumb { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted); margin-bottom:2px; }
-        .breadcrumb a { color:var(--text-muted); text-decoration:none; transition:color 0.15s; }
+        /* ── Card Processador ── */
+        /* Processadores — card wrapper (mesmo estilo dos enum-cards) */
+        .proc-section { margin-bottom: 28px; }
+        .proc-card-wrap { background:var(--secondary-color); border:1px solid var(--border-color); border-radius:12px; box-shadow:var(--card-shadow); overflow:hidden; transition:box-shadow 0.2s; }
+        .proc-card-wrap:hover { box-shadow:0 4px 20px rgba(0,0,0,0.1); }
+        .proc-card-header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px 12px; border-bottom:1px solid var(--border-color); gap:10px; }
+        .proc-card-header-left { display:flex; align-items:center; gap:10px; min-width:0; }
+        .proc-card-icon { width:34px; height:34px; border-radius:8px; background:#f59e0b; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .proc-card-icon i { font-size:14px; color:#fff; }
+        .proc-card-titulo { font-size:14px; font-weight:700; color:var(--text-primary); }
+        .proc-card-count { font-size:11px; color:var(--text-muted); font-weight:500; margin-top:1px; }
+        body.dark .proc-card-wrap { background:#161b22; border-color:#30363d; }
+        body.dark .proc-card-header { border-color:#30363d; }
+        .proc-grid { display:block; }
+        /* Processadores — tabela interna */
+        .proc-table-scroll-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .proc-table { width:100%; border-collapse:collapse; min-width: 420px; }
+        .proc-table th { font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; padding:8px 16px; border-bottom:1px solid var(--border-color); text-align:left; white-space:nowrap; background:var(--background-color); }
+        .proc-table td { padding:10px 16px; font-size:13px; color:var(--text-primary); border-bottom:1px solid var(--border-color); vertical-align:middle; }
+        .proc-table-body-wrap { max-height: calc(4 * 45px); overflow-y: auto; overflow-x: auto; }
+        .proc-table-head-wrap { overflow-x: auto; }
+        .proc-table-head-wrap::-webkit-scrollbar { display: none; }
+        .proc-table-body-wrap::-webkit-scrollbar { width: 4px; }
+        .proc-table-body-wrap::-webkit-scrollbar-track { background: transparent; }
+        .proc-table-body-wrap::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        .proc-table tbody tr:last-child td { border-bottom:none; }
+        .proc-table tbody tr:hover td { background:color-mix(in srgb, var(--quinary-color) 4%, transparent); }
+        .proc-table .proc-tag { display:inline-flex; align-items:center; gap:4px; background:var(--background-color); border:1px solid var(--border-color); border-radius:5px; padding:2px 8px; font-size:11px; color:var(--text-muted); }
+        .proc-table .proc-tag i { font-size:10px; }
+        .proc-action-btn { width:28px; height:28px; border-radius:7px; border:1px solid var(--border-color); background:transparent; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px; transition:all .15s; }
+        .proc-action-btn:hover { border-color:var(--quinary-color); color:var(--quinary-color); }
+        .proc-action-btn.del:hover { border-color:#ef4444; color:#ef4444; }
+        .proc-tags { display:flex; flex-wrap:wrap; gap:6px; }
+        .proc-tag { display:flex; align-items:center; gap:5px; background:var(--background-color); border:1px solid var(--border-color); border-radius:6px; padding:3px 9px; font-size:12px; color:var(--text-secondary); }
+        .proc-tag i { font-size:10px; color:var(--text-muted); }
+        .proc-add-btn { display:flex; align-items:center; justify-content:center; gap:8px; border:2px dashed var(--border-color); border-radius:12px; padding:18px; color:var(--text-muted); font-size:13px; font-weight:600; cursor:pointer; transition:all .15s; background:transparent; width:100%; }
+        .proc-add-btn:hover { border-color:var(--quinary-color); color:var(--quinary-color); background:rgba(62,96,143,.05); }
+        /* Modal processador */
+        .proc-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9999; display:none; align-items:center; justify-content:center; }
+        .proc-modal-overlay.open { display:flex; }
+        .proc-modal { background:var(--secondary-color); border:1px solid var(--border-color); border-radius:14px; padding:28px; width:460px; max-width:95vw; max-height:85vh; overflow-y:auto; }
+        .proc-modal h3 { font-size:16px; font-weight:800; color:var(--text-primary); margin-bottom:20px; display:flex; align-items:center; gap:10px; }
+        .proc-modal h3 i { color:#f59e0b; }
+        .proc-form-group { display:flex; flex-direction:column; gap:5px; margin-bottom:14px; }
+        .proc-form-group label { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--text-muted); }
+        .proc-form-group input { padding:8px 11px; border:1px solid var(--border-color); border-radius:8px; font-size:13px; background:var(--background-color); color:var(--text-primary); outline:none; font-family:inherit; transition:border .15s; }
+        .proc-form-group input:focus { border-color:var(--quinary-color); }
+        .proc-tupla-row { display:grid; grid-template-columns:1fr auto 1fr auto; gap:8px; align-items:center; margin-bottom:8px; }
+        .proc-tupla-row input { padding:7px 10px; border:1px solid var(--border-color); border-radius:7px; font-size:13px; background:var(--background-color); color:var(--text-primary); outline:none; font-family:inherit; }
+        .proc-tupla-row input:focus { border-color:var(--quinary-color); }
+        .proc-tupla-sep { font-size:12px; color:var(--text-muted); text-align:center; }
+        .proc-tupla-del { width:28px; height:28px; border:1px solid var(--border-color); border-radius:7px; background:transparent; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px; }
+        .proc-tupla-del:hover { border-color:#ef4444; color:#ef4444; }
+        .proc-add-tupla { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--quinary-color); cursor:pointer; background:transparent; border:none; padding:4px 0; font-family:inherit; }
+        .proc-modal-footer { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; padding-top:16px; border-top:1px solid var(--border-color); }
+        .proc-err { font-size:11px; color:#ef4444; margin-top:2px; display:none; }
+        .proc-err.show { display:block; }
+        .breadcrumb { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted); margin-bottom:2px; flex-wrap:wrap; min-width:0; }
+        .breadcrumb a { color:var(--text-muted); text-decoration:none; transition:color 0.15s; white-space:nowrap; }
         .breadcrumb a:hover { color:var(--text-primary); }
-        .breadcrumb i { font-size:10px; }
+        .breadcrumb i { font-size:10px; flex-shrink:0; }
+        .breadcrumb span { white-space:nowrap; }
         .page-title-row { display:flex; align-items:center; gap:14px; }
         .page-title-icon { width:46px; height:46px; border-radius:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
         .page-title-icon i { font-size:21px; color:#fff; }
@@ -177,11 +235,22 @@
         body.dark .no-enums-state .hint { background:#1c2128; border-color:#30363d; }
         body.dark .no-enums-icon { background:#1c2128; border-color:#30363d; }
     
-        </style>
+    
+        /* Export modal buttons */
+        .export-option-btn { display:flex; align-items:center; gap:14px; padding:14px 18px; border:1.5px solid var(--border-color); border-radius:10px; background:var(--secondary-color); cursor:pointer; transition:0.18s; text-align:left; width:100%; }
+        .export-option-btn:hover { border-color:var(--quinary-color); background:var(--background-color); }
+        .export-icon { font-size:24px; color:var(--text-muted); width:32px; text-align:center; flex-shrink:0; transition:0.18s; }
+        .export-icon.csv  { color:#2e7d32; }
+        .export-icon.xlsx { color:#1565c0; }
+        .export-info { display:flex; flex-direction:column; gap:2px; }
+        .export-info strong { font-size:14px; font-weight:700; color:var(--text-primary); }
+        .export-info span { font-size:12px; color:var(--text-muted); }
+    </style>
 </head>
 <body>
 
     <!-- SIDEBAR -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="sidebar" id="sidebar">
         <button id="toggleSidebar" class="toggle-btn">
             <i class="fa-solid fa-angles-left icon-close"></i>
@@ -207,8 +276,9 @@
     </div>
 
     <!-- MAIN -->
-    <main>
+    <main id="mainContent">
         <header>
+            <button class="btn-hamburger" id="btnHamburger" onclick="toggleMobileSidebar()"><i class="fa-solid fa-bars"></i></button>
             <!-- Título injetado via JS -->
             <div id="headerTitulo">
                 <h1>Produto</h1>
@@ -349,6 +419,53 @@
             <div class="confirm-actions">
                 <button class="btn btn-outline" id="confirmCancelar">Cancelar</button>
                 <button class="btn" id="confirmDeletar" style="background:#ef4444;color:#fff;">
+                    <i class="fa-solid fa-trash"></i> Remover
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PROCESSADOR -->
+    <div class="proc-modal-overlay" id="procModalOverlay">
+        <div class="proc-modal">
+            <h3><i class="fa-solid fa-microchip"></i> <span id="procModalTitulo">Novo Processador</span></h3>
+            <input type="hidden" id="procModalId">
+            <div class="proc-form-group">
+                <label>Nome *</label>
+                <input type="text" id="procNome" placeholder="Ex: Intel Core i7-12700K">
+                <span class="proc-err" id="procErrNome"></span>
+            </div>
+            <div class="proc-form-group">
+                <label>Velocidade (GHz)</label>
+                <input type="number" id="procVelocidade" placeholder="Ex: 3.6" step="0.1" min="0">
+            </div>
+            <div class="proc-form-group">
+                <label>Núcleos / Threads</label>
+                <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;">
+                    <input type="number" id="procNucleos" placeholder="Núcleos" min="1">
+                    <span style="font-size:12px;color:var(--text-muted);text-align:center;">/</span>
+                    <input type="number" id="procThreads" placeholder="Threads" min="1">
+                </div>
+                <span class="proc-err" id="procErrTupla"></span>
+            </div>
+            <div class="proc-modal-footer">
+                <button class="btn btn-outline" onclick="fecharProcModal()">Cancelar</button>
+                <button class="btn" id="procBtnSalvar" onclick="salvarProcessador()">
+                    <i class="fa-solid fa-floppy-disk"></i> Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIRM DELETE PROCESSADOR -->
+    <div class="confirm-overlay" id="procConfirmOverlay">
+        <div class="confirm-box">
+            <div class="confirm-icon error"><i class="fa-solid fa-trash"></i></div>
+            <h3>Remover processador?</h3>
+            <p>O processador <strong id="procConfirmNome"></strong> será removido permanentemente.</p>
+            <div class="confirm-actions">
+                <button class="btn btn-outline" id="procConfirmCancelar">Cancelar</button>
+                <button class="btn" id="procConfirmDeletar" style="background:#ef4444;color:#fff;">
                     <i class="fa-solid fa-trash"></i> Remover
                 </button>
             </div>
@@ -728,12 +845,377 @@
     });
 
     // ============================================================
+    //  PROCESSADORES (apenas para classe computador)
+    // ============================================================
+    let _processadores = [];
+    let _procDeletarId = null;
+
+    function renderProcessadores() {
+        const sec = document.getElementById('procSection');
+        if (!sec) return;
+        const grid = document.getElementById('procGrid');
+        const count = _processadores.length;
+
+        const rows = count === 0
+            ? `<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Nenhum processador cadastrado.</td></tr>`
+            : _processadores.map(p => {
+                const tupla  = p.nucleosThreads;
+                const nucleos = (tupla && tupla.item1) ? `<span class="proc-tag"><i class="fa-solid fa-circle-nodes"></i>${tupla.item1}c / ${tupla.item2}t</span>` : '<span style="color:var(--text-muted)">—</span>';
+                const vel    = p.velocidade ? `<span class="proc-tag"><i class="fa-solid fa-gauge-high"></i>${p.velocidade} GHz</span>` : '<span style="color:var(--text-muted)">—</span>';
+                return `
+                    <tr id="proc-row-${p._id}">
+                        <td><i class="fa-solid fa-microchip" style="color:#f59e0b;margin-right:8px;"></i><strong>${esc(p.nome)}</strong></td>
+                        <td>${vel}</td>
+                        <td>${nucleos}</td>
+                        <td style="text-align:right;">
+                            <div style="display:flex;gap:6px;justify-content:flex-end;">
+                                <button class="proc-action-btn del" title="Remover" onclick="abrirDeletarProc('${p._id}','${esc(p.nome)}')"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>`;
+            }).join('');
+
+        grid.innerHTML = `
+            <div class="proc-card-wrap">
+                <div class="proc-card-header">
+                    <div class="proc-card-header-left">
+                        <div class="proc-card-icon"><i class="fa-solid fa-microchip"></i></div>
+                        <div>
+                            <div class="proc-card-titulo">Processadores</div>
+                            <div class="proc-card-count">${count} ${count === 1 ? 'processador' : 'processadores'}</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:6px;align-items:center;">
+                        <button class="btn btn-outline" title="Importar CSV" onclick="procImportar()" style="display:flex;align-items:center;gap:6px;">
+                            <i class="fa-solid fa-file-import"></i> Importar
+                        </button>
+                        <button class="btn btn-outline" onclick="abrirModalExportProc()" style="display:flex;align-items:center;gap:6px;">
+                            <i class="fa-solid fa-file-export"></i> Exportar
+                        </button>
+                        <button class="btn btn-primary" onclick="abrirNovoProc()" style="display:flex;align-items:center;gap:6px;">
+                            <i class="fa-solid fa-plus"></i> Novo Processador
+                        </button>
+                    </div>
+                </div>
+                <div class="proc-table-scroll-wrap">
+                <table class="proc-table" style="table-layout:fixed;width:100%;">
+                    <colgroup>
+                        <col style="width:40%"><col style="width:20%"><col style="width:25%"><col style="width:15%">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Velocidade</th>
+                            <th>Núcleos / Threads</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                </table>
+                <div class="proc-table-body-wrap">
+                    <table class="proc-table" style="table-layout:fixed;width:100%;">
+                        <colgroup>
+                            <col style="width:40%"><col style="width:20%"><col style="width:25%"><col style="width:15%">
+                        </colgroup>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+                </div>
+            </div>`;
+    }
+
+    async function carregarProcessadores() {
+        try { _processadores = await getProcessadores() || []; }
+        catch (_) { _processadores = []; }
+        renderProcessadores();
+    }
+
+    // ── Modal ────────────────────────────────────────────────────
+    let _procTuplaIdx = 0;
+
+    function procAdicionarTupla(nucleos = '', threads = '') {
+        const idx = _procTuplaIdx++;
+        const row = document.createElement('div');
+        row.className = 'proc-tupla-row';
+        row.id = `tupla-${idx}`;
+        row.innerHTML = `
+            <input type="number" id="nucleos-${idx}" placeholder="Núcleos" min="1" value="${nucleos}">
+            <span class="proc-tupla-sep">/</span>
+            <input type="number" id="threads-${idx}" placeholder="Threads" min="1" value="${threads}">
+            <button class="proc-tupla-del" type="button" onclick="document.getElementById('tupla-${idx}').remove()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>`;
+        document.getElementById('procTuplasContainer').appendChild(row);
+    }
+
+    function abrirNovoProc() {
+        document.getElementById('procModalTitulo').textContent = 'Novo Processador';
+        document.getElementById('procModalId').value = '';
+        document.getElementById('procNome').value = '';
+        document.getElementById('procVelocidade').value = '';
+        document.getElementById('procNucleos').value = '';
+        document.getElementById('procThreads').value = '';
+        document.getElementById('procErrNome').classList.remove('show');
+        document.getElementById('procErrTupla').classList.remove('show');
+        document.getElementById('procModalOverlay').classList.add('open');
+        setTimeout(() => document.getElementById('procNome').focus(), 80);
+    }
+
+    function abrirEditarProc(id) {
+        const p = _processadores.find(x => x._id === id);
+        if (!p) return;
+        document.getElementById('procModalTitulo').textContent = 'Editar Processador';
+        document.getElementById('procModalId').value = id;
+        document.getElementById('procNome').value = p.processador || '';
+        document.getElementById('procVelocidade').value = p.velocidade || '';
+        const tupla = p.nucleosThreads;
+        document.getElementById('procNucleos').value = tupla?.item1 || '';
+        document.getElementById('procThreads').value = tupla?.item2 || '';
+        document.getElementById('procErrNome').classList.remove('show');
+        document.getElementById('procErrTupla').classList.remove('show');
+        document.getElementById('procModalOverlay').classList.add('open');
+        setTimeout(() => document.getElementById('procNome').focus(), 80);
+    }
+
+    function fecharProcModal() {
+        document.getElementById('procModalOverlay').classList.remove('open');
+    }
+
+    async function salvarProcessador() {
+        const id   = document.getElementById('procModalId').value.trim();
+        const nome = document.getElementById('procNome').value.trim();
+        const vel  = parseFloat(document.getElementById('procVelocidade').value) || null;
+        const nuc  = parseInt(document.getElementById('procNucleos').value) || 0;
+        const thr  = parseInt(document.getElementById('procThreads').value) || 0;
+
+        let ok = true;
+        if (!nome) {
+            document.getElementById('procErrNome').textContent = 'O nome é obrigatório.';
+            document.getElementById('procErrNome').classList.add('show');
+            ok = false;
+        } else {
+            document.getElementById('procErrNome').classList.remove('show');
+        }
+        if (!ok) return;
+
+        const btn = document.getElementById('procBtnSalvar');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
+
+        try {
+            const nucleosThreads = (nuc > 0 || thr > 0) ? { item1: nuc, item2: thr } : null;
+            const dados = { nome: nome, velocidade: vel, nucleosThreads };
+            if (id) {
+                await atualizarProcessador(id, dados);
+                showToast('Processador atualizado!', 'success');
+            } else {
+                await criarProcessador(dados);
+                showToast('Processador criado!', 'success');
+            }
+            fecharProcModal();
+            await carregarProcessadores();
+        } catch (e) {
+            showToast('Erro ao salvar processador.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Salvar';
+        }
+    }
+
+    // ── Deletar ─────────────────────────────────────────────────
+    function abrirDeletarProc(id, nome) {
+        _procDeletarId = id;
+        document.getElementById('procConfirmNome').textContent = nome;
+        document.getElementById('procConfirmOverlay').classList.add('open');
+    }
+
+    document.getElementById('procConfirmCancelar').addEventListener('click', () => {
+        document.getElementById('procConfirmOverlay').classList.remove('open');
+        _procDeletarId = null;
+    });
+
+    document.getElementById('procConfirmDeletar').addEventListener('click', async () => {
+        if (!_procDeletarId) return;
+        try {
+            await deletarProcessador(_procDeletarId);
+            showToast('Processador removido.', 'success');
+            document.getElementById('procConfirmOverlay').classList.remove('open');
+            _procDeletarId = null;
+            await carregarProcessadores();
+        } catch (e) {
+            showToast('Erro ao remover processador.', 'error');
+        }
+    });
+
+    // Fecha modal ao clicar fora
+    document.getElementById('procModalOverlay').addEventListener('click', e => {
+        if (e.target === document.getElementById('procModalOverlay')) fecharProcModal();
+    });
+
+    window.procAdicionarTupla = procAdicionarTupla;
+    // ── Exportar processadores como CSV ─────────────────────────
+    function abrirModalExportProc() {
+        if (_processadores.length === 0) { alert('Nenhum processador para exportar.'); return; }
+        document.getElementById('modalProcExport').style.display = 'flex';
+    }
+    function fecharModalExportProc() {
+        document.getElementById('modalProcExport').style.display = 'none';
+    }
+
+    function procExportar(formato = 'csv') {
+        fecharModalExportProc();
+        if (_processadores.length === 0) { alert('Nenhum processador para exportar.'); return; }
+
+        const dados = _processadores.map(p => ({
+            ID:                p.id ?? p._id ?? '',
+            Nome:              p.nome ?? '',
+            'Velocidade (GHz)': p.velocidade ?? '',
+            Nucleos:           p.nucleosThreads?.item1 ?? p.nucleosThreads?.nucleos ?? '',
+            Threads:           p.nucleosThreads?.item2 ?? p.nucleosThreads?.threads ?? ''
+        }));
+
+        if (formato === 'csv') {
+            const cabecalho = Object.keys(dados[0]);
+            const linhas = [
+                cabecalho.map(h => `"${h}"`).join(','),
+                ...dados.map(row => cabecalho.map(h => `"${String(row[h]).replace(/"/g, '""')}"`).join(','))
+            ];
+            const csv  = linhas.join('\n');
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement('a');
+            a.href = url; a.download = 'processadores.csv'; a.click();
+            URL.revokeObjectURL(url);
+
+        } else if (formato === 'xlsx') {
+            // Gera XLSX manualmente (formato SpreadsheetML XML — sem dependência externa)
+            const cabecalho = Object.keys(dados[0]);
+            const escape = v => String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            const celulaStr  = v => `<c t="inlineStr"><is><t>${escape(v)}</t></is></c>`;
+            const celulaNum  = v => `<c><v>${v}</v></c>`;
+            const isNum = v => v !== '' && !isNaN(Number(v));
+
+            const toRow = (valores) =>
+                `<row>${valores.map(v => isNum(v) ? celulaNum(v) : celulaStr(v)).join('')}</row>`;
+
+            const ws = `<?xml version="1.0" encoding="UTF-8"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<sheetData>
+${toRow(cabecalho)}
+${dados.map(row => toRow(cabecalho.map(h => row[h]))).join('\n')}
+</sheetData>
+</worksheet>`;
+
+            const wb = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+          xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheets><sheet name="Processadores" sheetId="1" r:id="rId1"/></sheets>
+</workbook>`;
+
+            const rels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+</Relationships>`;
+
+            const ct = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+</Types>`;
+
+            // Monta ZIP manualmente usando a API nativa (apenas para arquivos simples)
+            // Usa a biblioteca JSZip via CDN dinâmico se disponível, senão cai em CSV
+            if (typeof JSZip !== 'undefined') {
+                const zip = new JSZip();
+                zip.file('[Content_Types].xml', ct);
+                zip.folder('_rels');
+                zip.file('_rels/.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>`);
+                zip.folder('xl').file('workbook.xml', wb);
+                zip.folder('xl/_rels').file('workbook.xml.rels', rels);
+                zip.folder('xl/worksheets').file('sheet1.xml', ws);
+                zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+                    .then(blob => {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url; a.download = 'processadores.xlsx'; a.click();
+                        URL.revokeObjectURL(url);
+                    });
+            } else {
+                // Carrega JSZip dinamicamente e re-chama
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+                script.onload = () => procExportar('xlsx');
+                document.head.appendChild(script);
+            }
+        }
+    }
+
+    // ── Importar processadores de CSV ────────────────────────────
+    function procImportar() {
+        const input = document.createElement('input');
+        input.type   = 'file';
+        input.accept = '.csv';
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const text  = await file.text();
+            const lines = text.split(/\r?\n/).filter(l => l.trim());
+            if (lines.length < 2) { alert('CSV vazio ou inválido.'); return; }
+
+            // Ignora cabeçalho
+            const rows = lines.slice(1).map(line => {
+                const cols = line.match(/("(?:[^"]|"")*"|[^,]*)/g)
+                    .filter((_, i) => i % 2 === 0)
+                    .map(v => v.replace(/^"|"$/g, '').replace(/""/g, '"').trim());
+                return cols;
+            }).filter(r => r[0]);
+
+            if (rows.length === 0) { alert('Nenhum dado encontrado no CSV.'); return; }
+
+            let ok = 0, erros = 0;
+            for (const row of rows) {
+                const [nome, vel, nuc, thr] = row;
+                const payload = {
+                    nome: nome,
+                    velocidade: parseFloat(vel) || 0,
+                    nucleosThreads: {
+                        item1: parseInt(nuc) || 0,
+                        item2: parseInt(thr) || 0
+                    }
+                };
+                try {
+                    await criarProcessador(payload);
+                    ok++;
+                } catch (_) { erros++; }
+            }
+
+            alert(`Importação concluída: ${ok} processador(es) adicionado(s)${erros > 0 ? ', ' + erros + ' erro(s).' : '.'}`);
+            await carregarProcessadores();
+        };
+        input.click();
+    }
+
+    window.abrirNovoProc      = abrirNovoProc;
+    window.procExportar          = procExportar;
+    window.abrirModalExportProc  = abrirModalExportProc;
+    window.fecharModalExportProc = fecharModalExportProc;
+    window.procImportar       = procImportar;
+    window.abrirEditarProc    = abrirEditarProc;
+    window.fecharProcModal    = fecharProcModal;
+    window.salvarProcessador  = salvarProcessador;
+    window.abrirDeletarProc   = abrirDeletarProc;
+
+    // ============================================================
     //  INICIALIZAÇÃO
     // ============================================================
     async function inicializar() {
         const area = document.getElementById('areaConteudo');
 
-        // Valida classeId
         const cls = Produtos.getClasse(classeId);
         if (!classeId || !cls) {
             area.innerHTML =
@@ -745,12 +1227,21 @@
             return;
         }
 
-        // Injeta o cabeçalho antes de carregar dados
         injetarCabecalho(cls);
 
-        // Se a classe não tem enums dinâmicos, esconde o botão "Novo Tipo"
-        if (cls.enums.length === 0) {
-            document.getElementById('btnNovoTipo').style.display = 'none';
+        // Oculta o botão "Novo Tipo" em todas as telas de detalhe
+        document.getElementById('btnNovoTipo').style.display = 'none';
+
+        // Injeta seção de processadores antes da área de enums (só para computador)
+        if (classeId === 'computador') {
+            const procHtml = `
+                <div class="proc-section" id="procSection">
+                    <div id="procGrid">
+                        <div style="color:var(--text-muted);font-size:13px;padding:8px;">Carregando...</div>
+                    </div>
+                </div>`;
+            area.insertAdjacentHTML('beforebegin', procHtml);
+            carregarProcessadores();
         }
 
         try {
@@ -793,5 +1284,40 @@
             }
         } catch(e) {}
 </script>
+
+    <!-- Modal exportar processadores -->
+    <div id="modalProcExport" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:10000;align-items:center;justify-content:center;">
+        <div style="background:var(--secondary-color);border:1px solid var(--border-color);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.18);width:100%;max-width:400px;overflow:hidden;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid var(--border-color);">
+                <h2 style="font-size:16px;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;margin:0;">
+                    <i class="fa-solid fa-file-export" style="color:var(--quinary-color);"></i> Exportar Processadores
+                </h2>
+                <button class="modal-close" onclick="fecharModalExportProc()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;padding:22px;">
+                <p style="font-size:13px;color:var(--text-muted);margin:0 0 4px;">Escolha o formato para exportar os processadores.</p>
+                <button class="export-option-btn" onclick="procExportar('csv')">
+                    <i class="fa-solid fa-file-csv export-icon csv"></i>
+                    <div class="export-info">
+                        <strong>CSV</strong>
+                        <span>Compatível com qualquer planilha ou editor de texto</span>
+                    </div>
+                </button>
+                <button class="export-option-btn" onclick="procExportar('xlsx')">
+                    <i class="fa-solid fa-file-excel export-icon xlsx"></i>
+                    <div class="export-info">
+                        <strong>Excel (.xlsx)</strong>
+                        <span>Arquivo formatado para Microsoft Excel</span>
+                    </div>
+                </button>
+            </div>
+            <div style="padding:14px 22px;border-top:1px solid var(--border-color);display:flex;justify-content:flex-end;">
+                <button class="btn btn-outline" onclick="fecharModalExportProc()" style="font-size:13px;">
+                    <i class="fa-solid fa-xmark"></i> Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+    <script src="js/mobile.js"></script>
 </body>
 </html>

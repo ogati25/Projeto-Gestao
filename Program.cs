@@ -1,8 +1,14 @@
 using Projeto_Gestao.Settings;
 using Projeto_Gestao.Services;
+using QuestPDF.Infrastructure;
 
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args        = args,
+    WebRootPath = "view"
+});
 
-var builder = WebApplication.CreateBuilder(args);
+QuestPDF.Settings.License = LicenseType.Community;
 
 // configurações do MongoDB
 builder.Services.Configure<MongoDbSettings>(
@@ -11,11 +17,11 @@ builder.Services.Configure<MongoDbSettings>(
 // configurações do serviço de e-mail (Gmail SMTP)
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));
+
 builder.Services.AddSingleton<EmailService>();
 
 // registro dos services
-// ProcessadorService primeiro pois ComputadorService depende dele
-// ChipService primeiro pois CelularService depende dele
+builder.Services.AddSingleton<DashboardService>();
 builder.Services.AddSingleton<OpcaoEnumService>();
 builder.Services.AddSingleton<ProcessadorService>();
 builder.Services.AddSingleton<ChipService>();
@@ -28,6 +34,7 @@ builder.Services.AddSingleton<FoneService>();
 builder.Services.AddSingleton<RamalService>();
 builder.Services.AddSingleton<ExtraService>();
 builder.Services.AddSingleton<UsuarioService>();
+builder.Services.AddSingleton<RelatorioService>();
 
 builder.Services.AddCors(options =>
 {
@@ -57,9 +64,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.UseCors();
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
-
 app.Run();
