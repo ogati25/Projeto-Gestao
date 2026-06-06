@@ -1,6 +1,16 @@
+# Build
 bin/
 obj/
+
+# Visual Studio
 .vs/
 *.user
+*.suo
+
+# Configurações sensíveis
 appsettings.Production.json
 appsettings.Secrets.json
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
