@@ -1,29 +1,38 @@
-const API_URL = 'http://localhost:5085/api';
+const API_URL = 'https://projeto-gestao-production.up.railway.app/api';
 
 // ==================== UTILITÁRIO ====================
 
 async function request(endpoint, method = 'GET', body = null) {
-    const options = {
-        method,
-        headers: { 'Content-Type': 'application/json' }
-    };
+    const headers = { 'Content-Type': 'application/json' };
+
+    // anexa o token JWT se existir
+    const token = localStorage.getItem('tl_token');
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const options = { method, headers };
     if (body) options.body = JSON.stringify(body);
 
     let response;
     try {
         response = await fetch(`${API_URL}/${endpoint}`, options);
     } catch (networkErr) {
-        // sem conexão com o servidor
         const err = new Error('Sem conexão com o servidor');
         err.status = 0;
         err.corpo = null;
         throw err;
     }
 
-    // 204 No Content — sucesso sem corpo
+    // se receber 401, sessão expirou — desloga
+    if (response.status === 401) {
+        localStorage.removeItem('tl_token');
+        localStorage.removeItem('tl_user');
+        sessionStorage.removeItem('usuarioLogado');
+        window.location.href = 'login.html';
+        return;
+    }
+
     if (response.status === 204) return true;
 
-    // tenta ler o corpo como JSON independente do status
     let corpo = null;
     try { corpo = await response.json(); } catch (_) {}
 

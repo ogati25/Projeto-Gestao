@@ -245,13 +245,14 @@ async function handleLogin() {
     setLoading(true);
 
     try {
-        // autenticarUsuario() definida em api.js → POST /api/usuarios/authenticate
-        const usuario = await autenticarUsuario(email, senha);
+        const resposta = await autenticarUsuario(email, senha);
 
-        // Persiste o UsuarioResponseDto na sessão para uso nas demais telas
-        salvarSessao(usuario);
+        // salva o token separado
+        localStorage.setItem('tl_token', resposta.token);
 
-        // Redireciona para o painel principal
+        // salva os dados do usuário
+        salvarSessao(resposta.usuario);
+
         window.location.href = 'dashboard.html';
 
     } catch (err) {
