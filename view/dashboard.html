@@ -310,16 +310,20 @@ function iniciarAutoRefresh() {
     const ring = document.getElementById('refreshRing');
     if (ring) ring.style.background =
       `conic-gradient(var(--quinary-color) ${pct}%, var(--border-color) ${pct}%)`;
-    if (tempoRestante <= 0) { tempoRestante = REFRESH_SEG; carregarDashboard(); }
+    if (tempoRestante <= 0) { iniciarAutoRefresh(); carregarDashboard(); }
   }, 1000);
 }
 
 async function refreshManual() {
   const btn = document.getElementById('btnRefresh');
   btn.classList.add('loading'); btn.disabled = true;
-  await carregarDashboard();
-  iniciarAutoRefresh();
-  btn.classList.remove('loading'); btn.disabled = false;
+  try {
+    await carregarDashboard();
+    iniciarAutoRefresh();
+  } finally {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
 }
 
 // ── HELPERS ───────────────────────────────────────────
