@@ -263,28 +263,7 @@ let _inativosGlobal     = null;
   });
 })();
 
-// ── SIDEBAR ───────────────────────────────────────────
-document.getElementById('toggleSidebar').addEventListener('click', () => {
-  const sidebar = document.getElementById('sidebar');
-  const isClosing = !sidebar.classList.contains('closed');
-  if (isClosing) {
-    sidebar.classList.add('collapsing');
-    sidebar.addEventListener('transitionend', function handler(e) {
-      if (e.propertyName !== 'width') return;
-      sidebar.classList.remove('collapsing');
-      sidebar.classList.add('closed');
-      sidebar.removeEventListener('transitionend', handler);
-    });
-  } else {
-    sidebar.classList.remove('closed');
-  }
-});
-document.querySelector('.clear-btn')?.addEventListener('click', () =>
-  document.querySelector('.search-box input').value = '');
-const currentPage = (window.location.pathname.split('/').pop() || '').split('?')[0] || 'dashboard.html';
-document.querySelectorAll('.menu li a').forEach(l => {
-  if (l.getAttribute('href') === currentPage) l.parentElement.classList.add('active');
-});
+// sidebar gerenciada pelo sidebar.js
 
 // ── USUÁRIO ───────────────────────────────────────────
 try {
@@ -296,8 +275,8 @@ try {
 } catch(_) {}
 
 // ── AUTO-REFRESH ──────────────────────────────────────
-let tempoRestante = REFRESH_SEG;
-let intervalTimer = null;
+var tempoRestante = REFRESH_SEG;
+var intervalTimer = null;
 
 function iniciarAutoRefresh() {
   clearInterval(intervalTimer);
