@@ -461,170 +461,170 @@
         </div>
     </main>
 
+    <script src="js/api.js"></script>
     <script>
-        // ── TEMA persistente ─────────────────────────────────
-        (function () {
-            const saved = localStorage.getItem('tl_theme') || 'light';
-            if (saved === 'dark') document.body.classList.add('dark');
-            const btn = document.getElementById('themeToggle');
-            if (saved === 'light') btn.classList.add('light');
-            btn.addEventListener('click', () => {
-                const isDark = document.body.classList.toggle('dark');
-                btn.classList.toggle('light', !isDark);
-                localStorage.setItem('tl_theme', isDark ? 'dark' : 'light');
-            });
-        })();
-
-        // ── SIDEBAR ──────────────────────────────────────────
-
-        // ── Dropdown de Perfil ───────────────────────────────
-        function toggleProfileDropdown() {
-            document.getElementById('profileDropdown').classList.toggle('open');
-        }
-        document.addEventListener('click', e => {
-            const wrap = document.getElementById('profileWrap');
-            const dd   = document.getElementById('profileDropdown');
-            if (dd && dd.classList.contains('open') && wrap && !wrap.contains(e.target)) {
-                dd.classList.remove('open');
-            }
-        });
-        // Preencher nome no dropdown
-        try {
-            const u = JSON.parse(localStorage.getItem('tl_user') || '{}');
-            if (u.nome) {
-                const av = document.getElementById('userAvatar');
-                if (av) av.textContent = u.nome.charAt(0).toUpperCase();
-                const pn = document.getElementById('pdName');
-                if (pn) pn.textContent = u.nome;
-            }
-        } catch(_) {}});
-
-        // Clicar na lupa quando sidebar fechada: abre e foca busca
-        document.querySelector('.search-box')?.addEventListener('click', () => {
-            const sidebar = document.getElementById('sidebar');
-            const input   = document.getElementById('sidebarSearch');
-            if (sidebar.classList.contains('closed')) {
-                sidebar.classList.remove('closed');
-                setTimeout(() => input?.focus(), 310);
-            }
-        });
-        const currentPage = (window.location.pathname.split('/').pop() || window.location.href.split('/').pop() || '').split('?')[0] || 'dashboard.html';
-        document.querySelectorAll('.menu li a').forEach(link => {
-            if (link.getAttribute('href') === currentPage) link.parentElement.classList.add('active');
-        });
-        // ── Busca no menu lateral ──────────────────────────────
-        (function () {
-            const input    = document.getElementById('sidebarSearch');
-            const clearBtn = document.querySelector('.clear-btn');
-            const menuItems = document.querySelectorAll('.menu li');
-
-            function filterMenu(q) {
-                const term = q.trim().toLowerCase();
-                menuItems.forEach(li => {
-                    const text = li.textContent.trim().toLowerCase();
-                    li.style.display = (!term || text.includes(term)) ? '' : 'none';
-                });
-                if (clearBtn) {
-                    clearBtn.style.opacity = term ? '1' : '0.4';
-                    clearBtn.style.pointerEvents = term ? 'auto' : 'none';
-                }
-            }
-
-            input?.addEventListener('input', e => filterMenu(e.target.value));
-
-            clearBtn?.addEventListener('click', () => {
-                if (input) { input.value = ''; filterMenu(''); input.focus(); }
-            });
-
-            if (clearBtn) { clearBtn.style.opacity = '0.4'; clearBtn.style.pointerEvents = 'none'; }
-        })();
-
-        // ── TOGGLE SENHA ─────────────────────────────────────
+        // ── TOGGLE SENHA ──────────────────────────────────────────────────────
         function togglePwd(id, btn) {
-            const inp = document.getElementById(id);
+            const inp  = document.getElementById(id);
             const icon = btn.querySelector('i');
             if (inp.type === 'password') {
-                inp.type = 'text'; icon.className = 'fa-solid fa-eye-slash';
+                inp.type = 'text';     icon.className = 'fa-solid fa-eye-slash';
             } else {
                 inp.type = 'password'; icon.className = 'fa-solid fa-eye';
             }
         }
 
-        // ── CARREGAR DADOS ────────────────────────────────────
-        function carregarDados() {
-            const u = JSON.parse(localStorage.getItem('tl_user') || '{}');
+        // ── SETORES ───────────────────────────────────────────────────────────
+        const SETORES = [
+            { value: 'RH',         label: 'RH'         },
+            { value: 'Suporte',    label: 'Suporte'     },
+            { value: 'Produtos',   label: 'Produtos'    },
+            { value: 'Auditoria',  label: 'Auditoria'   },
+            { value: 'Diretoria',  label: 'Diretoria'   },
+            { value: 'CallCenter', label: 'Call Center' },
+            { value: 'Dev',        label: 'Dev'         },
+            { value: 'Cofre',      label: 'Cofre'       },
+            { value: 'Servidor',   label: 'Servidor'    },
+        ];
 
-            // Sidebar card
-            const nomeCompleto = [u.nome, u.sobrenome].filter(Boolean).join(' ') || 'Usuário';
-            document.getElementById('avatarBig').textContent   = nomeCompleto.charAt(0).toUpperCase();
-            document.getElementById('sidebarName').textContent = nomeCompleto;
-            document.getElementById('sidebarEmail').textContent = u.email || '—';
-            document.getElementById('sidebarSetor').textContent = u.setor || '—';
-            const criadoEm = u.criadoEm ? new Date(u.criadoEm).toLocaleDateString('pt-BR') : '—';
-            document.getElementById('sidebarMembro').textContent = criadoEm;
-            document.getElementById('sidebarNivel').textContent  = u.setor || '—';
+        let _usuarioAtual = null;
 
-            // Avatar no header
-            const av = document.querySelector('.user-avatar');
-            if (av) av.textContent = nomeCompleto.charAt(0).toUpperCase();
-
-            // Formulário
-            document.getElementById('fNome').value      = u.nome || '';
-            document.getElementById('fSobrenome').value = u.sobrenome || '';
-            document.getElementById('fEmail').value     = u.email || '';
-            document.getElementById('fTelefone').value  = u.telefone || '';
-            document.getElementById('fSetor').value     = u.setor || '';
-
-            document.getElementById('ultimaAtualizacao').textContent = u.ultimaAtualizacao || 'Nunca';
+        // ── HELPERS ───────────────────────────────────────────────────────────
+        function _norm(u) {
+            if (!u) return null;
+            return {
+                id:        u.id        ?? u.Id        ?? null,
+                nome:      u.nome      ?? u.Nome      ?? '',
+                sobrenome: u.sobrenome ?? u.Sobrenome ?? '',
+                email:     u.email     ?? u.Email     ?? '',
+                setor:     u.setor     ?? u.Setor     ?? '',
+                criadoEm:  u.criadoEm  ?? u.CriadoEm  ?? null,
+            };
         }
 
-        // ── SALVAR PERFIL ─────────────────────────────────────
-        function salvarPerfil() {
+        function _v(id, val) { const el = document.getElementById(id); if (el) el.value       = val ?? ''; }
+        function _t(id, val) { const el = document.getElementById(id); if (el) el.textContent = val ?? ''; }
+        function _dtHora(d)  { return d.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
+
+        // ── POPULAR SETORES ───────────────────────────────────────────────────
+        function popularSetores() {
+            const sel = document.getElementById('fSetor');
+            if (!sel) return;
+            sel.innerHTML = SETORES.map(s => `<option value="${s.value}">${s.label}</option>`).join('');
+        }
+
+        // ── CARREGAR DADOS DA API ─────────────────────────────────────────────
+        async function carregarDados() {
+            const u = JSON.parse(localStorage.getItem('tl_user') || '{}');
+            const id = u.id ?? u.Id;
+            if (!id) { window.location.href = 'login.html'; return; }
+
+            try {
+                const raw     = await getUsuario(id);
+                const usuario = _norm(raw);
+                _usuarioAtual = usuario;
+
+                // Atualiza localStorage com dados frescos da API
+                localStorage.setItem('tl_user', JSON.stringify({ ...u, ...usuario }));
+
+                // Preenche card lateral
+                const nomeCompleto = [usuario.nome, usuario.sobrenome].filter(Boolean).join(' ') || 'Usuário';
+                const ini = nomeCompleto.charAt(0).toUpperCase();
+                _t('avatarBig',    ini);
+                _t('sidebarName',  nomeCompleto);
+                _t('sidebarEmail', usuario.email  || '—');
+                _t('sidebarSetor', usuario.setor  || '—');
+                _t('sidebarNivel', 'Usuário');
+                const av = document.getElementById('userAvatar');
+                if (av) av.textContent = ini;
+                if (usuario.criadoEm) {
+                    _t('sidebarMembro', new Date(usuario.criadoEm).toLocaleDateString('pt-BR'));
+                }
+
+                // Preenche formulário
+                popularSetores();
+                _v('fNome',      usuario.nome);
+                _v('fSobrenome', usuario.sobrenome);
+                _v('fEmail',     usuario.email);
+                const sel = document.getElementById('fSetor');
+                if (sel) sel.value = usuario.setor || '';
+
+                const salvo = localStorage.getItem('tl_perfil_ultima_atualizacao');
+                _t('ultimaAtualizacao', salvo ?? 'Nunca');
+
+            } catch (err) {
+                if (err.status === 401) {
+                    localStorage.removeItem('tl_token');
+                    localStorage.removeItem('tl_user');
+                    window.location.href = 'login.html';
+                } else {
+                    console.error('Erro ao carregar perfil:', err);
+                }
+            }
+        }
+
+        // ── SALVAR DADOS PESSOAIS ─────────────────────────────────────────────
+        async function salvarPerfil() {
+            if (!_usuarioAtual) return;
+
             const alertOk  = document.getElementById('alertOk');
             const alertErr = document.getElementById('alertErr');
             const errMsg   = document.getElementById('alertErrMsg');
-            alertOk.classList.remove('show');
-            alertErr.classList.remove('show');
+            alertOk?.classList.remove('show');
+            alertErr?.classList.remove('show');
 
-            const nome      = document.getElementById('fNome').value.trim();
-            const sobrenome = document.getElementById('fSobrenome').value.trim();
-            const email     = document.getElementById('fEmail').value.trim();
-            const novaSenha = document.getElementById('fNovaSenha').value;
-            const confirmar = document.getElementById('fConfirmarSenha').value;
+            const nome      = document.getElementById('fNome')?.value.trim()      || '';
+            const sobrenome = document.getElementById('fSobrenome')?.value.trim() || '';
+            const email     = document.getElementById('fEmail')?.value.trim()     || '';
+            const novaSenha = document.getElementById('fNovaSenha')?.value        || '';
+            const confirmar = document.getElementById('fConfirmarSenha')?.value   || '';
+            const setor     = document.getElementById('fSetor')?.value            || '';
 
             if (!nome || !email) {
-                errMsg.textContent = 'Nome e e-mail são obrigatórios.';
-                alertErr.classList.add('show'); return;
+                if (errMsg) errMsg.textContent = 'Nome e e-mail são obrigatórios.';
+                alertErr?.classList.add('show'); return;
             }
             if (novaSenha && novaSenha !== confirmar) {
-                errMsg.textContent = 'As novas senhas não coincidem.';
-                alertErr.classList.add('show'); return;
+                if (errMsg) errMsg.textContent = 'As novas senhas não coincidem.';
+                alertErr?.classList.add('show'); return;
             }
             if (novaSenha && novaSenha.length < 8) {
-                errMsg.textContent = 'A nova senha deve ter pelo menos 8 caracteres.';
-                alertErr.classList.add('show'); return;
+                if (errMsg) errMsg.textContent = 'A nova senha deve ter pelo menos 8 caracteres.';
+                alertErr?.classList.add('show'); return;
             }
 
-            // Salvar no localStorage (integrar com API real aqui)
-            const u = JSON.parse(localStorage.getItem('tl_user') || '{}');
-            u.nome      = nome;
-            u.sobrenome = sobrenome;
-            u.email     = email;
-            u.telefone  = document.getElementById('fTelefone').value;
-            u.setor     = document.getElementById('fSetor').value;
-            u.ultimaAtualizacao = new Date().toLocaleDateString('pt-BR');
-            localStorage.setItem('tl_user', JSON.stringify(u));
+            try {
+                // Atualiza dados pessoais
+                if (nome !== _usuarioAtual.nome || sobrenome !== _usuarioAtual.sobrenome || setor !== _usuarioAtual.setor) {
+                    await atualizarDadosPessoais(_usuarioAtual.id, { nome, sobrenome, setor });
+                }
+                // Atualiza email
+                if (email !== _usuarioAtual.email) {
+                    await atualizarEmail(_usuarioAtual.id, email);
+                }
+                // Atualiza senha
+                if (novaSenha) {
+                    await atualizarSenha(_usuarioAtual.id, novaSenha);
+                    ['fSenhaAtual','fNovaSenha','fConfirmarSenha'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.value = '';
+                    });
+                }
 
-            // Limpar campos de senha
-            ['fSenhaAtual','fNovaSenha','fConfirmarSenha'].forEach(id => document.getElementById(id).value = '');
+                localStorage.setItem('tl_perfil_ultima_atualizacao', _dtHora(new Date()));
+                await carregarDados();
+                alertOk?.classList.add('show');
+                setTimeout(() => alertOk?.classList.remove('show'), 3500);
 
-            carregarDados();
-            alertOk.classList.add('show');
-            setTimeout(() => alertOk.classList.remove('show'), 3500);
+            } catch (err) {
+                if (errMsg) errMsg.textContent = err.status === 400
+                    ? 'Este e-mail já está em uso.' : 'Erro ao salvar. Tente novamente.';
+                alertErr?.classList.add('show');
+            }
         }
 
-        // ── INIT ─────────────────────────────────────────────
-        carregarDados();
+        // ── INIT ──────────────────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', carregarDados);
     </script>
     <script src="js/mobile.js"></script>
 </body>
