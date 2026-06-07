@@ -829,17 +829,8 @@
          Navegação, busca e botão de logout.
          Link ativo é marcado pelo JS via comparação com window.location.
     ====================================================================== -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    <div class="sidebar" id="sidebar">
-        <!-- Botão de recolher/expandir a sidebar -->
-        <button id="toggleSidebar" class="toggle-btn">
-            <i class="fa-solid fa-angles-left icon-close"></i>
-            <i class="fa-solid fa-angles-right icon-open"></i>
-        </button>
-        <div class="sidebar-brand">
-            <img src="novatech-logo.png" alt="NovaTech Solutions" style="height:36px;width:auto;">
-            <h2>NovaTech Solutions</h2>
-        </div>
+<div id="sidebar-container"></div>
+
         <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" id="sidebarSearch" placeholder="Buscar..." autocomplete="off">
@@ -1321,11 +1312,7 @@
                 const pn = document.getElementById('pdName');
                 if (pn) pn.textContent = u.nome;
             }
-        } catch(_) {}
-
-        document.getElementById('toggleSidebar').addEventListener('click', () => {
-            document.getElementById('sidebar').classList.toggle('closed');
-        });
+        } catch(_) {}});
 
         // Clicar na lupa quando sidebar fechada: abre e foca busca
         document.querySelector('.search-box')?.addEventListener('click', () => {
@@ -2472,5 +2459,6 @@
         });
     </script>
     <script src="js/mobile.js"></script>
+<script src="js/sidebar.js"></script>
 </body>
 </html>

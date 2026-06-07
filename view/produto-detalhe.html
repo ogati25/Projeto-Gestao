@@ -250,16 +250,8 @@
 <body>
 
     <!-- SIDEBAR -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    <div class="sidebar" id="sidebar">
-        <button id="toggleSidebar" class="toggle-btn">
-            <i class="fa-solid fa-angles-left icon-close"></i>
-            <i class="fa-solid fa-angles-right icon-open"></i>
-        </button>
-        <div class="sidebar-brand">
-            <img src="novatech-logo.png" alt="NovaTech Solutions" style="height:36px;width:auto;">
-            <h2>NovaTech Solutions</h2>
-        </div>
+<div id="sidebar-container"></div>
+
         <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" id="sidebarSearch" placeholder="Buscar..." autocomplete="off">
@@ -503,9 +495,7 @@
         }
     })();
 
-    const sidebar = document.getElementById('sidebar');
-    document.getElementById('toggleSidebar').addEventListener('click', () => sidebar.classList.toggle('closed'));
-    document.querySelector('.clear-btn')?.addEventListener('click', () => {
+    const sidebar = document.getElementById('sidebar');document.querySelector('.clear-btn')?.addEventListener('click', () => {
         document.querySelector('.search-box input').value = '';
     });
 
@@ -1319,5 +1309,6 @@ ${dados.map(row => toRow(cabecalho.map(h => row[h]))).join('\n')}
         </div>
     </div>
     <script src="js/mobile.js"></script>
+<script src="js/sidebar.js"></script>
 </body>
 </html>

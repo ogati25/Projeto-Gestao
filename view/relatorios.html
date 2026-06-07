@@ -558,16 +558,8 @@
     <div id="toast"><i id="toastIcon"></i><span id="toastMsg"></span></div>
 
     <!-- ==================== SIDEBAR ==================== -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    <div class="sidebar" id="sidebar">
-        <button id="toggleSidebar" class="toggle-btn">
-            <i class="fa-solid fa-angles-left icon-close"></i>
-            <i class="fa-solid fa-angles-right icon-open"></i>
-        </button>
-        <div class="sidebar-brand">
-            <img src="novatech-logo.png" alt="NovaTech Solutions" style="height:36px;width:auto;">
-            <h2>NovaTech Solutions</h2>
-        </div>
+<div id="sidebar-container"></div>
+
         <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" placeholder="Buscar...">
@@ -773,10 +765,7 @@
         } catch(_) {}
     })();
 
-    const sidebar = document.getElementById('sidebar');
-    document.getElementById('toggleSidebar').addEventListener('click', () => {
-        sidebar.classList.toggle('closed');
-    });
+    const sidebar = document.getElementById('sidebar');});
 
     const currentPage = (window.location.pathname.split('/').pop() || 'dashboard.html').split('?')[0];
     document.querySelectorAll('.menu li a').forEach(link => {
@@ -1159,5 +1148,6 @@
     document.getElementById('filtroDataFim').valueAsDate = new Date();
     </script>
     <script src="js/mobile.js"></script>
+<script src="js/sidebar.js"></script>
 </body>
 </html>
