@@ -2458,7 +2458,7 @@
                     if (overlay) overlay.classList.remove('open');
                 }
             }
-        });});
+        });
 
         // Clicar na lupa quando sidebar fechada: abre e foca busca
         document.querySelector('.search-box')?.addEventListener('click', () => {
@@ -2476,12 +2476,7 @@
         //  Compara a URL atual com os hrefs dos links do menu lateral.
         // ============================================================
 
-        const currentPage = (window.location.pathname.split('/').pop() || window.location.href.split('/').pop() || '').split('?')[0] || 'dashboard.html';
-        document.querySelectorAll('.menu li a').forEach(link => {
-            if (link.getAttribute('href') === currentPage) {
-                link.parentElement.classList.add('active');
-            }
-        });
+        // menu highlight gerenciado pelo sidebar.js
 
 
         // ============================================================
