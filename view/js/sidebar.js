@@ -1,13 +1,23 @@
 // =============================================================================
 // sidebar.js — Sidebar compartilhada entre todas as telas
-//
-// Como usar em cada HTML:
-//   1. Adicione <div id="sidebar-container"></div> onde a sidebar deve aparecer
-//   2. Carregue este script: <script src="js/sidebar.js"></script>
-//   3. Remova o HTML da sidebar e a lógica de tema/usuário que estava inline
 // =============================================================================
 
 (function () {
+
+    // ── TEMA: aplica IMEDIATAMENTE (antes do paint) ───────────────────────────
+    // Isso evita o flash branco ao trocar de página
+    (function aplicarTemaImediato() {
+        if (localStorage.getItem('tl_theme') === 'dark') {
+            document.documentElement.classList.add('dark-early');
+            // move para body assim que disponível
+            const mover = () => {
+                document.body.classList.add('dark');
+                document.documentElement.classList.remove('dark-early');
+            };
+            if (document.body) mover();
+            else document.addEventListener('DOMContentLoaded', mover);
+        }
+    })();
 
     // ── HTML DA SIDEBAR ───────────────────────────────────────────────────────
     const SIDEBAR_HTML = `
@@ -39,7 +49,7 @@
     </div>
 </div>`;
 
-    // ── INJETA NO CONTAINER ───────────────────────────────────────────────────
+    // ── INJETA A SIDEBAR NO CONTAINER ─────────────────────────────────────────
     function injetar() {
         const container = document.getElementById('sidebar-container');
         if (!container) return;
@@ -80,15 +90,14 @@
 
     // ── BUSCA NA SIDEBAR ──────────────────────────────────────────────────────
     function setupBusca() {
-        const input   = document.getElementById('sidebarSearch');
-        const clearBtn = document.querySelector('.clear-btn');
+        const input    = document.getElementById('sidebarSearch');
+        const clearBtn = document.querySelector('#sidebar .clear-btn');
         if (!input) return;
 
         input.addEventListener('input', () => {
             const q = input.value.toLowerCase().trim();
             document.querySelectorAll('.menu li').forEach(li => {
-                const texto = li.textContent.toLowerCase();
-                li.style.display = (!q || texto.includes(q)) ? '' : 'none';
+                li.style.display = (!q || li.textContent.toLowerCase().includes(q)) ? '' : 'none';
             });
         });
 
@@ -111,12 +120,10 @@
         });
     }
 
-    // ── TEMA (DARK/LIGHT) ─────────────────────────────────────────────────────
+    // ── TEMA (botão dark/light no header) ─────────────────────────────────────
     function setupTema() {
         const saved = localStorage.getItem('tl_theme') || 'light';
-        if (saved === 'dark') document.body.classList.add('dark');
-
-        const btn = document.getElementById('themeToggle');
+        const btn   = document.getElementById('themeToggle');
         if (!btn) return;
 
         if (saved === 'light') btn.classList.add('light');
@@ -128,7 +135,7 @@
         });
     }
 
-    // ── AVATAR DO USUÁRIO ─────────────────────────────────────────────────────
+    // ── AVATAR E NOME DO USUÁRIO ──────────────────────────────────────────────
     function setupUsuario() {
         try {
             const u = JSON.parse(localStorage.getItem('tl_user') || '{}');
@@ -136,29 +143,26 @@
 
             const inicial = u.nome.charAt(0).toUpperCase();
 
-            // avatar no header
             const avatar = document.getElementById('userAvatar');
             if (avatar) avatar.textContent = inicial;
 
-            // nome no greeting (dashboard)
             const greeting = document.getElementById('greeting-name');
             if (greeting) greeting.textContent = u.nome.split(' ')[0];
 
-            // nome no dropdown (pdName)
             const pdName = document.getElementById('pdName');
             if (pdName) pdName.textContent = `${u.nome} ${u.sobrenome || ''}`.trim();
         } catch (_) {}
     }
 
-    // ── MOBILE: OVERLAY DA SIDEBAR ────────────────────────────────────────────
+    // ── OVERLAY MOBILE ────────────────────────────────────────────────────────
     function setupOverlay() {
         const overlay = document.getElementById('sidebarOverlay');
         const sidebar = document.getElementById('sidebar');
         if (!overlay || !sidebar) return;
 
         overlay.addEventListener('click', () => {
-            sidebar.classList.remove('mobile-open');
-            overlay.classList.remove('active');
+            sidebar.classList.remove('mobile-open', 'open');
+            overlay.classList.remove('active', 'open');
         });
     }
 
