@@ -48,6 +48,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 24px;
+    overflow: visible;
     transition: width 0.3s ease, min-width 0.3s ease, padding 0.3s ease, gap 0.3s ease;
 }
 
@@ -85,8 +86,12 @@ body {
     width: 56px;
     min-width: 56px;
     padding: 20px 8px;
-    overflow: hidden;
+    overflow: visible; /* não clipar o toggle-btn que fica fora */
 }
+/* internal containers: clip text overflow but allow icons to show */
+.sidebar.closed .sidebar-brand { overflow: visible; }
+.sidebar.closed .menu { overflow: visible; }
+.sidebar.closed .menu li a { overflow: visible; }
 
 /* No estado fechado, esconde textos (animação já terminou) */
 .sidebar.closed .sidebar-brand h2,
@@ -108,7 +113,7 @@ body {
     width: 56px;
     min-width: 56px;
     padding: 20px 8px;
-    overflow: hidden;
+    overflow: visible;
 }
 .sidebar.collapsing .menu li a {
     justify-content: center;
@@ -208,10 +213,13 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 101;
+    z-index: 200;
     transition: background 0.2s;
+    flex-shrink: 0;
 }
 .toggle-btn:hover { background: var(--primary-hover); }
+/* Garante que o botão nunca seja clipado */
+.sidebar { overflow: visible; }
 
 .icon-open { display: none; }
 .sidebar.closed .icon-close { display: none; }
