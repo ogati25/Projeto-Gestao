@@ -2461,15 +2461,7 @@
             }
         });
 
-        // Clicar na lupa quando sidebar fechada: abre e foca busca
-        document.querySelector('.search-box')?.addEventListener('click', () => {
-            const sidebar = document.getElementById('sidebar');
-            const input   = document.getElementById('sidebarSearch');
-            if (sidebar.classList.contains('closed')) {
-                sidebar.classList.remove('closed');
-                setTimeout(() => input?.focus(), 310);
-            }
-        });
+        // abertura da busca gerenciada pelo sidebar.js
 
 
         // ============================================================
@@ -2484,34 +2476,7 @@
         //  CAMPO DE BUSCA — BOTÃO LIMPAR
         // ============================================================
 
-        // ── Busca no menu lateral ──────────────────────────────
-        (function () {
-            const input   = document.getElementById('sidebarSearch');
-            const clearBtn = document.querySelector('.clear-btn');
-            const menuItems = document.querySelectorAll('.menu li');
-
-            function filterMenu(q) {
-                const term = q.trim().toLowerCase();
-                menuItems.forEach(li => {
-                    const text = li.textContent.trim().toLowerCase();
-                    li.style.display = (!term || text.includes(term)) ? '' : 'none';
-                });
-                clearBtn.style.opacity = term ? '1' : '0.4';
-                clearBtn.style.pointerEvents = term ? 'auto' : 'none';
-            }
-
-            input?.addEventListener('input', e => filterMenu(e.target.value));
-
-            clearBtn?.addEventListener('click', () => {
-                input.value = '';
-                filterMenu('');
-                input.focus();
-            });
-
-            // Estado inicial do botão X
-            clearBtn.style.opacity = '0.4';
-            clearBtn.style.pointerEvents = 'none';
-        })();
+        // busca no menu gerenciada pelo sidebar.js
 
 
         // ============================================================
