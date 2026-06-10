@@ -5,7 +5,6 @@ const API_URL = 'https://projeto-gestao-production.up.railway.app/api';
 async function request(endpoint, method = 'GET', body = null) {
     const headers = { 'Content-Type': 'application/json' };
 
-    // anexa o token JWT se existir
     const token = localStorage.getItem('tl_token');
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
@@ -22,8 +21,8 @@ async function request(endpoint, method = 'GET', body = null) {
         throw err;
     }
 
-    // se receber 401, sessão expirou — desloga
-    if (response.status === 401) {
+    // Redireciona por sessão expirada SOMENTE fora da tela de login
+    if (response.status === 401 && !window.location.pathname.includes('login')) {
         localStorage.removeItem('tl_token');
         localStorage.removeItem('tl_user');
         sessionStorage.removeItem('usuarioLogado');
