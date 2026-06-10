@@ -1220,7 +1220,7 @@
         }
 
     </style>
-    <script src="js/sidebar.js" defer></script>
+    <script src="js/sidebar.js"></script>
 </head>
 <body>
 
@@ -2417,7 +2417,21 @@
         //  Toggle visual puro — só adiciona/remove classe no botão.
         // ============================================================
 
-        // tema e avatar gerenciados pelo sidebar.js
+        (function () {
+            const saved = localStorage.getItem('tl_theme') || 'light';
+            if (saved === 'dark') document.body.classList.add('dark');
+            const themeBtn = document.getElementById('themeToggle');
+            if (saved === 'light') themeBtn.classList.add('light');
+            themeBtn.addEventListener('click', () => {
+                const isDark = document.body.classList.toggle('dark');
+                themeBtn.classList.toggle('light', !isDark);
+                localStorage.setItem('tl_theme', isDark ? 'dark' : 'light');
+            });
+            // Avatar do usuário
+            try {
+                const u = JSON.parse(localStorage.getItem('tl_user') || '{}');
+            } catch(_) {}
+        })();
 
 
         // ============================================================
