@@ -313,10 +313,12 @@ async function handleCadastro() {
 
     try {
         // criarUsuario() definida em api.js → POST /api/usuarios
-        const response = await criarUsuario({ nome, sobrenome, email, setor, telefone, senha });
+        // criarUsuario() definida em api.js → POST /api/usuarios
+        await criarUsuario({ nome, sobrenome, email, setor, telefone, senha });
 
-        // Exibe a tela de verificação de e-mail (step 2)
-        exibirVerificacao(email, response.id ?? response.Id);
+        // Verificação de e-mail desabilitada
+        window.location.href = 'login.html';
+        return;
 
     } catch (err) {
         if (err.status === 0) {
