@@ -1,59 +1,90 @@
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
+using System.Net;
+using System.Net.Mail;
 using Microsoft.Extensions.Options;
 using Projeto_Gestao.Settings;
 
 namespace Projeto_Gestao.Services;
 
+/// <summary>
+/// Serviço de envio de e-mail via Gmail SMTP.
+///
+/// Usos atuais:
+///   - EnviarEmailRecuperacaoSenhaAsync  → fluxo "Esqueci minha senha"
+///   - EnviarEmailVerificacaoAsync       → fluxo de verificação ao criar conta
+///
+/// Configuração (appsettings.json → "EmailSettings"):
+///   SmtpHost      : smtp.gmail.com
+///   SmtpPort      : 587
+///   RemetentEmail : seuemail@gmail.com
+///   RemetentNome  : Tech Logistics
+///   Senha         : senha de app gerada em conta Google → Segurança → Senhas de app
+///   UrlBase       : URL raiz do frontend (ex: http://localhost:5500)
+/// </summary>
 public class EmailService
 {
     private readonly EmailSettings _settings;
-    private readonly HttpClient _http;
 
     public EmailService(IOptions<EmailSettings> settings)
     {
         _settings = settings.Value;
-        _http = new HttpClient();
-        _http.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", _settings.Senha);
     }
 
-    public async Task EnviarEmailVerificacaoAsync(string destinatario, string nomeUsuario, string codigo)
-    {
-        await EnviarAsync(destinatario,
-            "Confirme seu e-mail — Tech Logistics",
-            MontarCorpoVerificacaoEmail(nomeUsuario, codigo));
-    }
+    // ─────────────────────────────────────────────────────────────────────────
+    // RESET DE SENHA
+    // ─────────────────────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Envia e-mail com link para redefinição de senha.
+    /// Link gerado: {UrlBase}/view/redefinir-senha.html?token={token}
+    /// </summary>
     public async Task EnviarEmailRecuperacaoSenhaAsync(string destinatario, string nomeUsuario, string token)
     {
         var link = $"{_settings.UrlBase}/view/redefinir-senha.html?token={Uri.EscapeDataString(token)}";
-        await EnviarAsync(destinatario,
-            "Redefinição de senha — Tech Logistics",
-            MontarCorpoRecuperacaoSenha(nomeUsuario, link));
+
+        var assunto = "Redefinição de senha — Tech Logistics";
+        var corpo   = MontarCorpoRecuperacaoSenha(nomeUsuario, link);
+
+        await EnviarAsync(destinatario, assunto, corpo);
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // VERIFICAÇÃO DE E-MAIL
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Envia e-mail de verificação após o cadastro do usuário.
+    /// Link gerado: {UrlBase}/view/verificar-email.html?token={token}
+    /// </summary>
+    public async Task EnviarEmailVerificacaoAsync(string destinatario, string nomeUsuario, string codigo)
+    {
+        var assunto = "Confirme seu e-mail — Tech Logistics";
+        var corpo   = MontarCorpoVerificacaoEmail(nomeUsuario, codigo);
+
+        await EnviarAsync(destinatario, assunto, corpo);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // ENVIO GENÉRICO
+    // ─────────────────────────────────────────────────────────────────────────
 
     private async Task EnviarAsync(string destinatario, string assunto, string corpoHtml)
     {
-        var payload = new
+        using var client = new SmtpClient(_settings.SmtpHost, _settings.SmtpPort)
         {
-            from = $"{_settings.RemetentNome} <onboarding@resend.dev>",
-            to   = new[] { destinatario },
-            subject = assunto,
-            html = corpoHtml
+            Credentials = new NetworkCredential(_settings.RemetentEmail, _settings.Senha),
+            EnableSsl   = true
         };
 
-        var json    = JsonSerializer.Serialize(payload);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        var response = await _http.PostAsync("https://api.resend.com/emails", content);
-
-        if (!response.IsSuccessStatusCode)
+        using var mensagem = new MailMessage
         {
-            var body = await response.Content.ReadAsStringAsync();
-            throw new Exception($"Resend erro {(int)response.StatusCode}: {body}");
-        }
+            From       = new MailAddress(_settings.RemetentEmail, _settings.RemetentNome),
+            Subject    = assunto,
+            Body       = corpoHtml,
+            IsBodyHtml = true
+        };
+        mensagem.To.Add(destinatario);
+
+        await client.SendMailAsync(mensagem);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
