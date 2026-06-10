@@ -51,7 +51,14 @@ public class UsuariosController : ControllerBase
         var codigo = await _usuarioService.GerarTokenVerificacaoEmailAsync(usuario.Id!);
         try
         {
-            await _emailService.EnviarEmailVerificacaoAsync(usuario.Email, usuario.Nome, codigo);
+            _ = Task.Run(async () => {
+                try {
+                    await _emailService.EnviarEmailVerificacaoAsync(usuario.Email, usuario.Nome, codigo);
+                }
+                catch (Exception ex) {
+                    Console.Error.WriteLine($"[EmailService] Erro ao enviar e-mail: {ex.Message}");
+                }
+            });
         }
         catch (Exception ex)
         {
@@ -136,19 +143,19 @@ public class UsuariosController : ControllerBase
     // ===================== AUTENTICAÇÃO (LOGIN) =====================
     [AllowAnonymous]
     [HttpPost("authenticate")]
+    // UsuariosController.cs — método Authenticate
     public async Task<IActionResult> Authenticate([FromBody] AuthenticateDto dto)
     {
         var usuario = await _usuarioService.AuthenticateAsync(dto.Email, dto.Senha);
         if (usuario == null)
             return Unauthorized(new { message = "Email ou senha inválidos." });
 
-        var token = _jwtService.GerarToken(usuario);
+        // ← ADICIONE ESTA VERIFICAÇÃO
+        if (!usuario.EmailVerificado)
+            return Unauthorized(new { message = "Confirme seu e-mail antes de fazer login." });
 
-        return Ok(new
-        {
-            token,
-            usuario = MapToResponse(usuario)
-        });
+        var token = _jwtService.GerarToken(usuario);
+        return Ok(new { token, usuario = MapToResponse(usuario) });
     }
     
     // ===================== RECUPERAÇÃO DE SENHA =====================
