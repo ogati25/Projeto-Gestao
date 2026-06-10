@@ -38,6 +38,8 @@ public class UsuariosController : ControllerBase
             Senha = dto.Senha
         };
 
+        usuario.EmailVerificado = true;
+
         try
         {
             await _usuarioService.CreateAsync(usuario);
@@ -49,18 +51,18 @@ public class UsuariosController : ControllerBase
 
         // Gera código de verificação e envia por e-mail
         // UsuarioController.cs — método Create
-        var codigo = await _usuarioService.GerarTokenVerificacaoEmailAsync(usuario.Id!);
-        try
-        {
-            await _emailService.EnviarEmailVerificacaoAsync(usuario.Email, usuario.Nome, codigo);
-            Console.WriteLine($"[Email] Enviado com sucesso para {usuario.Email}");
-        }
-        catch (Exception ex)
-        {
-            // Troque o fire-and-forget por await temporariamente para ver o erro
-            Console.Error.WriteLine($"[Email] ERRO: {ex.GetType().Name} — {ex.Message}");
-            Console.Error.WriteLine($"[Email] StackTrace: {ex.StackTrace}");
-        }
+        // var codigo = await _usuarioService.GerarTokenVerificacaoEmailAsync(usuario.Id!);
+        // try
+        // {
+        //     await _emailService.EnviarEmailVerificacaoAsync(usuario.Email, usuario.Nome, codigo);
+        //     Console.WriteLine($"[Email] Enviado com sucesso para {usuario.Email}");
+        // }
+        // catch (Exception ex)
+        // {
+        //     // Troque o fire-and-forget por await temporariamente para ver o erro
+        //     Console.Error.WriteLine($"[Email] ERRO: {ex.GetType().Name} — {ex.Message}");
+        //     Console.Error.WriteLine($"[Email] StackTrace: {ex.StackTrace}");
+        // }
 
         // Retorna o usuário criado com o Id para o frontend iniciar a verificação
         var response = MapToResponse(usuario);
@@ -148,8 +150,8 @@ public class UsuariosController : ControllerBase
             return Unauthorized(new { message = "Email ou senha inválidos." });
 
         // ← ADICIONE ESTA VERIFICAÇÃO
-        if (!usuario.EmailVerificado)
-            return Unauthorized(new { message = "Confirme seu e-mail antes de fazer login." });
+        // if (!usuario.EmailVerificado)
+        //     return Unauthorized(new { message = "Confirme seu e-mail antes de fazer login." });
 
         var token = _jwtService.GerarToken(usuario);
         return Ok(new { token, usuario = MapToResponse(usuario) });
