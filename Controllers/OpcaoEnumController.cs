@@ -35,6 +35,8 @@ public class OpcoesEnumController : ControllerBase
 
     // GET /api/opcoes/{tipo}
     // retorna os valores de um tipo: ["Windows10", "Windows11", ...]
+    // AllowAnonymous: necessário para a tela de cadastro carregar setores sem token
+    [AllowAnonymous]
     [HttpGet("{tipo}")]
     public async Task<IActionResult> GetByTipo(string tipo)
     {
