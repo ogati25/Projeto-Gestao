@@ -1,5 +1,5 @@
-using System.Net;
-using System.Net.Mail;
+using SendGrid;
+using SendGrid.Helpers.Mail;
 using Microsoft.Extensions.Options;
 using Projeto_Gestao.Settings;
 
@@ -29,62 +29,35 @@ public class EmailService
         _settings = settings.Value;
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // RESET DE SENHA
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Envia e-mail com link para redefinição de senha.
-    /// Link gerado: {UrlBase}/view/redefinir-senha.html?token={token}
-    /// </summary>
-    public async Task EnviarEmailRecuperacaoSenhaAsync(string destinatario, string nomeUsuario, string token)
-    {
-        var link = $"{_settings.UrlBase}/view/redefinir-senha.html?token={Uri.EscapeDataString(token)}";
-
-        var assunto = "Redefinição de senha — Tech Logistics";
-        var corpo   = MontarCorpoRecuperacaoSenha(nomeUsuario, link);
-
-        await EnviarAsync(destinatario, assunto, corpo);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // VERIFICAÇÃO DE E-MAIL
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Envia e-mail de verificação após o cadastro do usuário.
-    /// Link gerado: {UrlBase}/view/verificar-email.html?token={token}
-    /// </summary>
     public async Task EnviarEmailVerificacaoAsync(string destinatario, string nomeUsuario, string codigo)
     {
         var assunto = "Confirme seu e-mail — Tech Logistics";
         var corpo   = MontarCorpoVerificacaoEmail(nomeUsuario, codigo);
-
         await EnviarAsync(destinatario, assunto, corpo);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // ENVIO GENÉRICO
-    // ─────────────────────────────────────────────────────────────────────────
+    public async Task EnviarEmailRecuperacaoSenhaAsync(string destinatario, string nomeUsuario, string token)
+    {
+        var link    = $"{_settings.UrlBase}/view/redefinir-senha.html?token={Uri.EscapeDataString(token)}";
+        var assunto = "Redefinição de senha — Tech Logistics";
+        var corpo   = MontarCorpoRecuperacaoSenha(nomeUsuario, link);
+        await EnviarAsync(destinatario, assunto, corpo);
+    }
 
     private async Task EnviarAsync(string destinatario, string assunto, string corpoHtml)
     {
-        using var client = new SmtpClient(_settings.SmtpHost, _settings.SmtpPort)
-        {
-            Credentials = new NetworkCredential(_settings.RemetentEmail, _settings.Senha),
-            EnableSsl   = true
-        };
+        var client  = new SendGridClient(_settings.Senha); // Senha vira a API Key
+        var from    = new EmailAddress(_settings.RemetentEmail, _settings.RemetentNome);
+        var to      = new EmailAddress(destinatario);
+        var msg     = MailHelper.CreateSingleEmail(from, to, assunto, plainTextContent: null, htmlContent: corpoHtml);
 
-        using var mensagem = new MailMessage
-        {
-            From       = new MailAddress(_settings.RemetentEmail, _settings.RemetentNome),
-            Subject    = assunto,
-            Body       = corpoHtml,
-            IsBodyHtml = true
-        };
-        mensagem.To.Add(destinatario);
+        var response = await client.SendEmailAsync(msg);
 
-        await client.SendMailAsync(mensagem);
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Body.ReadAsStringAsync();
+            throw new Exception($"SendGrid erro {(int)response.StatusCode}: {body}");
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
