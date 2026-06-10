@@ -117,14 +117,22 @@
         }
         document.documentElement.classList.remove('dark-early');
 
-        // Configura o botão do header
+        // Atualiza o estado visual do botão do header
         const btn = document.getElementById('themeToggle');
-        if (!btn || btn.dataset.temaInit) return; // evita registrar listener duplo
-        btn.dataset.temaInit = '1';
+        if (btn) {
+            const escuro = document.body.classList.contains('dark');
+            btn.classList.toggle('light', !escuro);
+        }
+    }
 
-        if (_temaSalvo === 'light') btn.classList.add('light');
-
-        btn.addEventListener('click', () => {
+    // Usa delegação no document para o clique no themeToggle
+    // Isso funciona independente de quando o botão é injetado
+    function setupTemaDelegado() {
+        if (document._temaClickInit) return;
+        document._temaClickInit = true;
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('#themeToggle');
+            if (!btn) return;
             const escuro = document.body.classList.toggle('dark');
             btn.classList.toggle('light', !escuro);
             localStorage.setItem('tl_theme', escuro ? 'dark' : 'light');
@@ -171,9 +179,13 @@
         setupBusca();
         setupLogout();
         setupTema();
+        setupTemaDelegado();
         setupUsuario();
         setupOverlay();
     }
+
+    // Registra o listener de tema imediatamente — independente do DOM
+    setupTemaDelegado();
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);

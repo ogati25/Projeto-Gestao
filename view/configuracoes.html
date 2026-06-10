@@ -1314,6 +1314,10 @@
                 document.getElementById('themeToggle')?.classList.add('light');
             }
             localStorage.setItem('tl_theme', modo);
+            // Remove o flag do sidebar.js para que ele re-inicialize o botão
+            // na próxima vez que setupTema for chamado
+            const btn = document.getElementById('themeToggle');
+            if (btn) delete btn.dataset.temaInit;
             syncThemeOpts();
             showSaveStrip();
         }
