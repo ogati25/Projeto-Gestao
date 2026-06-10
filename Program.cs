@@ -46,7 +46,7 @@ builder.Services.AddAuthorization();
 
 // Services
 builder.Services.AddSingleton<JwtService>();
-builder.Services.AddSingleton<EmailService>();
+builder.Services.AddTransient<EmailService>();
 builder.Services.AddSingleton<DashboardService>();
 builder.Services.AddSingleton<OpcaoEnumService>();
 builder.Services.AddSingleton<ProcessadorService>();
