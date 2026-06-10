@@ -35,8 +35,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setupMascaraTelefone();
     setupBotaoCadastrar();
     setupVerificacao();
-    carregarSetors();
-
 });
 
 
