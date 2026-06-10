@@ -1256,20 +1256,8 @@
         // =====================================================================
 
         // ── TEMA PERSISTENTE ─────────────────────────────────────────────────
-        (function () {
-            const salvo = localStorage.getItem('tl_theme') || 'light';
-            if (salvo === 'dark') document.body.classList.add('dark');
-            const btn = document.getElementById('themeToggle');
-            if (salvo === 'light') btn.classList.add('light');
+             // tema/avatar gerenciado pelo sidebar.js
 
-            // Toggle do header — usa window.syncThemeOpts para chamar depois que a função existir
-            btn.addEventListener('click', () => {
-                const escuro = document.body.classList.toggle('dark');
-                btn.classList.toggle('light', !escuro);
-                localStorage.setItem('tl_theme', escuro ? 'dark' : 'light');
-                if (typeof syncThemeOpts === 'function') syncThemeOpts();
-            });
-        })();
 
         // ── SIDEBAR ──────────────────────────────────────────────────────────
 
@@ -1295,49 +1283,12 @@
             }
         } catch(_) {}});
 
-        // Clicar na lupa quando sidebar fechada: abre e foca busca
-        document.querySelector('.search-box')?.addEventListener('click', () => {
-            const sidebar = document.getElementById('sidebar');
-            const input   = document.getElementById('sidebarSearch');
-            if (sidebar.classList.contains('closed')) {
-                sidebar.classList.remove('closed');
-                setTimeout(() => input?.focus(), 310);
-            }
-        });
+        // busca gerenciada pelo sidebar.js
 
         // Marca o link ativo conforme a página atual
-        const paginaAtual = (window.location.pathname.split('/').pop() || 'dashboard.html').split('?')[0];
-        document.querySelectorAll('.menu li a').forEach(link => {
-            if (link.getAttribute('href') === paginaAtual) link.parentElement.classList.add('active');
-        });
+        // menu/pagina gerenciado pelo sidebar.js
 
-        // Limpa o campo de busca da sidebar
-        // ── Busca no menu lateral ──────────────────────────────
-        (function () {
-            const input    = document.getElementById('sidebarSearch');
-            const clearBtn = document.querySelector('.clear-btn');
-            const menuItems = document.querySelectorAll('.menu li');
-
-            function filterMenu(q) {
-                const term = q.trim().toLowerCase();
-                menuItems.forEach(li => {
-                    const text = li.textContent.trim().toLowerCase();
-                    li.style.display = (!term || text.includes(term)) ? '' : 'none';
-                });
-                if (clearBtn) {
-                    clearBtn.style.opacity = term ? '1' : '0.4';
-                    clearBtn.style.pointerEvents = term ? 'auto' : 'none';
-                }
-            }
-
-            input?.addEventListener('input', e => filterMenu(e.target.value));
-
-            clearBtn?.addEventListener('click', () => {
-                if (input) { input.value = ''; filterMenu(''); input.focus(); }
-            });
-
-            if (clearBtn) { clearBtn.style.opacity = '0.4'; clearBtn.style.pointerEvents = 'none'; }
-        })();
+        // busca sidebar gerenciada pelo sidebar.js
 
 
         // ── AVATAR ───────────────────────────────────────────────────────────

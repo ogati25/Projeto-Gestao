@@ -263,31 +263,13 @@
     // ============================================================
     //  TEMA & SIDEBAR
     // ============================================================
-    (function () {
-        const saved = localStorage.getItem('tl_theme') || 'light';
-        if (saved === 'dark') document.body.classList.add('dark');
-        const btn = document.getElementById('themeToggle');
-        if (btn) {
-            if (saved === 'light') btn.classList.add('light');
-            btn.addEventListener('click', () => {
-                const isDark = document.body.classList.toggle('dark');
-                btn.classList.toggle('light', !isDark);
-                localStorage.setItem('tl_theme', isDark ? 'dark' : 'light');
-            });
-        }
-        const userData = JSON.parse(localStorage.getItem('tl_user') || '{}');
-        if (userData.nome) {
-        }
-    })();
+    // tema gerenciado pelo sidebar.js
 
     const sidebar = document.getElementById('sidebar');document.querySelector('.clear-btn')?.addEventListener('click', () => {
         document.querySelector('.search-box input').value = '';
     });
 
-    const currentPage = (window.location.pathname.split('/').pop() || 'produtos.html').split('?')[0];
-    document.querySelectorAll('.menu li a').forEach(link => {
-        if (link.getAttribute('href') === currentPage) link.parentElement.classList.add('active');
-    });
+    // menu gerenciado pelo sidebar.js
 
     // ============================================================
     //  TOAST
@@ -438,13 +420,7 @@
             }
         });
         try {
-            var u = JSON.parse(localStorage.getItem('tl_user') || '{}');
-            if (u.nome) {
-                var av = document.getElementById('userAvatar');
-                if (av) av.textContent = u.nome.charAt(0).toUpperCase();
-                var pn = document.getElementById('pdName');
-                if (pn) pn.textContent = u.nome;
-            }
+            // avatar gerenciado pelo sidebar.js
         } catch(e) {}
 </script>
     <script src="js/mobile.js"></script>

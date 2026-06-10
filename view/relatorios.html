@@ -731,28 +731,7 @@
     // ══════════════════════════════════════════════════════════
     //  SIDEBAR & TEMA (mantém comportamento original)
     // ══════════════════════════════════════════════════════════
-    (function () {
-        const saved = localStorage.getItem('tl_theme') || 'light';
-        if (saved === 'dark') document.body.classList.add('dark');
-        const themeBtn = document.getElementById('themeToggle');
-        if (saved === 'light') themeBtn.classList.add('light');
-        themeBtn.addEventListener('click', () => {
-            const isDark = document.body.classList.toggle('dark');
-            themeBtn.classList.toggle('light', !isDark);
-            localStorage.setItem('tl_theme', isDark ? 'dark' : 'light');
-        });
-        try {
-            const u = JSON.parse(localStorage.getItem('tl_user') || '{}');
-            if (u.nome) document.getElementById('userAvatar').textContent = u.nome.charAt(0).toUpperCase();
-        } catch(_) {}
-    })();
-
-    const sidebar = document.getElementById('sidebar');});
-
-    const currentPage = (window.location.pathname.split('/').pop() || 'dashboard.html').split('?')[0];
-    document.querySelectorAll('.menu li a').forEach(link => {
-        if (link.getAttribute('href') === currentPage) link.parentElement.classList.add('active');
-    });
+    // tema/usuario/menu gerenciado pelo sidebar.js
     document.querySelector('.clear-btn')?.addEventListener('click', () => {
         document.querySelector('.search-box input').value = '';
     });

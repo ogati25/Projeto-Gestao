@@ -250,29 +250,11 @@ let _distribuicaoGlobal = null;
 let _ativosGlobal       = null;
 let _inativosGlobal     = null;
 
-// ── TEMA ──────────────────────────────────────────────
-(function () {
-  const saved = localStorage.getItem('tl_theme') || 'light';
-  if (saved === 'dark') document.body.classList.add('dark');
-  const btn = document.getElementById('themeToggle');
-  if (saved === 'light') btn.classList.add('light');
-  btn.addEventListener('click', () => {
-    const isDark = document.body.classList.toggle('dark');
-    btn.classList.toggle('light', !isDark);
-    localStorage.setItem('tl_theme', isDark ? 'dark' : 'light');
-  });
-})();
+// tema gerenciado pelo sidebar.js
 
 // sidebar gerenciada pelo sidebar.js
 
-// ── USUÁRIO ───────────────────────────────────────────
-try {
-  const u = JSON.parse(localStorage.getItem('tl_user') || '{}');
-  if (u.nome) {
-    document.querySelector('.user-avatar').textContent = u.nome.charAt(0).toUpperCase();
-    document.getElementById('greeting-name').textContent = u.nome.split(' ')[0];
-  }
-} catch(_) {}
+// usuario gerenciado pelo sidebar.js
 
 // ── AUTO-REFRESH ──────────────────────────────────────
 var tempoRestante = REFRESH_SEG;
