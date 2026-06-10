@@ -48,21 +48,18 @@ public class UsuariosController : ControllerBase
         }
 
         // Gera código de verificação e envia por e-mail
+        // UsuarioController.cs — método Create
         var codigo = await _usuarioService.GerarTokenVerificacaoEmailAsync(usuario.Id!);
         try
         {
-            _ = Task.Run(async () => {
-                try {
-                    await _emailService.EnviarEmailVerificacaoAsync(usuario.Email, usuario.Nome, codigo);
-                }
-                catch (Exception ex) {
-                    Console.Error.WriteLine($"[EmailService] Erro ao enviar e-mail: {ex.Message}");
-                }
-            });
+            await _emailService.EnviarEmailVerificacaoAsync(usuario.Email, usuario.Nome, codigo);
+            Console.WriteLine($"[Email] Enviado com sucesso para {usuario.Email}");
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[EmailService] Erro ao enviar e-mail de verificação: {ex.Message}");
+            // Troque o fire-and-forget por await temporariamente para ver o erro
+            Console.Error.WriteLine($"[Email] ERRO: {ex.GetType().Name} — {ex.Message}");
+            Console.Error.WriteLine($"[Email] StackTrace: {ex.StackTrace}");
         }
 
         // Retorna o usuário criado com o Id para o frontend iniciar a verificação
