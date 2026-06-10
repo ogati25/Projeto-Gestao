@@ -1294,13 +1294,9 @@
         // ── AVATAR ───────────────────────────────────────────────────────────
         // Exibe a inicial do nome do usuário logado no avatar do header.
         // getUsuarioLogado() vem de login.js.
+        // avatar gerenciado pelo sidebar.js
         (function () {
-            const usuario = getUsuarioLogado();
             const av = document.getElementById('userAvatar');
-            if (usuario?.nome && av) {
-                av.textContent = usuario.nome.charAt(0).toUpperCase();
-            }
-            // Clique no avatar navega para o perfil
             if (av) av.addEventListener('click', () => { window.location.href = 'perfil.html'; });
         })();
 
@@ -1312,10 +1308,10 @@
         function setTheme(modo) {
             if (modo === 'dark') {
                 document.body.classList.add('dark');
-                document.getElementById('themeToggle').classList.remove('light');
+                document.getElementById('themeToggle')?.classList.remove('light');
             } else {
                 document.body.classList.remove('dark');
-                document.getElementById('themeToggle').classList.add('light');
+                document.getElementById('themeToggle')?.classList.add('light');
             }
             localStorage.setItem('tl_theme', modo);
             syncThemeOpts();
