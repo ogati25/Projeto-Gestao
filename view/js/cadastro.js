@@ -248,7 +248,10 @@ function validarFormulario() {
     const nome      = document.getElementById('nome').value.trim();
     const sobrenome = document.getElementById('sobrenome').value.trim();
     const email     = document.getElementById('email').value.trim();
-    const setor     = document.getElementById('setor').value;
+    // O select de setor é substituído por dropdown customizado (dropdown.js)
+    // dataset.originalId = 'setor' → atributo HTML: data-original-id="setor"
+    const setorEl   = document.querySelector('[data-original-id="setor"]') || document.getElementById('setor');
+    const setor     = setorEl?.getValue ? setorEl.getValue() : (setorEl?.value || '');
     const senha     = document.getElementById('senha').value;
     const confirmar = document.getElementById('confirmar').value;
 
@@ -301,7 +304,10 @@ async function handleCadastro() {
     const nome      = document.getElementById('nome').value.trim();
     const sobrenome = document.getElementById('sobrenome').value.trim();
     const email     = document.getElementById('email').value.trim();
-    const setor     = document.getElementById('setor').value;
+    // O select de setor é substituído por dropdown customizado (dropdown.js)
+    // dataset.originalId = 'setor' → atributo HTML: data-original-id="setor"
+    const setorEl   = document.querySelector('[data-original-id="setor"]') || document.getElementById('setor');
+    const setor     = setorEl?.getValue ? setorEl.getValue() : (setorEl?.value || '');
     const telefone  = document.getElementById('telefone')?.value.trim() || null;
     const senha     = document.getElementById('senha').value;
 
