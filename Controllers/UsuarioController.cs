@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using MongoDB.Driver;
 using Projeto_Gestao.Dtos;
 using Projeto_Gestao.Models;
@@ -22,6 +23,7 @@ public class UsuariosController : ControllerBase
     }
 
     // ===================== CRIAÇÃO =====================
+    [AllowAnonymous]
     [HttpPost]
     public async Task<ActionResult<UsuarioResponseDto>> Create([FromBody] UsuarioCreateDto dto)
     {
@@ -132,6 +134,7 @@ public class UsuariosController : ControllerBase
     }
 
     // ===================== AUTENTICAÇÃO (LOGIN) =====================
+    [AllowAnonymous]
     [HttpPost("authenticate")]
     public async Task<IActionResult> Authenticate([FromBody] AuthenticateDto dto)
     {
@@ -153,6 +156,7 @@ public class UsuariosController : ControllerBase
     // POST /api/usuarios/recuperar-senha
     // Body: RecuperarSenhaDto { email }
     // Sempre retorna 200 para não revelar se o e-mail existe (segurança)
+    [AllowAnonymous]
     [HttpPost("recuperar-senha")]
     public async Task<IActionResult> RecuperarSenha([FromBody] RecuperarSenhaDto dto)
     {
@@ -176,6 +180,7 @@ public class UsuariosController : ControllerBase
 
     // POST /api/usuarios/redefinir-senha
     // Body: RedefinirSenhaDto { token, novaSenha }
+    [AllowAnonymous]
     [HttpPost("redefinir-senha")]
     public async Task<IActionResult> RedefinirSenha([FromBody] RedefinirSenhaDto dto)
     {
@@ -191,6 +196,7 @@ public class UsuariosController : ControllerBase
 
     // POST /api/usuarios/{id}/enviar-verificacao
     // Gera e envia (ou reenvia) o e-mail de verificação para o usuário
+    [AllowAnonymous]
     [HttpPost("{id}/enviar-verificacao")]
     public async Task<IActionResult> EnviarVerificacaoEmail(string id)
     {
@@ -218,6 +224,7 @@ public class UsuariosController : ControllerBase
 
     // POST /api/usuarios/confirmar-email
     // Body: VerificarEmailDto { token }
+    [AllowAnonymous]
     [HttpPost("confirmar-email")]
     public async Task<IActionResult> ConfirmarEmail([FromBody] VerificarEmailDto dto)
     {
